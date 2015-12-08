@@ -15,7 +15,7 @@ mkdir -p "$SDK_DIR"
 
 if [ ! -f "$SDK_DIR/$SDK_FILE" ]; then
     echo "Downloading Android SDK"
-    wget -O "$SDK_DIR/$SDK_FILE" "$ANDROID_SDK_DOWNLOAD_URL"
+    wget -4 -O "$SDK_DIR/$SDK_FILE" "$ANDROID_SDK_DOWNLOAD_URL"
 fi
 
 echo "Extracting the SDK"
