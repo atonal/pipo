@@ -13,7 +13,9 @@
             [cider/cider-nrepl "0.8.2"]]
 
   :dependencies [[org.clojure-android/clojure "1.7.0-RC1" :use-resources true]
-                 [neko/neko "4.0.0-alpha5"]]
+                 [neko/neko "4.0.0-alpha5"]
+                 [clj-time "0.11.0"]
+                 [org.clojure/java.jdbc "0.4.2"]]
   :profiles {:default [:dev]
 
              :dev
