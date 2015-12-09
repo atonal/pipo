@@ -1,7 +1,8 @@
 (ns org.pipo.main
     (:require [neko.activity :refer [defactivity set-content-view!]]
               [neko.debug :refer [*a]]
-              [neko.threading :refer [on-ui]]))
+              [neko.threading :refer [on-ui]]
+              [org.pipo.database :as db]))
 
 (defactivity org.pipo.MyActivity
   :key :main
