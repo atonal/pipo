@@ -21,8 +21,6 @@
     (fn [] (get-my-cursor)) ;; cursor-fn
     ))
 
-
-
 (defn main-layout [ctx]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
