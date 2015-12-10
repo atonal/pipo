@@ -21,14 +21,14 @@
 
 (defn pipo-db [] (db/get-database (get-db-helper) :write))
 
-(defn add-punch [type-str ^org.joda.time.DateTime unix-time]
+(defn add-punch [type-str ^org.joda.time.DateTime punch-time]
   (db/insert (pipo-db) :hours {:type type-str
-                               :time (c/to-epoch unix-time)}))
+                               :time (c/to-epoch punch-time)}))
 
-(defn punch-in [^org.joda.time.DateTime unix-time]
+(defn punch-in [unix-time]
   (add-punch "in" unix-time))
 
-(defn punch-out [^org.joda.time.DateTime unix-time]
+(defn punch-out [unix-time]
   (add-punch "out" unix-time))
 
 (defn get-punches [where-clause-str]
