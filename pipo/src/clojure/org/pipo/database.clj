@@ -47,7 +47,10 @@
   (db/insert (pipo-single-db) :hours {:type "in"
                                       :time (c/to-epoch unix-time)}))
 
+(defn pipo-single-get-punches []
+  (db/query (pipo-single-db) :hours "time >= 555"))
 
+; (pipo-single-get-punches)
 ; (db/query-seq (pipo-db) :hours {:start [:or 555 1234]})
 ; (db/query-seq (pipo-db) :hours "start >= 555")
 ; (db/query-seq (pipo-db) :hours {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
@@ -57,5 +60,5 @@
 ; (t/now)
 ; (f/show-formatters)
 ; (pipo-add (t/date-time 2013 3 4) (t/now))
-; (pipo-single-add (t/date-time 2013 3 4))
+; (pipo-single-add (t/date-time 2015 3 4))
 ; (db/query-seq (pipo-single-db) :hours "time >= 555 AND type = 'in'")
