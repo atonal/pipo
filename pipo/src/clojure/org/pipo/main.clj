@@ -8,7 +8,7 @@
               [org.pipo.database :as db]))
 
 (defn get-my-cursor []
-  (db/get-punches))
+  (db/get-punches "time >= 555"))
 
 (defn make-punch-adapter [ctx]
   (cursor-adapter

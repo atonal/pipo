@@ -25,8 +25,9 @@
   (db/insert (pipo-db) :hours {:type "in"
                                :time (c/to-epoch unix-time)}))
 
-(defn get-punches []
-  (db/query (pipo-db) :hours "time >= 555"))
+(defn get-punches [where-clause-str]
+  (if (instance? String where-clause-str)
+    (db/query (pipo-db) :hours "time >= 555")))
 
 ; (get-punches)
 ; (db/query-seq (pipo-db) :hours {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
