@@ -31,15 +31,18 @@
                 :layout-height [0 :dp]
                 :layout-weight 1}]])
 
+(defn update-punch-list [ctx]
+  (let [^android.widget.ListView lv (find-view ctx ::punch-list)]
+    ;; update-cursor called with 1 argument because cursor-adapter was
+    ;; initialized with a cursor-fn instead of cursor
+    (update-cursor (.getAdapter lv))))
+
 (defactivity org.pipo.MyActivity
   :key :main
-
   (onCreate [this bundle]
-    (.superOnCreate this bundle)
-    (on-ui
-      (set-content-view!
-        this
-        (main-layout this)))
-    (let [^android.widget.ListView lv (find-view this ::punch-list)]
-      (update-cursor (.getAdapter lv))) ;; called with 1 argument because cursor-adapter was initialized with a cursor-fn instead of cursor
-    ))
+            (.superOnCreate this bundle)
+            (on-ui
+              (set-content-view!
+                this
+                (main-layout this)))
+            (update-punch-list this)))
