@@ -6,7 +6,8 @@
               [neko.ui :refer [config]]
               [neko.ui.adapters :refer [cursor-adapter update-cursor]]
               [clj-time.local :as l]
-              [org.pipo.database :as db]))
+              [org.pipo.database :as db])
+    (:import [android.widget AbsListView]))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -52,6 +53,7 @@
    [:text-view {:text "PiPo!"}]
    [:list-view {:id ::punch-list
                 :adapter (make-punch-adapter ctx)
+                :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]
    [:linear-layout {:orientation :horizontal
