@@ -46,7 +46,7 @@
       nil)))
 
 (defn wipe-db []
-  (.delete (.db (pipo-db)) "hours" "1" nil))
+  (-> (pipo-db) .db (.delete "hours" "1" nil)))
 
 ; (time-to-str (t/date-time 1998 4 3))
 ; (get-punches 2)
