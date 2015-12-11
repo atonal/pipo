@@ -6,6 +6,11 @@
             [clj-time.local :as l]
             [clj-time.format :as f]))
 
+(def basic-formatter (f/formatters :mysql))
+
+(defn time-to-str [^org.joda.time.DateTime date-time]
+  (f/unparse basic-formatter date-time))
+
 (def pipo-schema
   (db/make-schema
    :name "pipo.db"
@@ -23,6 +28,7 @@
 (defn pipo-db [] (db/get-database (get-db-helper) :write))
 
 (defn add-punch [type-str ^org.joda.time.DateTime punch-time]
+  (log/d "add-punch:" type-str (time-to-str punch-time))
   (db/insert (pipo-db) :hours {:type type-str
                                :time (c/to-epoch punch-time)}))
 
@@ -39,6 +45,7 @@
       (log/w "get-punches - input not a string: " where-clause-str)
       nil)))
 
+; (time-to-str (t/date-time 1998 4 3))
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :hours {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
 ; (c/to-epoch (t/date-time 1998 4 25 12 12 12))
