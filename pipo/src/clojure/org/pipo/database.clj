@@ -1,5 +1,6 @@
 (ns org.pipo.database
   (:require [neko.data.sqlite :as db]
+            [neko.log :as log]
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clj-time.local :as l]
@@ -33,9 +34,12 @@
 
 (defn get-punches [where-clause-str]
   (if (instance? String where-clause-str)
-    (db/query (pipo-db) :hours "time >= 555")))
+    (db/query (pipo-db) :hours where-clause-str)
+    (do
+      (log/w "get-punches - input not a string: " where-clause-str)
+      nil)))
 
-; (get-punches)
+; (get-punches 2)
 ; (db/query-seq (pipo-db) :hours {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
 ; (c/to-epoch (t/date-time 1998 4 25 12 12 12))
 ; (f/show-formatters)
