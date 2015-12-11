@@ -10,6 +10,8 @@
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
+(def ^:const TEXT_REFRESH "refresh")
+(def ^:const TEXT_WIPE "wipe")
 
 (defn get-my-cursor []
   (db/get-punches "time >= 555"))
@@ -39,6 +41,10 @@
   (db/punch-out (l/local-now))
   (update-punch-list ctx))
 
+(defn wipe-db [ctx]
+  (db/wipe)
+  (update-punch-list ctx))
+
 (defn main-layout [ctx]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
@@ -60,7 +66,18 @@
               :layout-width :wrap
               :layout-height :wrap
               :text TEXT_PUNCH_OUT
-              :on-click (fn [_] (punch-out ctx))}]]
+              :on-click (fn [_] (punch-out ctx))}]
+    [:button {:id ::refresh-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_REFRESH
+              :on-click (fn [_] (update-punch-list ctx))}]
+    [:button {:id ::wipe-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_WIPE
+              :on-click (fn [_] (wipe-db ctx))}]
+    ]
    ])
 
 (defactivity org.pipo.MyActivity

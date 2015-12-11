@@ -45,7 +45,7 @@
       (log/w "get-punches - input not a string: " where-clause-str)
       nil)))
 
-(defn wipe-db []
+(defn wipe []
   (-> (pipo-db) .db (.delete "hours" "1" nil)))
 
 ; (time-to-str (t/date-time 1998 4 3))
