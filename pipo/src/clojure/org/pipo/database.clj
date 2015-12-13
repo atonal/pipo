@@ -48,6 +48,9 @@
       (log/w "get-punches - input not a string: " where-clause-str)
       nil)))
 
+(defn get-latest-punch []
+  (db/query-seq (pipo-db) :hours "time in (select max(time) from hours)"))
+
 (defn wipe []
   (-> (pipo-db) .db (.delete "hours" "1" nil)))
 
