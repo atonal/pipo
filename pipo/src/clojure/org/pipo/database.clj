@@ -9,10 +9,10 @@
 (def ^:const IN "in")
 (def ^:const OUT "out")
 
-(def basic-formatter (f/formatters :mysql))
+(def time-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
 
 (defn time-to-str [^org.joda.time.DateTime date-time]
-  (f/unparse basic-formatter date-time))
+  (f/unparse time-formatter date-time))
 
 (def pipo-schema
   (db/make-schema
