@@ -21,7 +21,7 @@
    :tables {:hours
             {:columns {:_id "integer primary key"
                        :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
-                       :time "integer not null default '0'"
+                       :time "long not null default '0'"
                        }}}))
 
 (def get-db-helper
@@ -33,7 +33,7 @@
 (defn add-punch [type-str ^org.joda.time.DateTime punch-time]
   (log/d "add-punch:" type-str (time-to-str punch-time))
   (db/insert (pipo-db) :hours {:type type-str
-                               :time (c/to-epoch punch-time)}))
+                               :time (c/to-long punch-time)}))
 
 (defn punch-in [unix-time]
   (add-punch IN unix-time))
