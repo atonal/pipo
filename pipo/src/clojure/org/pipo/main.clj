@@ -69,22 +69,29 @@
     ;; initialized with a cursor-fn instead of cursor
     (update-cursor (.getAdapter lv))))
 
-(defn update-state []
+(defn update-state [ctx]
   (let [latest (:type (first (db/get-latest-punch)))]
     (cond
-      (= latest db/IN) (pref-set PREF_STATE STATE_IN)
-      (= latest db/OUT) (pref-set PREF_STATE STATE_OUT)
+      (= latest db/IN) (do
+                         (pref-set PREF_STATE STATE_IN)
+                         (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
+                         (on-ui (config (find-view ctx ::punch-out-bt) :enabled true))
+                         )
+      (= latest db/OUT) (do
+                          (pref-set PREF_STATE STATE_OUT)
+                          (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
+                          (on-ui (config (find-view ctx ::punch-out-bt) :enabled false)))
       :else (log/w "Couldn't get the latest punch:" latest "not equal to" db/IN "or" db/OUT))))
 
 (defn punch-in [ctx]
   (db/punch-in (l/local-now))
   (update-punch-list ctx)
-  (update-state))
+  (update-state ctx))
 
 (defn punch-out [ctx]
   (db/punch-out (l/local-now))
   (update-punch-list ctx)
-  (update-state))
+  (update-state ctx))
 
 (defn wipe-db [ctx]
   (db/wipe)
@@ -142,5 +149,5 @@
                 this
                 (main-layout this)))
             (create-watchers this)
-            (update-state)
+            (update-state this)
             (update-punch-list this)))
