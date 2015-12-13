@@ -6,6 +6,9 @@
             [clj-time.local :as l]
             [clj-time.format :as f]))
 
+(def ^:const IN "in")
+(def ^:const OUT "out")
+
 (def basic-formatter (f/formatters :mysql))
 
 (defn time-to-str [^org.joda.time.DateTime date-time]
@@ -17,7 +20,7 @@
    :version 1
    :tables {:hours
             {:columns {:_id "integer primary key"
-                       :type "text check(type in ('in','out')) not null default 'in'"
+                       :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
                        :time "integer not null default '0'"
                        }}}))
 
@@ -33,10 +36,10 @@
                                :time (c/to-epoch punch-time)}))
 
 (defn punch-in [unix-time]
-  (add-punch "in" unix-time))
+  (add-punch IN unix-time))
 
 (defn punch-out [unix-time]
-  (add-punch "out" unix-time))
+  (add-punch OUT unix-time))
 
 (defn get-punches [where-clause-str]
   (if (instance? String where-clause-str)
