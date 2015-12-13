@@ -48,17 +48,20 @@
       (log/w "get-punches - input not a string: " where-clause-str)
       nil)))
 
-(defn get-latest-punch [type-str]
+(defn get-latest-punch []
+  (db/query-seq (pipo-db) :hours "time in (select max(time) from hours)"))
+
+(defn get-latest-punch-type [type-str]
   (db/query-seq
     (pipo-db)
     :hours
     (str "time in (select max(time) from hours where type = '" type-str "')")))
 
 (defn get-latest-punch-in []
-  (get-latest-punch IN))
+  (get-latest-punch-type IN))
 
 (defn get-latest-punch-out []
-  (get-latest-punch OUT))
+  (get-latest-punch-type OUT))
 
 (defn wipe []
   (-> (pipo-db) .db (.delete "hours" "1" nil)))
