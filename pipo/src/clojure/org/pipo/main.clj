@@ -5,6 +5,8 @@
               [neko.find-view :refer [find-view]]
               [neko.ui :refer [config]]
               [neko.ui.adapters :refer [cursor-adapter update-cursor]]
+              [neko.data.shared-prefs :refer [defpreferences]]
+              [neko.log :as log]
               [clj-time.local :as l]
               [org.pipo.database :as db])
     (:import [android.widget AbsListView]))
@@ -13,6 +15,39 @@
 (def ^:const TEXT_PUNCH_OUT "punch out")
 (def ^:const TEXT_REFRESH "refresh")
 (def ^:const TEXT_WIPE "wipe")
+(def ^:const STATE_IN "IN")
+(def ^:const STATE_OUT "OUT")
+(defpreferences pipo-prefs "pipo_sp")
+
+; TODO: get the key from the pref-name
+(defmacro defpref [pref-name pref-key default]
+  `(def ~(vary-meta pref-name assoc :tag `:const) {:key ~pref-key :default ~default}))
+
+(defpref PREF_STATE :state STATE_OUT)
+
+(defn pref-set-named [pref-atom pref-name new-val]
+  (swap! pref-atom assoc (:key pref-name) new-val))
+
+(defn pref-set [pref-name new-val]
+  (pref-set-named pipo-prefs pref-name new-val))
+
+(defn pref-get [pref-name & pref-state]
+  (let [pref (or (first pref-state) @pipo-prefs)]
+    (or
+      ((:key pref-name) pref)
+      (:default pref-name))))
+
+(defn set-text [ctx elmt s]
+  (on-ui (config (find-view ctx elmt) :text s)))
+
+(defn get-text [ctx elmt]
+  (str (.getText ^android.widget.TextView (find-view ctx elmt))))
+
+(defn create-watchers [ctx]
+  (add-watch pipo-prefs :state-watcher
+             (fn [key atom old-state new-state]
+               (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
+  )
 
 (defn get-my-cursor []
   (db/get-punches "time >= 555"))
@@ -34,13 +69,22 @@
     ;; initialized with a cursor-fn instead of cursor
     (update-cursor (.getAdapter lv))))
 
+(defn update-state []
+  (let [latest (:type (first (db/get-latest-punch)))]
+    (cond
+      (= latest db/IN) (pref-set PREF_STATE STATE_IN)
+      (= latest db/OUT) (pref-set PREF_STATE STATE_OUT)
+      :else (log/w "Couldn't get the latest punch:" latest "not equal to" db/IN "or" db/OUT))))
+
 (defn punch-in [ctx]
   (db/punch-in (l/local-now))
-  (update-punch-list ctx))
+  (update-punch-list ctx)
+  (update-state))
 
 (defn punch-out [ctx]
   (db/punch-out (l/local-now))
-  (update-punch-list ctx))
+  (update-punch-list ctx)
+  (update-state))
 
 (defn wipe-db [ctx]
   (db/wipe)
@@ -56,6 +100,13 @@
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]
+   [:text-view {:id ::state-tv
+                :layout-width :fill
+                :layout-height :wrap
+                :gravity :right
+                :layout-gravity :center
+                :text (pref-get PREF_STATE)
+                }]
    [:linear-layout {:orientation :horizontal
                     :layout-width :match-parent
                     :layout-height :wrap}
@@ -90,4 +141,6 @@
               (set-content-view!
                 this
                 (main-layout this)))
+            (create-watchers this)
+            (update-state)
             (update-punch-list this)))
