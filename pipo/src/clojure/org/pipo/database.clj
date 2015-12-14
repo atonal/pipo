@@ -19,10 +19,15 @@
    :name "pipo.db"
    :version 1
    :tables {:punches
-            {:columns {:_id "integer primary key"
-                       :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
-                       :time "long not null default '0'"
-                       }}}))
+            {:columns
+             {:_id "integer primary key"
+              :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
+              :time "long not null default '0'"}}
+            :hours
+            {:columns
+             {:_id "integer primary key"
+              :start-id "integer not null"
+              :stop-id "integer not null"}}}))
 
 (defn get-id [entry-seq]
   (:_id entry-seq))
