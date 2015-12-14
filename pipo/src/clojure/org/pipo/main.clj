@@ -71,17 +71,15 @@
 
 (defn update-state [ctx]
   (let [latest (:type (first (db/get-latest-punch)))]
-    (cond
-      (= latest db/IN) (do
-                         (pref-set PREF_STATE STATE_IN)
-                         (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
-                         (on-ui (config (find-view ctx ::punch-out-bt) :enabled true))
-                         )
-      (= latest db/OUT) (do
-                          (pref-set PREF_STATE STATE_OUT)
-                          (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
-                          (on-ui (config (find-view ctx ::punch-out-bt) :enabled false)))
-      :else (log/w "Couldn't get the latest punch:" latest "not equal to" db/IN "or" db/OUT))))
+    (if (= latest db/IN)
+      (do
+        (pref-set PREF_STATE STATE_IN)
+        (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
+        (on-ui (config (find-view ctx ::punch-out-bt) :enabled true)))
+      (do
+        (pref-set PREF_STATE STATE_OUT)
+        (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
+        (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
 
 (defn punch-in [ctx]
   (db/punch-in (l/local-now))
@@ -95,7 +93,8 @@
 
 (defn wipe-db [ctx]
   (db/wipe)
-  (update-punch-list ctx))
+  (update-punch-list ctx)
+  (update-state ctx))
 
 (defn main-layout [ctx]
   [:linear-layout {:orientation :vertical
