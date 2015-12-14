@@ -18,7 +18,7 @@
   (db/make-schema
    :name "pipo.db"
    :version 1
-   :tables {:hours
+   :tables {:punches
             {:columns {:_id "integer primary key"
                        :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
                        :time "long not null default '0'"
@@ -41,7 +41,7 @@
 
 (defn add-punch [type-str ^org.joda.time.DateTime punch-time]
   (log/d "add-punch:" type-str (time-to-str punch-time))
-  (db/insert (pipo-db) :hours {:type type-str
+  (db/insert (pipo-db) :punches {:type type-str
                                :time (c/to-long punch-time)}))
 
 (defn punch-in [unix-time]
@@ -52,19 +52,19 @@
 
 (defn get-punches [where-clause-str]
   (if (instance? String where-clause-str)
-    (db/query (pipo-db) :hours where-clause-str)
+    (db/query (pipo-db) :punches where-clause-str)
     (do
       (log/w "get-punches - input not a string: " where-clause-str)
       nil)))
 
 (defn get-latest-punch []
-  (db/query-seq (pipo-db) :hours "time in (select max(time) from hours)"))
+  (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)"))
 
 (defn get-latest-punch-type [type-str]
   (db/query-seq
     (pipo-db)
-    :hours
-    (str "time in (select max(time) from hours where type = '" type-str "')")))
+    :punches
+    (str "time in (select max(time) from punches where type = '" type-str "')")))
 
 (defn get-latest-punch-in []
   (get-latest-punch-type IN))
@@ -73,13 +73,13 @@
   (get-latest-punch-type OUT))
 
 (defn wipe []
-  (-> (pipo-db) .db (.delete "hours" "1" nil)))
+  (-> (pipo-db) .db (.delete "punches" "1" nil)))
 
 ; (get-punches 2)
-; (db/query-seq (pipo-db) :hours {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
+; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
 ; (c/to-epoch (t/date-time 1998 4 25 12 12 12))
 ; (f/show-formatters)
 ; (add-punch (t/date-time 2015 3 4))
 ; (punch-in (t/date-time 2014 4 5))
 ; (punch-out (t/date-time 2015 4 5))
-; (db/query-seq (pipo-db) :hours "time >= 555 AND type = 'in'")
+; (db/query-seq (pipo-db) :punches "time >= 555 AND type = 'in'")
