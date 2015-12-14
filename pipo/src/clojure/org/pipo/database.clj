@@ -24,6 +24,15 @@
                        :time "long not null default '0'"
                        }}}))
 
+(defn get-id [entry-seq]
+  (:_id entry-seq))
+
+(defn get-type [entry-seq]
+  (:type entry-seq))
+
+(defn get-time [entry-seq]
+  (:time entry-seq))
+
 (def get-db-helper
   (memoize
     (fn [] (db/create-helper pipo-schema))))

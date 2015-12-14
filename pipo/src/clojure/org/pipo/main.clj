@@ -70,8 +70,8 @@
     (update-cursor (.getAdapter lv))))
 
 (defn update-state [ctx]
-  (let [latest (:type (first (db/get-latest-punch)))]
-    (if (= latest db/IN)
+  (let [type-latest (db/get-type (first (db/get-latest-punch)))]
+    (if (= type-latest db/IN)
       (do
         (pref-set PREF_STATE STATE_IN)
         (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
