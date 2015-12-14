@@ -93,7 +93,8 @@
   (get-latest-punch-type OUT))
 
 (defn wipe []
-  (-> (pipo-db) .db (.delete "punches" "1" nil)))
+  (-> (pipo-db) .db (.delete "punches" "1" nil))
+  (-> (pipo-db) .db (.delete "hours" "1" nil)))
 
 (defn punch-out [unix-time]
   (let [out-id (add-punch OUT unix-time)]
