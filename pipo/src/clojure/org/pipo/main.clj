@@ -49,8 +49,11 @@
                (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
   )
 
-(defn get-my-cursor []
-  (db/get-punches "time >= 555"))
+(defn get-punch-cursor []
+  (db/get-punches ""))
+
+(defn get-hours-cursor []
+  (db/get-hours ""))
 
 (defn make-punch-adapter [ctx]
   (cursor-adapter
@@ -60,8 +63,18 @@
     (fn [view _ data]
       (let [tv (find-view view ::caption-tv)]
         (config tv :text (str data))))
-    (fn [] (get-my-cursor)) ;; cursor-fn
+    (fn [] (get-punch-cursor)) ;; cursor-fn
     ))
+
+(defn make-hours-adapter [ctx]
+  (cursor-adapter
+    ctx
+    (fn [] [:linear-layout {:id-holder true}
+            [:text-view {:id ::caption-tv}]])
+    (fn [view _ data]
+      (let [tv (find-view view ::caption-tv)]
+        (config tv :text (str data))))
+    (fn [] (get-hours-cursor))))
 
 (defn update-punch-list [ctx]
   (let [^android.widget.ListView lv (find-view ctx ::punch-list)]
@@ -69,8 +82,18 @@
     ;; initialized with a cursor-fn instead of cursor
     (update-cursor (.getAdapter lv))))
 
+(defn update-hours-list [ctx]
+  (let [^android.widget.ListView lv (find-view ctx ::hours-list)]
+    ;; update-cursor called with 1 argument because cursor-adapter was
+    ;; initialized with a cursor-fn instead of cursor
+    (update-cursor (.getAdapter lv))))
+
+(defn update-cursors [ctx]
+  (update-punch-list ctx)
+  (update-hours-list ctx))
+
 (defn update-state [ctx]
-  (let [type-latest (db/get-type (first (db/get-latest-punch)))]
+  (let [type-latest (db/get-type (db/get-latest-punch))]
     (if (= type-latest db/IN)
       (do
         (pref-set PREF_STATE STATE_IN)
@@ -83,17 +106,17 @@
 
 (defn punch-in [ctx]
   (db/punch-in (l/local-now))
-  (update-punch-list ctx)
+  (update-cursors ctx)
   (update-state ctx))
 
 (defn punch-out [ctx]
   (db/punch-out (l/local-now))
-  (update-punch-list ctx)
+  (update-cursors ctx)
   (update-state ctx))
 
 (defn wipe-db [ctx]
   (db/wipe)
-  (update-punch-list ctx)
+  (update-cursors ctx)
   (update-state ctx))
 
 (defn main-layout [ctx]
@@ -103,6 +126,11 @@
    [:text-view {:text "PiPo!"}]
    [:list-view {:id ::punch-list
                 :adapter (make-punch-adapter ctx)
+                :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                :layout-height [0 :dp]
+                :layout-weight 1}]
+   [:list-view {:id ::hours-list
+                :adapter (make-hours-adapter ctx)
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]
@@ -130,7 +158,7 @@
               :layout-width :wrap
               :layout-height :wrap
               :text TEXT_REFRESH
-              :on-click (fn [_] (update-punch-list ctx))}]
+              :on-click (fn [_] (update-cursors ctx))}]
     [:button {:id ::wipe-bt
               :layout-width :wrap
               :layout-height :wrap
@@ -149,4 +177,4 @@
                 (main-layout this)))
             (create-watchers this)
             (update-state this)
-            (update-punch-list this)))
+            (update-cursors this)))

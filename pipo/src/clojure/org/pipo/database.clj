@@ -26,8 +26,8 @@
             :hours
             {:columns
              {:_id "integer primary key"
-              :start-id "integer not null"
-              :stop-id "integer not null"}}}))
+              :start_id "integer not null"
+              :stop_id "integer not null"}}}))
 
 (defn get-id [entry-seq]
   (:_id entry-seq))
@@ -47,13 +47,15 @@
 (defn add-punch [type-str ^org.joda.time.DateTime punch-time]
   (log/d "add-punch:" type-str (time-to-str punch-time))
   (db/insert (pipo-db) :punches {:type type-str
-                               :time (c/to-long punch-time)}))
+                                 :time (c/to-long punch-time)}))
+
+(defn get-punch-seq-id [id]
+  (first (db/query-seq (pipo-db) :punches {:_id id})))
 
 (defn punch-in [unix-time]
-  (add-punch IN unix-time))
-
-(defn punch-out [unix-time]
-  (add-punch OUT unix-time))
+  (let [id (add-punch IN unix-time)]
+    (if (< id 0)
+      (log/e "punch-in failed"))))
 
 (defn get-punches [where-clause-str]
   (if (instance? String where-clause-str)
@@ -62,14 +64,27 @@
       (log/w "get-punches - input not a string: " where-clause-str)
       nil)))
 
+(defn add-hours [start-id stop-id]
+  (log/d "add-hours:" start-id stop-id)
+  (db/insert (pipo-db) :hours {:start_id start-id
+                               :stop_id stop-id}))
+
+(defn get-hours [where-clause-str]
+  (if (instance? String where-clause-str)
+    (db/query (pipo-db) :hours where-clause-str)
+    (do
+      (log/w "get-hours - input not a string: " where-clause-str)
+      nil)))
+
 (defn get-latest-punch []
-  (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)"))
+  (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
 
 (defn get-latest-punch-type [type-str]
-  (db/query-seq
-    (pipo-db)
-    :punches
-    (str "time in (select max(time) from punches where type = '" type-str "')")))
+  (first
+    (db/query-seq
+      (pipo-db)
+      :punches
+      (str "time in (select max(time) from punches where type = '" type-str "')"))))
 
 (defn get-latest-punch-in []
   (get-latest-punch-type IN))
@@ -79,6 +94,12 @@
 
 (defn wipe []
   (-> (pipo-db) .db (.delete "punches" "1" nil)))
+
+(defn punch-out [unix-time]
+  (let [out-id (add-punch OUT unix-time)]
+    (if (< out-id 0)
+      (log/e "punch-out failed")
+      (add-hours (get-id (get-latest-punch-in)) out-id))))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
