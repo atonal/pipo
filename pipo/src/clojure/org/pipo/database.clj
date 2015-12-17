@@ -102,6 +102,27 @@
       (log/e "punch-out failed")
       (add-hours (get-id (get-latest-punch-in)) out-id))))
 
+(defn monday-from-dt [^org.joda.time.DateTime dt]
+  (t/minus dt (t/days (- (t/day-of-week dt) 1))))
+
+; (monday-from-dt (t/now))
+
+;; test
+; (t/week-number-of-year
+;   (t/plus
+;     (monday-from-dt (t/date-time 2015))
+;     (t/weeks (- (t/week-number-of-year (t/now)) 1))))
+
+(defn monday-from-week-number [week-nr year]
+  ; week-nr has to be 1-53 ?
+  (t/plus
+    (monday-from-dt (t/date-time year))
+    (t/weeks (- week-nr 1))))
+
+; (monday-from-week-number 53 2015)
+; (t/week-number-of-year (t/now))
+; (t/day-of-week (t/now))
+
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
 ; (c/to-epoch (t/date-time 1998 4 25 12 12 12))
