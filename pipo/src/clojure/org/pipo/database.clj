@@ -4,6 +4,7 @@
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clj-time.local :as l]
+            [clj-time.periodic :as p]
             [clj-time.format :as f]))
 
 (def ^:const IN "in")
@@ -119,6 +120,10 @@
     (monday-from-dt (t/date-time year))
     (t/weeks (- week-nr 1))))
 
+(defn week-from-week-number [week-nr year]
+  (take 7 (p/periodic-seq (monday-from-week-number week-nr year) (t/days 1))))
+
+; (week-from-week-number 53 2015)
 ; (monday-from-week-number 53 2015)
 ; (t/week-number-of-year (t/now))
 ; (t/day-of-week (t/now))
