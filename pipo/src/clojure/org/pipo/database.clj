@@ -131,7 +131,13 @@
       nil)
     (take 7 (p/periodic-seq (monday-from-week-number week-nr year) (t/days 1)))))
 
-; (map time-to-str (week-from-week-number 52 2014))
+(defn get-next-week [week-nr year]
+  (if (> (+ week-nr 1) (weeks-in-year year))
+    {:week 1 :year (+ year 1)}
+    {:week (+ week-nr 1) :year year}))
+
+; (get-next-week 52 2014)
+; (map time-to-str (week-from-week-number 53 2014))
 ; (weeks-in-year 2014)
 ; (time-to-str (monday-from-week-number 53 2014))
 ; (t/week-number-of-year (monday-from-week-number 53 2014))
