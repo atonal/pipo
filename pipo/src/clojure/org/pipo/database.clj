@@ -5,15 +5,10 @@
             [clj-time.coerce :as c]
             [clj-time.local :as l]
             [clj-time.periodic :as p]
-            [clj-time.format :as f]))
+            [org.pipo.utils :as utils]))
 
 (def ^:const IN "in")
 (def ^:const OUT "out")
-
-(def time-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
-
-(defn time-to-str [^org.joda.time.DateTime date-time]
-  (f/unparse time-formatter date-time))
 
 (def pipo-schema
   (db/make-schema
@@ -46,7 +41,7 @@
 (defn pipo-db [] (db/get-database (get-db-helper) :write))
 
 (defn add-punch [type-str ^org.joda.time.DateTime punch-time]
-  (log/d "add-punch:" type-str (time-to-str punch-time))
+  (log/d "add-punch:" type-str (utils/time-to-str punch-time))
   (db/insert (pipo-db) :punches {:type type-str
                                  :time (c/to-long punch-time)}))
 
@@ -106,7 +101,6 @@
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
 ; (c/to-epoch (t/date-time 1998 4 25 12 12 12))
-; (f/show-formatters)
 ; (add-punch (t/date-time 2015 3 4))
 ; (punch-in (t/date-time 2014 4 5))
 ; (punch-out (t/date-time 2015 4 5))

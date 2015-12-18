@@ -1,7 +1,13 @@
 (ns org.pipo.utils
   (:require [neko.log :as log]
             [clj-time.core :as t]
+            [clj-time.format :as f]
             [clj-time.periodic :as p]))
+
+(def time-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
+
+(defn time-to-str [^org.joda.time.DateTime date-time]
+  (f/unparse time-formatter date-time))
 
 (defn previous-monday [^org.joda.time.DateTime dt]
   (t/minus dt (t/days (- (t/day-of-week dt) 1))))
@@ -35,14 +41,3 @@
   (if (> (+ week-nr 1) (weeks-in-year year))
     {:week 1 :year (+ year 1)}
     {:week (+ week-nr 1) :year year}))
-
-; (get-next-week 52 2014)
-; (map time-to-str (week-from-week-number 53 2014))
-; (weeks-in-year 2014)
-; (time-to-str (monday-from-week-number 53 2014))
-; (t/week-number-of-year (monday-from-week-number 53 2014))
-; (t/week-number-of-year (t/last-day-of-the-month (t/date-time 2015 12)))
-; (t/week-number-of-year (t/date-time 2016))
-; (t/week-number-of-year (t/now))
-; (t/day-of-week (t/now))
-
