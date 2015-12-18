@@ -103,28 +103,40 @@
       (log/e "punch-out failed")
       (add-hours (get-id (get-latest-punch-in)) out-id))))
 
-(defn monday-from-dt [^org.joda.time.DateTime dt]
+(defn previous-monday [^org.joda.time.DateTime dt]
   (t/minus dt (t/days (- (t/day-of-week dt) 1))))
 
-; (monday-from-dt (t/now))
-
-;; test
-; (t/week-number-of-year
-;   (t/plus
-;     (monday-from-dt (t/date-time 2015))
-;     (t/weeks (- (t/week-number-of-year (t/now)) 1))))
+(defn weeks-in-year [year]
+  (if (= 53 (t/week-number-of-year
+              (t/last-day-of-the-month
+                (t/date-time year 12))))
+    53
+    52))
 
 (defn monday-from-week-number [week-nr year]
-  ; week-nr has to be 1-53 ?
-  (t/plus
-    (monday-from-dt (t/date-time year))
-    (t/weeks (- week-nr 1))))
+  (if (> week-nr (weeks-in-year year))
+    (do
+      (log/w "not that many weeks in year")
+      nil)
+    (let [years-first-day (t/date-time year)
+          weeks-to-step (if (> (t/day-of-week years-first-day) 4) week-nr (- week-nr 1))]
+      (t/plus
+        (previous-monday years-first-day)
+        (t/weeks weeks-to-step)))))
 
 (defn week-from-week-number [week-nr year]
-  (take 7 (p/periodic-seq (monday-from-week-number week-nr year) (t/days 1))))
+  (if (> week-nr (weeks-in-year year))
+    (do
+      (log/w "not that many weeks in year")
+      nil)
+    (take 7 (p/periodic-seq (monday-from-week-number week-nr year) (t/days 1)))))
 
-; (week-from-week-number 53 2015)
-; (monday-from-week-number 53 2015)
+; (map time-to-str (week-from-week-number 52 2014))
+; (weeks-in-year 2014)
+; (time-to-str (monday-from-week-number 53 2014))
+; (t/week-number-of-year (monday-from-week-number 53 2014))
+; (t/week-number-of-year (t/last-day-of-the-month (t/date-time 2015 12)))
+; (t/week-number-of-year (t/date-time 2016))
 ; (t/week-number-of-year (t/now))
 ; (t/day-of-week (t/now))
 
