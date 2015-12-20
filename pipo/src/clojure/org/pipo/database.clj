@@ -22,6 +22,7 @@
             :hours
             {:columns
              {:_id "integer primary key"
+              :date "integer not null"
               :start_id "integer not null"
               :stop_id "integer not null"}}}))
 
@@ -45,7 +46,7 @@
   (db/insert (pipo-db) :punches {:type type-str
                                  :time (c/to-long punch-time)}))
 
-(defn get-punch-seq-id [id]
+(defn get-punch-with-id [id]
   (first (db/query-seq (pipo-db) :punches {:_id id})))
 
 (defn punch-in [unix-time]
@@ -62,7 +63,11 @@
 
 (defn add-hours [start-id stop-id]
   (log/d "add-hours:" start-id stop-id)
-  (db/insert (pipo-db) :hours {:start_id start-id
+  (db/insert (pipo-db) :hours {:date (c/to-epoch
+                                       (c/from-long
+                                         (get-time
+                                           (get-punch-with-id start-id))))
+                               :start_id start-id
                                :stop_id stop-id}))
 
 (defn get-hours [where-clause-str]
