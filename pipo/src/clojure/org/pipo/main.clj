@@ -50,10 +50,10 @@
   )
 
 (defn get-punch-cursor []
-  (db/get-punches ""))
+  (db/get-punches-cursor ""))
 
 (defn get-hours-cursor []
-  (db/get-hours ""))
+  (db/get-hours-cursor ""))
 
 (defn make-punch-adapter [ctx]
   (cursor-adapter

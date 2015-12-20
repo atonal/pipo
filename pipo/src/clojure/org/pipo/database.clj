@@ -54,11 +54,11 @@
     (if (< id 0)
       (log/e "punch-in failed"))))
 
-(defn get-punches [where-clause-str]
+(defn get-punches-cursor [where-clause-str]
   (if (instance? String where-clause-str)
     (db/query (pipo-db) :punches where-clause-str)
     (do
-      (log/w "get-punches - input not a string: " where-clause-str)
+      (log/w "get-punches-cursor - input not a string: " where-clause-str)
       nil)))
 
 (defn add-hours [start-id stop-id]
@@ -71,6 +71,13 @@
                                :stop_id stop-id}))
 
 (defn get-hours [where-clause-str]
+  (if (instance? String where-clause-str)
+    (db/query-seq (pipo-db) :hours where-clause-str)
+    (do
+      (log/w "get-hours - input not a string: " where-clause-str)
+      nil)))
+
+(defn get-hours-cursor [where-clause-str]
   (if (instance? String where-clause-str)
     (db/query (pipo-db) :hours where-clause-str)
     (do
