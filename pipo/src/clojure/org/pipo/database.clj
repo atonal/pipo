@@ -22,7 +22,7 @@
             :hours
             {:columns
              {:_id "integer primary key"
-              :date "integer not null"
+              :date "text not null"
               :start_id "integer not null"
               :stop_id "integer not null"}}}))
 
@@ -63,7 +63,7 @@
 
 (defn add-hours [start-id stop-id]
   (log/d "add-hours:" start-id stop-id)
-  (db/insert (pipo-db) :hours {:date (c/to-epoch
+  (db/insert (pipo-db) :hours {:date (utils/date-to-str
                                        (c/from-long
                                          (get-time
                                            (get-punch-with-id start-id))))
@@ -76,6 +76,9 @@
     (do
       (log/w "get-hours - input not a string: " where-clause-str)
       nil)))
+
+(defn get-hours-by-date [^org.joda.time.DateTime date]
+  (get-hours (str "date = '" (utils/date-to-str date) "'")))
 
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))

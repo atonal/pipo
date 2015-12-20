@@ -8,6 +8,10 @@
   (is (= (utils/time-to-str (t/date-time 1998 1 3 12 33 24 123))
          "1998-01-03 12:33:24.123")))
 
+(deftest date-to-str
+  (is (= (utils/date-to-str (t/date-time 1998 1 3 12 33 24 123))
+         "1998-01-03")))
+
 (deftest previous-monday
   (is (t/equal? (utils/previous-monday (t/date-time 2015 12 18))
                 (t/date-time 2015 12 14)))

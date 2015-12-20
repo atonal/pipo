@@ -4,10 +4,14 @@
             [clj-time.format :as f]
             [clj-time.periodic :as p]))
 
-(def time-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
+(def datetime-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
+(def date-formatter (f/formatters :date))
 
 (defn time-to-str [^org.joda.time.DateTime date-time]
-  (f/unparse time-formatter date-time))
+  (f/unparse datetime-formatter date-time))
+
+(defn date-to-str [^org.joda.time.DateTime date-time]
+  (f/unparse date-formatter date-time))
 
 (defn previous-monday [^org.joda.time.DateTime dt]
   (t/minus dt (t/days (- (t/day-of-week dt) 1))))
