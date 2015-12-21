@@ -113,17 +113,17 @@
 
 (defn punch-in [ctx]
   (db/punch-in (l/local-now))
-  (update-cursors ctx)
+  ; (update-cursors ctx)
   (update-state ctx))
 
 (defn punch-out [ctx]
   (db/punch-out (l/local-now))
-  (update-cursors ctx)
+  ; (update-cursors ctx)
   (update-state ctx))
 
 (defn wipe-db [ctx]
   (db/wipe)
-  (update-cursors ctx)
+  ; (update-cursors ctx)
   (update-state ctx))
 
 (defn main-layout [ctx]
@@ -148,30 +148,6 @@
                 :layout-gravity :center
                 :text (pref-get PREF_STATE)
                 }]
-   [:linear-layout {:orientation :horizontal
-                    :layout-width :match-parent
-                    :layout-height :wrap}
-    [:button {:id ::punch-in-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text TEXT_PUNCH_IN
-              :on-click (fn [_] (punch-in ctx))}]
-    [:button {:id ::punch-out-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text TEXT_PUNCH_OUT
-              :on-click (fn [_] (punch-out ctx))}]
-    [:button {:id ::refresh-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text TEXT_REFRESH
-              :on-click (fn [_] (update-cursors ctx))}]
-    [:button {:id ::wipe-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text TEXT_WIPE
-              :on-click (fn [_] (wipe-db ctx))}]
-    ]
    ])
 
 (defn week-layout [ctx]
@@ -224,7 +200,8 @@
      [:linear-layout {:id ::days-layout
                       :orientation :vertical
                       :layout-width :match-parent
-                      :layout-height :match-parent}
+                      :layout-height [0 :dp]
+                      :layout-weight 1}
       ]
      ;; mon-sun
      (map (fn [^org.joda.time.DateTime date]
@@ -236,6 +213,30 @@
           (let [year-week (pref-get PREF_YEAR_WEEK)]
             (utils/week-from-week-number (:week year-week) (:year year-week))))
      )
+   [:linear-layout {:orientation :horizontal
+                    :layout-width :match-parent
+                    :layout-height :wrap}
+    [:button {:id ::punch-in-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_PUNCH_IN
+              :on-click (fn [_] (punch-in ctx))}]
+    [:button {:id ::punch-out-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_PUNCH_OUT
+              :on-click (fn [_] (punch-out ctx))}]
+    [:button {:id ::refresh-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_REFRESH
+              :on-click (fn [_] (on-ui (toast "refresh!" :short)))}]
+    [:button {:id ::wipe-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_WIPE
+              :on-click (fn [_] (wipe-db ctx))}]
+    ]
    ]
   )
 
@@ -249,6 +250,6 @@
                 ; (main-layout this)))
                 (week-layout this)))
             (create-watchers this)
-            ; (update-state this)
+            (update-state this)
             ; (update-cursors this)
             ))
