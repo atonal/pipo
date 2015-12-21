@@ -48,15 +48,15 @@
   (str (.getText ^android.widget.TextView (find-view ctx elmt))))
 
 (defn create-watchers [ctx]
-  (add-watch pipo-prefs :state-watcher
-             (fn [key atom old-state new-state]
-               (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
+  ; (add-watch pipo-prefs :state-watcher
+  ;            (fn [key atom old-state new-state]
+  ;              (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
   (add-watch pipo-prefs :year-watcher
              (fn [key atom old-state new-state]
-               (set-text ctx ::year-tv (pref-get PREF_YEAR new-state))))
+               (set-text ctx ::year-tv (str (pref-get PREF_YEAR new-state)))))
   (add-watch pipo-prefs :week-watcher
              (fn [key atom old-state new-state]
-               (set-text ctx ::week-tv (pref-get PREF_WEEK new-state))))
+               (set-text ctx ::week-tv (str (pref-get PREF_WEEK new-state)))))
   )
 
 (defn get-punch-cursor []
@@ -189,7 +189,7 @@
               :layout-width :wrap
               :layout-height :wrap
               :text "prev"
-              :on-click (fn [_] (toast "Goto previous week" :short))}]
+              :on-click (fn [_] (toast "Goto previous week"))}]
     [:linear-layout {:id ::middle-layout
                      :orientation :horizontal
                      :layout-width [0 :dp]
@@ -213,7 +213,12 @@
               :layout-width :wrap
               :layout-height :wrap
               :text "next"
-              :on-click (fn [_] (toast "Goto next week" :short))}]
+              :on-click (fn [_] (let [next-year
+                                      (utils/get-next-week
+                                        (pref-get PREF_WEEK)
+                                        (pref-get PREF_YEAR))]
+                                  (pref-set PREF_YEAR (:year next-year))
+                                  (pref-set PREF_WEEK (:week next-year))))}]
     ]
    (concat
      [:linear-layout {:id ::days-layout
@@ -228,12 +233,10 @@
                          :layout-width :fill
                          :layout-height [0 :dp]
                          :layout-weight 1}])
-          (utils/week-from-week-number 52 2015))
+          (utils/week-from-week-number (pref-get PREF_WEEK) (pref-get PREF_YEAR)))
      )
    ]
   )
-
-(utils/week-from-week-number 52 2015)
 
 (defactivity org.pipo.MyActivity
   :key :main
