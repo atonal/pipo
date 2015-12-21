@@ -205,11 +205,25 @@
       ]
      ;; mon-sun
      (map (fn [^org.joda.time.DateTime date]
-            [:text-view {:text (utils/date-to-str date)
-                         :gravity :center_vertical
-                         :layout-width :fill
-                         :layout-height [0 :dp]
-                         :layout-weight 1}])
+            [:linear-layout { :orientation :horizontal
+                             :layout-width :fill
+                             :layout-height [0 :dp]
+                             :layout-weight 1}
+             [:text-view {:text (utils/date-to-str date)
+                          :gravity :center_vertical
+                          :layout-width [0 :dp]
+                          :layout-height :fill
+                          :layout-weight 3
+                          }]
+             [:text-view {:text (str (reduce
+                                       + (map db/get-hours-duration
+                                              (db/get-hours-by-date date))) " ms")
+                          :gravity :center_vertical
+                          :layout-width [0 :dp]
+                          :layout-height :fill
+                          :layout-weight 1
+                          }]
+             ])
           (let [year-week (pref-get PREF_YEAR_WEEK)]
             (utils/week-from-week-number (:week year-week) (:year year-week))))
      )

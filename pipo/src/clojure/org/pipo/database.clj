@@ -29,6 +29,12 @@
 (defn get-id [entry-seq]
   (:_id entry-seq))
 
+(defn get-start-id [entry-seq]
+  (:start_id entry-seq))
+
+(defn get-stop-id [entry-seq]
+  (:stop_id entry-seq))
+
 (defn get-type [entry-seq]
   (:type entry-seq))
 
@@ -87,6 +93,13 @@
 
 (defn get-hours-by-date [^org.joda.time.DateTime date]
   (get-hours (str "date = '" (utils/date-to-str date) "'")))
+
+;; in milliseconds?
+(defn get-hours-duration [hours]
+  (-
+   (get-time (get-punch-with-id (get-stop-id hours)))
+   (get-time (get-punch-with-id (get-start-id hours))))
+  )
 
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
