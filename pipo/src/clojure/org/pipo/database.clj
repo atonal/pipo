@@ -52,7 +52,8 @@
 (defn punch-in [unix-time]
   (let [id (add-punch IN unix-time)]
     (if (< id 0)
-      (log/e "punch-in failed"))))
+      (log/e "punch-in failed")
+      id)))
 
 (defn get-punches-cursor [where-clause-str]
   (if (instance? String where-clause-str)

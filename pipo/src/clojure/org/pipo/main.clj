@@ -9,7 +9,8 @@
               [neko.log :as log]
               [neko.notify :refer [toast]]
               [clj-time.local :as l]
-              [org.pipo.database :as db])
+              [org.pipo.database :as db]
+              [org.pipo.utils :as utils])
     (:import [android.widget AbsListView]))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
@@ -221,16 +222,18 @@
                       :layout-height :match-parent}
       ]
      ;; mon-sun
-     (map (fn [i]
-            [:text-view {:text (str "day" i)
+     (map (fn [^org.joda.time.DateTime date]
+            [:text-view {:text (utils/date-to-str date)
                          :gravity :center_vertical
                          :layout-width :fill
                          :layout-height [0 :dp]
                          :layout-weight 1}])
-          (range 1 8))
+          (utils/week-from-week-number 52 2015))
      )
    ]
   )
+
+(utils/week-from-week-number 52 2015)
 
 (defactivity org.pipo.MyActivity
   :key :main
