@@ -1,17 +1,22 @@
 (ns org.pipo.utils
   (:require [neko.log :as log]
             [clj-time.core :as t]
+            [clj-time.coerce :as c]
             [clj-time.format :as f]
             [clj-time.periodic :as p]))
 
 (def datetime-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
 (def date-formatter (f/formatters :date))
+(def hms-formatter (f/formatters :hour-minute-second))
 
 (defn time-to-str [^org.joda.time.DateTime date-time]
   (f/unparse datetime-formatter date-time))
 
 (defn date-to-str [^org.joda.time.DateTime date-time]
   (f/unparse date-formatter date-time))
+
+(defn hms-to-str [^org.joda.time.DateTime date-time]
+  (f/unparse hms-formatter date-time))
 
 (defn previous-monday [^org.joda.time.DateTime dt]
   (t/minus dt (t/days (- (t/day-of-week dt) 1))))
@@ -61,3 +66,7 @@
         minutes (int (Math/floor (/ minutes-s 60)))
         seconds (- minutes-s (* minutes 60))]
     {:hours hours :minutes minutes :seconds seconds}))
+
+(defn long-to-hms [dt-long]
+  (hms-to-str (c/from-long dt-long))
+  )
