@@ -54,3 +54,10 @@
   (if (= week-nr 1)
     {:week (weeks-in-year (- year 1)) :year (- year 1)}
     {:week (- week-nr 1) :year year}))
+
+(defn seconds-to-hms [duration-s]
+  (let [hours (int (Math/floor (/ duration-s 3600)))
+        minutes-s (- duration-s (* hours 3600))
+        minutes (int (Math/floor (/ minutes-s 60)))
+        seconds (- minutes-s (* minutes 60))]
+    {:hours hours :minutes minutes :seconds seconds}))
