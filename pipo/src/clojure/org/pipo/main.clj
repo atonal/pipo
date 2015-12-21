@@ -215,9 +215,15 @@
                           :layout-height :fill
                           :layout-weight 3
                           }]
-             [:text-view {:text (str (reduce
-                                       + (map db/get-hours-duration
-                                              (db/get-hours-by-date date))) " ms")
+             [:text-view {:text (str
+                                  (int
+                                    (Math/floor
+                                      (/
+                                       (reduce
+                                         + (map db/get-hours-duration
+                                                (db/get-hours-by-date date)))
+                                       1000)))
+                                  " s")
                           :gravity :center_vertical
                           :layout-width [0 :dp]
                           :layout-height :fill
