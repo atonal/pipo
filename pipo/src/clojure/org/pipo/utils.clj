@@ -23,6 +23,7 @@
     53
     52))
 
+;; TODO: map as argument
 (defn monday-from-week-number [week-nr year]
   (if (> week-nr (weeks-in-year year))
     (do
@@ -34,6 +35,7 @@
         (previous-monday years-first-day)
         (t/weeks weeks-to-step)))))
 
+;; TODO: map as argument
 (defn week-from-week-number [week-nr year]
   (if (> week-nr (weeks-in-year year))
     (do
@@ -41,7 +43,14 @@
       nil)
     (take 7 (p/periodic-seq (monday-from-week-number week-nr year) (t/days 1)))))
 
+;; TODO: map as argument
 (defn get-next-week [week-nr year]
   (if (> (+ week-nr 1) (weeks-in-year year))
     {:week 1 :year (+ year 1)}
     {:week (+ week-nr 1) :year year}))
+
+;; TODO: map as argument
+(defn get-previous-week [week-nr year]
+  (if (= week-nr 1)
+    {:week (weeks-in-year (- year 1)) :year (- year 1)}
+    {:week (- week-nr 1) :year year}))

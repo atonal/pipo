@@ -26,8 +26,7 @@
   `(def ~(vary-meta pref-name assoc :tag `:const) {:key ~pref-key :default ~default}))
 
 (defpref PREF_STATE :state STATE_OUT)
-(defpref PREF_YEAR :year 2016)
-(defpref PREF_WEEK :week 1)
+(defpref PREF_YEAR_WEEK :year-week {:year 2016 :week 1})
 
 (defn pref-set-named [pref-atom pref-name new-val]
   (swap! pref-atom assoc (:key pref-name) new-val))
@@ -51,12 +50,10 @@
   ; (add-watch pipo-prefs :state-watcher
   ;            (fn [key atom old-state new-state]
   ;              (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
-  (add-watch pipo-prefs :year-watcher
+  (add-watch pipo-prefs :year-week-watcher
              (fn [key atom old-state new-state]
-               (set-text ctx ::year-tv (str (pref-get PREF_YEAR new-state)))))
-  (add-watch pipo-prefs :week-watcher
-             (fn [key atom old-state new-state]
-               (set-text ctx ::week-tv (str (pref-get PREF_WEEK new-state)))))
+               (set-text ctx ::year-tv (str (:year (pref-get PREF_YEAR_WEEK new-state))))
+               (set-text ctx ::week-tv (str (:week (pref-get PREF_YEAR_WEEK new-state))))))
   )
 
 (defn get-punch-cursor []
@@ -189,7 +186,11 @@
               :layout-width :wrap
               :layout-height :wrap
               :text "prev"
-              :on-click (fn [_] (toast "Goto previous week"))}]
+              :on-click (fn [_] (let [year-week (pref-get PREF_YEAR_WEEK)
+                                      previous-week (utils/get-previous-week
+                                                      (:week year-week)
+                                                      (:year year-week))]
+                                  (pref-set PREF_YEAR_WEEK previous-week)))}]
     [:linear-layout {:id ::middle-layout
                      :orientation :horizontal
                      :layout-width [0 :dp]
@@ -199,7 +200,7 @@
      [:text-view {:id ::year-tv
                   :layout-width :wrap
                   :layout-height :wrap
-                  :text (str (pref-get PREF_YEAR))}]
+                  :text (str (:year (pref-get PREF_YEAR_WEEK)))}]
      [:text-view {:id ::separator-tv
                   :layout-width :wrap
                   :layout-height :wrap
@@ -207,18 +208,17 @@
      [:text-view {:id ::week-tv
                   :layout-width :wrap
                   :layout-height :wrap
-                  :text (str (pref-get PREF_WEEK))}]
+                  :text (str (:week (pref-get PREF_YEAR_WEEK)))}]
      ]
     [:button {:id ::next-bt
               :layout-width :wrap
               :layout-height :wrap
               :text "next"
-              :on-click (fn [_] (let [next-year
-                                      (utils/get-next-week
-                                        (pref-get PREF_WEEK)
-                                        (pref-get PREF_YEAR))]
-                                  (pref-set PREF_YEAR (:year next-year))
-                                  (pref-set PREF_WEEK (:week next-year))))}]
+              :on-click (fn [_] (let [year-week (pref-get PREF_YEAR_WEEK)
+                                      next-week (utils/get-next-week
+                                                  (:week year-week)
+                                                  (:year year-week))]
+                                  (pref-set PREF_YEAR_WEEK next-week)))}]
     ]
    (concat
      [:linear-layout {:id ::days-layout
@@ -233,7 +233,8 @@
                          :layout-width :fill
                          :layout-height [0 :dp]
                          :layout-weight 1}])
-          (utils/week-from-week-number (pref-get PREF_WEEK) (pref-get PREF_YEAR)))
+          (let [year-week (pref-get PREF_YEAR_WEEK)]
+            (utils/week-from-week-number (:week year-week) (:year year-week))))
      )
    ]
   )

@@ -37,3 +37,9 @@
          {:week 1 :year 2015}))
   (is (= (utils/get-next-week 1 2015)
          {:week 2 :year 2015})))
+
+(deftest get-previous-week
+  (is (= (utils/get-previous-week 2 2015)
+         {:week 1 :year 2015})))
+  (is (= (utils/get-previous-week 1 2015)
+         {:week 52 :year 2014}))
