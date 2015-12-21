@@ -183,20 +183,31 @@
    [:linear-layout {:id ::top-row-layout
                     :orientation :horizontal
                     :layout-width :match-parent
-                    :layout-height :match-parent}
+                    :layout-height :wrap}
     [:button {:id ::prev-bt
               :layout-width :wrap
               :layout-height :wrap
               :text "prev"
               :on-click (fn [_] (toast "Goto previous week" :short))}]
-    [:text-view {:id ::year-tv
-                 :layout-width :fill
-                 :layout-height :wrap
-                 :text (str (pref-get PREF_YEAR))}]
-    [:text-view {:id ::week-tv
-                 :layout-width :fill
-                 :layout-height :wrap
-                 :text (str (pref-get PREF_WEEK))}]
+    [:linear-layout {:id ::middle-layout
+                     :orientation :horizontal
+                     :layout-width [0 :dp]
+                     :layout-height :fill
+                     :gravity :center
+                     :layout-weight 1}
+     [:text-view {:id ::year-tv
+                  :layout-width :wrap
+                  :layout-height :wrap
+                  :text (str (pref-get PREF_YEAR))}]
+     [:text-view {:id ::separator-tv
+                  :layout-width :wrap
+                  :layout-height :wrap
+                  :text " / "}]
+     [:text-view {:id ::week-tv
+                  :layout-width :wrap
+                  :layout-height :wrap
+                  :text (str (pref-get PREF_WEEK))}]
+     ]
     [:button {:id ::next-bt
               :layout-width :wrap
               :layout-height :wrap
@@ -212,9 +223,11 @@
      ;; mon-sun
      (map (fn [i]
             [:text-view {:text (str "day" i)
+                         :gravity :center_vertical
                          :layout-width :fill
-                         :layout-height :wrap}])
-          (range 7))
+                         :layout-height [0 :dp]
+                         :layout-weight 1}])
+          (range 1 8))
      )
    ]
   )
@@ -229,5 +242,6 @@
                 ; (main-layout this)))
                 (week-layout this)))
             (create-watchers this)
-            (update-state this)
-            (update-cursors this)))
+            ; (update-state this)
+            ; (update-cursors this)
+            ))
