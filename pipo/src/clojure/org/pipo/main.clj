@@ -61,7 +61,7 @@
                            :layout-height [0 :dp]
                            :layout-weight 1
                            }
-           [:text-view {:text (utils/date-to-str date)
+           [:text-view {:text (utils/date-to-str-day date)
                         :gravity :center_vertical
                         :layout-width [0 :dp]
                         :layout-height :fill
