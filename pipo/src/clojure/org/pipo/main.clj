@@ -11,7 +11,9 @@
               [clj-time.local :as l]
               [org.pipo.database :as db]
               [org.pipo.utils :as utils])
-    (:import [android.widget AbsListView]))
+    (:import [android.widget AbsListView]
+             [android.graphics Color]
+             [android.view Gravity]))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -49,37 +51,42 @@
 
 (defn make-days-list []
   (concat
-  [:linear-layout {:id ::inner-days
-                   :orientation :vertical
-                   :layout-width :match-parent
-                   :layout-height :match-parent
-                   }
-   ]
-   (map (fn [^org.joda.time.DateTime date]
-          [:linear-layout { :orientation :horizontal
-                           :layout-width :fill
-                           :layout-height [0 :dp]
-                           :layout-weight 1
-                           }
-           [:text-view {:text (utils/date-to-str-day date)
-                        :gravity :center_vertical
-                        :layout-width [0 :dp]
-                        :layout-height :fill
-                        :layout-weight 3
-                        }]
-           [:text-view {:text (utils/long-to-hms
-                                (reduce
-                                  + (map db/get-hours-duration
-                                         (db/get-hours-by-date date))))
-                        :gravity :center_vertical
-                        :layout-width [0 :dp]
-                        :layout-height :fill
-                        :layout-weight 1
-                        }]
-           ])
-        (let [year (pref-get PREF_YEAR)
-              week (pref-get PREF_WEEK)]
-          (utils/week-from-week-number week year)))))
+    [:linear-layout {:id ::inner-days
+                     :orientation :vertical
+                     :layout-width :match-parent
+                     :layout-height :match-parent
+                     }
+     ]
+    (map (fn [^org.joda.time.DateTime date]
+           [:linear-layout {:orientation :horizontal
+                            :layout-width :fill
+                            :layout-height [0 :dp]
+                            :layout-weight 1
+                            :padding [4 :px]
+                            }
+            [:text-view {:text (utils/date-to-str-day date)
+                         :gravity :center_vertical
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 1
+                         :padding-left [20 :px]
+                         :background-color Color/DKGRAY
+                         }]
+            [:text-view {:text (utils/long-to-hms
+                                 (reduce
+                                   + (map db/get-hours-duration
+                                          (db/get-hours-by-date date))))
+                         :padding-right [20 :px]
+                         :padding-left [20 :px]
+                         :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
+                         :layout-width :wrap
+                         :layout-height :fill
+                         :background-color Color/DKGRAY
+                         }]
+            ])
+         (let [year (pref-get PREF_YEAR)
+               week (pref-get PREF_WEEK)]
+           (utils/week-from-week-number week year)))))
 
 (defn update-days-list [ctx]
   (on-ui (.removeAllViews (find-view ctx ::inner-days)))
@@ -192,7 +199,9 @@
 (defn week-layout [ctx]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
-                   :layout-height :match-parent}
+                   :layout-height :match-parent
+                   :padding [10 :px]
+                   }
    [:linear-layout {:id ::top-row-layout
                     :orientation :horizontal
                     :layout-width :match-parent
