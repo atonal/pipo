@@ -44,22 +44,6 @@
   (is (= (utils/get-previous-week 1 2015)
          {:week 52 :year 2014}))
 
-(deftest seconds-to-hms
-  (is (= (utils/seconds-to-hms 59)
-         {:hours 0 :minutes 0 :seconds 59}))
-  (is (= (utils/seconds-to-hms 60)
-         {:hours 0 :minutes 1 :seconds 0}))
-  (is (= (utils/seconds-to-hms 61)
-         {:hours 0 :minutes 1 :seconds 1}))
-  (is (= (utils/seconds-to-hms 1800)
-         {:hours 0 :minutes 30 :seconds 0}))
-  (is (= (utils/seconds-to-hms 3599)
-         {:hours 0 :minutes 59 :seconds 59}))
-  (is (= (utils/seconds-to-hms 3600)
-         {:hours 1 :minutes 0 :seconds 0}))
-  (is (= (utils/seconds-to-hms 3661)
-         {:hours 1 :minutes 1 :seconds 1})))
-
 (deftest long-to-hms
   (is (= (utils/long-to-hms 59000)
          "00:00:59"))

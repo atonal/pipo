@@ -215,18 +215,10 @@
                           :layout-height :fill
                           :layout-weight 3
                           }]
-             [:text-view {:text (let [hms
-                                      (utils/seconds-to-hms
-                                        (int
-                                          (Math/floor
-                                            (/
-                                             (reduce
-                                               + (map db/get-hours-duration
-                                                      (db/get-hours-by-date date)))
-                                             1000))))]
-                                  (str (:hours hms) ":"
-                                       (:minutes hms) ":"
-                                       (:seconds hms)))
+             [:text-view {:text (utils/long-to-hms
+                                  (reduce
+                                    + (map db/get-hours-duration
+                                           (db/get-hours-by-date date))))
                           :gravity :center_vertical
                           :layout-width [0 :dp]
                           :layout-height :fill
