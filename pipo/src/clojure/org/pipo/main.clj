@@ -3,7 +3,7 @@
               [neko.debug :refer [*a]]
               [neko.threading :refer [on-ui]]
               [neko.find-view :refer [find-view]]
-              [neko.ui :refer [config]]
+              [neko.ui :refer [config make-ui]]
               [neko.ui.adapters :refer [cursor-adapter update-cursor]]
               [neko.data.shared-prefs :refer [defpreferences]]
               [neko.log :as log]
@@ -47,6 +47,44 @@
 (defn get-text [ctx elmt]
   (str (.getText ^android.widget.TextView (find-view ctx elmt))))
 
+(defn make-days-list []
+  (concat
+  [:linear-layout {:id ::inner-days
+                   :orientation :vertical
+                   :layout-width :match-parent
+                   :layout-height :match-parent
+                   }
+   ]
+   (map (fn [^org.joda.time.DateTime date]
+          [:linear-layout { :orientation :horizontal
+                           :layout-width :fill
+                           :layout-height [0 :dp]
+                           :layout-weight 1
+                           }
+           [:text-view {:text (utils/date-to-str date)
+                        :gravity :center_vertical
+                        :layout-width [0 :dp]
+                        :layout-height :fill
+                        :layout-weight 3
+                        }]
+           [:text-view {:text (utils/long-to-hms
+                                (reduce
+                                  + (map db/get-hours-duration
+                                         (db/get-hours-by-date date))))
+                        :gravity :center_vertical
+                        :layout-width [0 :dp]
+                        :layout-height :fill
+                        :layout-weight 1
+                        }]
+           ])
+        (let [year (pref-get PREF_YEAR)
+              week (pref-get PREF_WEEK)]
+          (utils/week-from-week-number week year)))))
+
+(defn update-days-list [ctx]
+  (on-ui (.removeAllViews (find-view ctx ::inner-days)))
+  (on-ui (.addView (find-view ctx ::inner-days) (make-ui ctx (make-days-list)))))
+
 (defn create-watchers [ctx]
   ; (add-watch pipo-prefs :state-watcher
   ;            (fn [key atom old-state new-state]
@@ -54,8 +92,8 @@
   (add-watch pipo-prefs :year-week-watcher
              (fn [key atom old-state new-state]
                (set-text ctx ::year-tv (str (pref-get PREF_YEAR new-state)))
-               (set-text ctx ::week-tv (str (pref-get PREF_WEEK new-state)))))
-  )
+               (set-text ctx ::week-tv (str (pref-get PREF_WEEK new-state)))
+               (update-days-list ctx))))
 
 (defn get-punch-cursor []
   (db/get-punches-cursor ""))
@@ -201,39 +239,13 @@
                                   (pref-set PREF_YEAR (:year next-week))
                                   (pref-set PREF_WEEK (:week next-week))))}]
     ]
-   (concat
-     [:linear-layout {:id ::days-layout
-                      :orientation :vertical
-                      :layout-width :match-parent
-                      :layout-height [0 :dp]
-                      :layout-weight 1}
-      ]
-     ;; mon-sun
-     (map (fn [^org.joda.time.DateTime date]
-            [:linear-layout { :orientation :horizontal
-                             :layout-width :fill
-                             :layout-height [0 :dp]
-                             :layout-weight 1}
-             [:text-view {:text (utils/date-to-str date)
-                          :gravity :center_vertical
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 3
-                          }]
-             [:text-view {:text (utils/long-to-hms
-                                  (reduce
-                                    + (map db/get-hours-duration
-                                           (db/get-hours-by-date date))))
-                          :gravity :center_vertical
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 1
-                          }]
-             ])
-          (let [year (pref-get PREF_YEAR)
-                week (pref-get PREF_WEEK)]
-            (utils/week-from-week-number week year)))
-     )
+   [:linear-layout {:id ::days-layout
+                    :orientation :vertical
+                    :layout-width :match-parent
+                    :layout-height [0 :dp]
+                    :layout-weight 1}
+    (make-days-list)
+    ]
    [:linear-layout {:orientation :horizontal
                     :layout-width :match-parent
                     :layout-height :wrap}
