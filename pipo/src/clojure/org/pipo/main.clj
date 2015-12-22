@@ -49,6 +49,11 @@
 (defn get-text [ctx elmt]
   (str (.getText ^android.widget.TextView (find-view ctx elmt))))
 
+(defn get-day-color [date]
+  (if (utils/date-equals? (l/local-now) date)
+    Color/GRAY
+    Color/DKGRAY))
+
 (defn make-days-list []
   (concat
     [:linear-layout {:id ::inner-days
@@ -70,7 +75,7 @@
                          :layout-height :fill
                          :layout-weight 1
                          :padding-left [20 :px]
-                         :background-color Color/DKGRAY
+                         :background-color (get-day-color date)
                          }]
             [:text-view {:text (utils/long-to-hms
                                  (reduce
@@ -81,7 +86,7 @@
                          :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
                          :layout-width :wrap
                          :layout-height :fill
-                         :background-color Color/DKGRAY
+                         :background-color (get-day-color date)
                          }]
             ])
          (let [year (pref-get PREF_YEAR)

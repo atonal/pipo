@@ -66,3 +66,8 @@
 
 (defn long-to-hms [dt-long]
   (date-to-str-hms (c/from-long dt-long)))
+
+(defn date-equals? [^org.joda.time.DateTime dt1 ^org.joda.time.DateTime dt2]
+  (and (= (t/year dt1) (t/year dt2))
+       (= (t/month dt1) (t/month dt2))
+       (= (t/day dt1) (t/day dt2))))

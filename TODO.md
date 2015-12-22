@@ -6,6 +6,5 @@
 * Add option to select the week based on a specific date in the dialog
 * Clock view to display currently ongoing work
 * Open detailed punch view for a day when user clicks a day list item
-* Highlight current day if current week is displayed
 * Highlight current week?
 * Service to punch in/out automatically based on GPS
