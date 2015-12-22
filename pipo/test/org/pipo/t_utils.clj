@@ -4,13 +4,21 @@
             [clj-time.periodic :as p]
             [org.pipo.utils :as utils]))
 
-(deftest time-to-str
-  (is (= (utils/time-to-str (t/date-time 1998 1 3 12 33 24 123))
+(deftest date-to-str-full
+  (is (= (utils/date-to-str-full (t/date-time 1998 1 3 12 33 24 123))
          "1998-01-03 12:33:24.123")))
 
-(deftest date-to-str
-  (is (= (utils/date-to-str (t/date-time 1998 1 3 12 33 24 123))
+(deftest date-to-str-date
+  (is (= (utils/date-to-str-date (t/date-time 1998 1 3 12 33 24 123))
          "1998-01-03")))
+
+(deftest date-to-str-hms
+  (is (= (utils/date-to-str-hms (t/date-time 1998 1 3 12 33 24 123))
+         "12:33:24")))
+
+(deftest date-to-str-day
+  (is (= (utils/date-to-str-day (t/date-time 2015 12 23 2 3 4))
+         "Wed 23.12.")))
 
 (deftest previous-monday
   (is (t/equal? (utils/previous-monday (t/date-time 2015 12 18))

@@ -10,13 +10,13 @@
 (def hms-formatter (f/formatters :hour-minute-second))
 (def daylist-formatter (f/formatter "E d.M."))
 
-(defn time-to-str [^org.joda.time.DateTime date-time]
+(defn date-to-str-full [^org.joda.time.DateTime date-time]
   (f/unparse datetime-formatter date-time))
 
-(defn date-to-str [^org.joda.time.DateTime date-time]
+(defn date-to-str-date [^org.joda.time.DateTime date-time]
   (f/unparse date-formatter date-time))
 
-(defn hms-to-str [^org.joda.time.DateTime date-time]
+(defn date-to-str-hms [^org.joda.time.DateTime date-time]
   (f/unparse hms-formatter date-time))
 
 (defn date-to-str-day [^org.joda.time.DateTime date-time]
@@ -65,4 +65,4 @@
     {:week (- week-nr 1) :year year}))
 
 (defn long-to-hms [dt-long]
-  (hms-to-str (c/from-long dt-long)))
+  (date-to-str-hms (c/from-long dt-long)))

@@ -48,7 +48,7 @@
 (defn pipo-db [] (db/get-database (get-db-helper) :write))
 
 (defn add-punch [type-str ^org.joda.time.DateTime punch-time]
-  (log/d "add-punch:" type-str (utils/time-to-str punch-time))
+  (log/d "add-punch:" type-str (utils/date-to-str-full punch-time))
   (db/insert (pipo-db) :punches {:type type-str
                                  :time (c/to-long punch-time)}))
 
@@ -70,7 +70,7 @@
 
 (defn add-hours [start-id stop-id]
   (log/d "add-hours:" start-id stop-id)
-  (db/insert (pipo-db) :hours {:date (utils/date-to-str
+  (db/insert (pipo-db) :hours {:date (utils/date-to-str-date
                                        (c/from-long
                                          (get-time
                                            (get-punch-with-id start-id))))
@@ -92,7 +92,7 @@
       nil)))
 
 (defn get-hours-by-date [^org.joda.time.DateTime date]
-  (get-hours (str "date = '" (utils/date-to-str date) "'")))
+  (get-hours (str "date = '" (utils/date-to-str-date date) "'")))
 
 ;; in milliseconds?
 (defn get-hours-duration [hours]
