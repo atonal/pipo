@@ -18,7 +18,8 @@
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
-(def ^:const TEXT_REFRESH "refresh")
+(def ^:const TEXT_SERVICE_START "Start")
+(def ^:const TEXT_SERVICE_STOP "Stop")
 (def ^:const TEXT_WIPE "wipe")
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
@@ -222,7 +223,18 @@
     (pref-set PREF_YEAR (:year current))
     (pref-set PREF_WEEK (:week current))))
 
-(defn week-layout [ctx]
+(declare service-start)
+(defn service-stop [ctx service]
+  (.stopService ctx service)
+  (set-text ctx ::service-bt TEXT_SERVICE_START)
+  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service)))))
+
+(defn service-start [ctx service]
+  (.startService ctx service)
+  (set-text ctx ::service-bt TEXT_SERVICE_STOP)
+  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service)))))
+
+(defn week-layout [ctx service]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
                    :layout-height :match-parent
@@ -304,11 +316,11 @@
               :layout-height :wrap
               :text TEXT_PUNCH_OUT
               :on-click (fn [_] (punch-out ctx))}]
-    [:button {:id ::refresh-bt
+    [:button {:id ::service-bt
               :layout-width :wrap
               :layout-height :wrap
-              :text TEXT_REFRESH
-              :on-click (fn [_] (on-ui (toast "refresh!" :short)))}]
+              :text TEXT_SERVICE_START
+              :on-click (fn [_] (service-start ctx service))}]
     [:button {:id ::wipe-bt
               :layout-width :wrap
               :layout-height :wrap
@@ -384,23 +396,26 @@
 
 (defactivity org.pipo.MyActivity
   :key :main
-  (onCreate [this bundle]
-            (.superOnCreate this bundle)
-            (on-ui
-              (set-content-view!
-                this
-                ; (main-layout this)))
-                (week-layout this)))
-            (create-watchers this)
-            (update-state this)
-            ; (update-cursors this)
-            )
+  (onCreate
+    [this bundle]
+    (let [service (android.content.Intent. this org.pipo.service)]
+      (.superOnCreate this bundle)
+      (on-ui
+        (set-content-view!
+          this
+          ; (main-layout this)))
+          (week-layout this service)))
+      (create-watchers this)
+      (update-state this)
+      ; (update-cursors this)
+      ))
   (onPrepareDialog
     [this id dialog dialog-bundle]
     (cond
       (= id WEEK_DIALOG_ID)
       (.removeDialog this id)))
-  (onCreateDialog [this id dialog-bundle]
+  (onCreateDialog
+    [this id dialog-bundle]
     (cond
       (= id WEEK_DIALOG_ID)
       (create-week-dialog this)
