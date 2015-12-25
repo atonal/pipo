@@ -64,6 +64,11 @@
     {:week (weeks-in-year (- year 1)) :year (- year 1)}
     {:week (- week-nr 1) :year year}))
 
+(defn get-current-week []
+  (let [today (t/now)]
+    {:week (t/week-number-of-year today)
+     :year (t/year today)}))
+
 (defn long-to-hms [dt-long]
   (date-to-str-hms (c/from-long dt-long)))
 

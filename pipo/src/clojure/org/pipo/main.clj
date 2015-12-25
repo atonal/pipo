@@ -103,8 +103,8 @@
   ;              (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
   (add-watch pipo-prefs :year-week-watcher
              (fn [key atom old-state new-state]
-               (set-text ctx ::year-tv (str (pref-get PREF_YEAR new-state)))
-               (set-text ctx ::week-tv (str (pref-get PREF_WEEK new-state)))
+               (set-text ctx ::year-tv (str (pref-get PREF_YEAR new-state) " / "
+                                            (pref-get PREF_WEEK new-state)))
                (update-days-list ctx))))
 
 (defn get-punch-cursor []
@@ -201,6 +201,11 @@
                 }]
    ])
 
+(defn change-to-current-week []
+  (let [current (utils/get-current-week)]
+    (pref-set PREF_YEAR (:year current))
+    (pref-set PREF_WEEK (:week current))))
+
 (defn week-layout [ctx]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
@@ -230,16 +235,12 @@
                      :layout-weight 1}
      [:text-view {:id ::year-tv
                   :layout-width :wrap
-                  :layout-height :wrap
-                  :text (str (pref-get PREF_YEAR))}]
-     [:text-view {:id ::separator-tv
-                  :layout-width :wrap
-                  :layout-height :wrap
-                  :text " / "}]
-     [:text-view {:id ::week-tv
-                  :layout-width :wrap
-                  :layout-height :wrap
-                  :text (str (pref-get PREF_WEEK))}]
+                  :layout-height :fill
+                  :padding-left [20 :px]
+                  :padding-right [20 :px]
+                  :gravity :center_vertical
+                  :on-click (fn [_] (change-to-current-week))
+                  :text (str (pref-get PREF_YEAR) " / " (pref-get PREF_WEEK))}]
      ]
     [:button {:id ::next-bt
               :layout-width :wrap
