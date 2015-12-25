@@ -8,3 +8,4 @@
 * Service to punch in/out automatically based on GPS
 * Move between weeks by swiping left/right
 * Split work at midnight automatically
+* Use local time in all places
