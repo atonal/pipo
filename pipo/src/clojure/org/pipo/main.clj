@@ -240,6 +240,8 @@
                   :padding-right [20 :px]
                   :gravity :center_vertical
                   :on-click (fn [_] (change-to-current-week))
+                  :on-long-click (fn [_] (do (on-ui (toast "long click" :short))
+                                             true))
                   :text (str (pref-get PREF_YEAR) " / " (pref-get PREF_WEEK))}]
      ]
     [:button {:id ::next-bt
