@@ -56,6 +56,12 @@
     Color/GRAY
     Color/DKGRAY))
 
+(defn get-week-color [year week]
+  (let [current (utils/get-current-week)]
+    (if (and (= (:year current) year) (= (:week current) week))
+      Color/GRAY
+      Color/DKGRAY)))
+
 (defn make-days-list []
   (concat
     [:linear-layout {:id ::inner-days
@@ -99,14 +105,22 @@
   (on-ui (.removeAllViews (find-view ctx ::inner-days)))
   (on-ui (.addView (find-view ctx ::inner-days) (make-ui ctx (make-days-list)))))
 
+(defn update-week-view [ctx new-state]
+  (let [new-year (pref-get PREF_YEAR new-state)
+        new-week (pref-get PREF_WEEK new-state)]
+  (set-text ctx ::year-tv (str new-year " / " new-week))
+  (on-ui
+    (config (find-view ctx ::year-tv)
+            :background-color
+            (get-week-color new-year new-week)))))
+
 (defn create-watchers [ctx]
   ; (add-watch pipo-prefs :state-watcher
   ;            (fn [key atom old-state new-state]
   ;              (set-text ctx ::state-tv (pref-get PREF_STATE new-state))))
   (add-watch pipo-prefs :year-week-watcher
              (fn [key atom old-state new-state]
-               (set-text ctx ::year-tv (str (pref-get PREF_YEAR new-state) " / "
-                                            (pref-get PREF_WEEK new-state)))
+               (update-week-view ctx new-state)
                (update-days-list ctx))))
 
 (defn get-punch-cursor []
@@ -235,16 +249,28 @@
                      :layout-height :fill
                      :gravity :center
                      :layout-weight 1}
-     [:text-view {:id ::year-tv
-                  :layout-width :wrap
-                  :layout-height :fill
-                  :padding-left [20 :px]
-                  :padding-right [20 :px]
-                  :gravity :center_vertical
-                  :on-click (fn [_] (change-to-current-week))
-                  :on-long-click (fn [_] (do (on-ui (.showDialog ctx WEEK_DIALOG_ID))
-                                             true))
-                  :text (str (pref-get PREF_YEAR) " / " (pref-get PREF_WEEK))}]
+     [:linear-layout {:id ::week-container
+                      :orientation :horizontal
+                      :layout-width :wrap
+                      :layout-height :fill
+                      :padding [4 :px]
+                      }
+      [:text-view {:id ::year-tv
+                   :layout-width :wrap
+                   :layout-height :fill
+                   :padding-left [20 :px]
+                   :padding-right [20 :px]
+                   :gravity :center_vertical
+                   :background-color (get-week-color
+                                       (pref-get PREF_YEAR)
+                                       (pref-get PREF_WEEK))
+                   :on-click (fn [_] (change-to-current-week))
+                   :on-long-click (fn [_] (do
+                                            (on-ui
+                                              (.showDialog ctx WEEK_DIALOG_ID))
+                                            true))
+                   :text (str (pref-get PREF_YEAR) " / " (pref-get PREF_WEEK))}]
+      ]
      ]
     [:button {:id ::next-bt
               :layout-width :wrap
