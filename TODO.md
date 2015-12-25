@@ -7,3 +7,4 @@
 * Open detailed punch view for a day when user clicks a day list item
 * Service to punch in/out automatically based on GPS
 * Move between weeks by swiping left/right
+* Split work at midnight automatically
