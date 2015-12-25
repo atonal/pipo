@@ -8,6 +8,7 @@
               [neko.data.shared-prefs :refer [defpreferences]]
               [neko.log :as log]
               [neko.notify :refer [toast]]
+              [neko.dialog.alert :refer [alert-dialog-builder]]
               [clj-time.local :as l]
               [org.pipo.database :as db]
               [org.pipo.utils :as utils])
@@ -21,6 +22,7 @@
 (def ^:const TEXT_WIPE "wipe")
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
+(def ^:const WEEK_DIALOG_ID 0)
 (defpreferences pipo-prefs "pipo_sp")
 
 ; TODO: get the key from the pref-name
@@ -240,7 +242,7 @@
                   :padding-right [20 :px]
                   :gravity :center_vertical
                   :on-click (fn [_] (change-to-current-week))
-                  :on-long-click (fn [_] (do (on-ui (toast "long click" :short))
+                  :on-long-click (fn [_] (do (on-ui (.showDialog ctx WEEK_DIALOG_ID))
                                              true))
                   :text (str (pref-get PREF_YEAR) " / " (pref-get PREF_WEEK))}]
      ]
@@ -290,6 +292,70 @@
    ]
   )
 
+(defn make-dialog-layout [ctx]
+  (make-ui
+    ctx
+    [:linear-layout {:id-holder true
+                     :layout-width :fill
+                     :layout-height :wrap
+                     :padding-left [40 :px]
+                     :padding-right [60 :px]
+                     :orientation :vertical}
+     [:edit-text {:id ::year-et
+                  :layout-width :fill
+                  :layout-height :wrap
+                  :layout-gravity :right
+                  :input-type :number
+                  :hint "Year"
+                  :text (str (pref-get PREF_YEAR))
+                  }
+      ]
+     [:edit-text {:id ::week-et
+                  :layout-width :fill
+                  :layout-height :wrap
+                  :layout-gravity :right
+                  :input-type :number
+                  :hint "Week"
+                  :text (str (pref-get PREF_WEEK))
+                  }
+      ]]))
+
+(defn week-input-valid? [year week]
+  (cond
+    (not (integer? year))
+    (do
+      (on-ui (toast "Invalid year" :short)) false)
+    (not (integer? week))
+    (do
+      (on-ui (toast "Invalid week" :short))
+      false)
+    (> week (utils/weeks-in-year year))
+    (do
+      (on-ui (toast (str "Not that many weeks in year " year) :short))
+      false)
+    :else true))
+
+(defn create-week-dialog [ctx]
+  (let [dialog-layout (make-dialog-layout ctx)]
+    (-> ctx
+        (alert-dialog-builder
+          {:message "Week to display"
+           :cancelable true
+           :positive-text "Set"
+           :positive-callback (fn [dialog res]
+                                (let [year (read-string
+                                             (get-text dialog-layout ::year-et))
+                                      week (read-string
+                                             (get-text dialog-layout ::week-et))]
+                                  (if (week-input-valid? year week)
+                                    (do
+                                      (pref-set PREF_YEAR year)
+                                      (pref-set PREF_WEEK week)))))
+           :negative-text "Cancel"
+           :negative-callback (fn [_ _] ())})
+        (.setView dialog-layout)
+        .create)))
+
 (defactivity org.pipo.MyActivity
   :key :main
   (onCreate [this bundle]
@@ -302,4 +368,15 @@
             (create-watchers this)
             (update-state this)
             ; (update-cursors this)
-            ))
+            )
+  (onPrepareDialog
+    [this id dialog dialog-bundle]
+    (cond
+      (= id WEEK_DIALOG_ID)
+      (.removeDialog this id)))
+  (onCreateDialog [this id dialog-bundle]
+    (cond
+      (= id WEEK_DIALOG_ID)
+      (create-week-dialog this)
+      :else (toast "Invalid ID" :short)))
+  )

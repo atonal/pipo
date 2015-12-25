@@ -1,7 +1,7 @@
 # TODO
 
 * Update UI on button press, handle the db and state in background. Adjust UI if something goes wrong.
-* Display dialog to input specific year and week when user click-and-holds year/week textview
+* Use selectors in year/week dialog. Number of weeks automatically based on year.
 * Add option to select the week based on a specific date in the dialog
 * Clock view to display currently ongoing work. Hint: broadcastReceiver and Intent.ACTION_TIME_TICK
 * Open detailed punch view for a day when user clicks a day list item
