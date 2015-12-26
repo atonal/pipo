@@ -68,6 +68,11 @@
       (log/w "get-punches-cursor - input not a string: " where-clause-str)
       nil)))
 
+(defn get-punches-cursor-by-date [^org.joda.time.DateTime date]
+  (get-punches-cursor
+    (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
+         (c/to-long (t/floor (t/plus date (t/days 1)) t/day)))))
+
 (defn add-hours [start-id stop-id]
   (log/d "add-hours:" start-id stop-id)
   (db/insert (pipo-db) :hours {:date (utils/date-to-str-date
@@ -93,6 +98,9 @@
 
 (defn get-hours-by-date [^org.joda.time.DateTime date]
   (get-hours (str "date = '" (utils/date-to-str-date date) "'")))
+
+(defn get-hours-cursor-by-date [^org.joda.time.DateTime date]
+  (get-hours-cursor (str "date = '" (utils/date-to-str-date date) "'")))
 
 ;; in milliseconds?
 (defn get-hours-duration [hours]

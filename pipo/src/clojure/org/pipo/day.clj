@@ -31,13 +31,13 @@
   (update-punch-list ctx)
   (update-hours-list ctx))
 
-(defn get-punch-cursor []
-  (db/get-punches-cursor ""))
+(defn get-punch-cursor [date]
+  (db/get-punches-cursor-by-date date))
 
-(defn get-hours-cursor []
-  (db/get-hours-cursor ""))
+(defn get-hours-cursor [date]
+  (db/get-hours-cursor-by-date date))
 
-(defn make-punch-adapter [ctx]
+(defn make-punch-adapter [ctx date]
   (cursor-adapter
     ctx
     (fn [] [:linear-layout {:id-holder true}
@@ -45,10 +45,10 @@
     (fn [view _ data]
       (let [tv (find-view view ::caption-tv)]
         (config tv :text (str data))))
-    (fn [] (get-punch-cursor)) ;; cursor-fn
+    (fn [] (get-punch-cursor date)) ;; cursor-fn
     ))
 
-(defn make-hours-adapter [ctx]
+(defn make-hours-adapter [ctx date]
   (cursor-adapter
     ctx
     (fn [] [:linear-layout {:id-holder true}
@@ -56,20 +56,20 @@
     (fn [view _ data]
       (let [tv (find-view view ::caption-tv)]
         (config tv :text (str data))))
-    (fn [] (get-hours-cursor))))
+    (fn [] (get-hours-cursor date))))
 
-(defn main-layout [ctx]
+(defn main-layout [ctx date]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
                    :layout-height :match-parent}
-   [:text-view {:text "PiPo!"}]
+   [:text-view {:text (str "Work hours on " (utils/date-to-str-date date))}]
    [:list-view {:id ::punch-list
-                :adapter (make-punch-adapter ctx)
+                :adapter (make-punch-adapter ctx date)
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]
    [:list-view {:id ::hours-list
-                :adapter (make-hours-adapter ctx)
+                :adapter (make-hours-adapter ctx date)
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]
@@ -80,17 +80,16 @@
   :key :day
   (onCreate
     [this bundle]
+    (let [intent (.getIntent this)
+          date (c/from-long (.getLongExtra intent EXTRA_DATE 0))]
       (.superOnCreate this bundle)
       (on-ui
         (set-content-view!
           this
-          (main-layout this)))
+          (main-layout this date)))
       ; (create-watchers this)
       ; (update-state this)
       ; (update-cursors this)
-      (let [intent (.getIntent this)
-            date (c/from-long (.getLongExtra intent EXTRA_DATE 0))]
-        (on-ui (toast (str "Display " (utils/date-to-str-date date)))))
-
-     )
+      )
+    )
   )
