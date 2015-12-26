@@ -9,6 +9,7 @@
               [neko.notify :refer [toast]]
               [neko.dialog.alert :refer [alert-dialog-builder]]
               [clj-time.local :as l]
+              [clj-time.coerce :as c]
               [org.pipo.database :as db]
               [org.pipo.utils :as utils])
     (:import [android.graphics Color]
@@ -22,6 +23,7 @@
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
 (def ^:const WEEK_DIALOG_ID 0)
+(def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 (defpreferences pipo-prefs "pipo_sp")
 
 ; TODO: get the key from the pref-name
@@ -61,7 +63,13 @@
       Color/GRAY
       Color/DKGRAY)))
 
-(defn make-days-list []
+
+(defn start-day-activity [ctx ^org.joda.time.DateTime date]
+  (let [intent (android.content.Intent. ctx org.pipo.DayActivity)]
+    (.putExtra intent EXTRA_DATE (c/to-long date))
+    (.startActivity ctx intent)))
+
+(defn make-days-list [ctx]
   (concat
     [:linear-layout {:id ::inner-days
                      :orientation :vertical
@@ -75,6 +83,7 @@
                             :layout-height [0 :dp]
                             :layout-weight 1
                             :padding [4 :px]
+                            :on-click (fn [_] (start-day-activity ctx date))
                             }
             [:text-view {:text (utils/date-to-str-day date)
                          :gravity :center_vertical
@@ -102,7 +111,7 @@
 
 (defn update-days-list [ctx]
   (on-ui (.removeAllViews (find-view ctx ::inner-days)))
-  (on-ui (.addView (find-view ctx ::inner-days) (make-ui ctx (make-days-list)))))
+  (on-ui (.addView (find-view ctx ::inner-days) (make-ui ctx (make-days-list ctx)))))
 
 (defn update-week-view [ctx new-state]
   (let [new-year (pref-get PREF_YEAR new-state)
@@ -227,7 +236,7 @@
                     :layout-width :match-parent
                     :layout-height [0 :dp]
                     :layout-weight 1}
-    (make-days-list)
+    (make-days-list ctx)
     ]
    [:linear-layout {:orientation :horizontal
                     :layout-width :match-parent

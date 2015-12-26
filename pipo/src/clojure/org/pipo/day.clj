@@ -1,13 +1,19 @@
 (ns org.pipo.day
     (:require [neko.activity :refer [defactivity set-content-view!]]
               [neko.ui.adapters :refer [cursor-adapter update-cursor]]
+              [neko.debug :refer [*a]]
               [neko.find-view :refer [find-view]]
               [neko.ui :refer [config]]
               [neko.threading :refer [on-ui]]
+              [neko.notify :refer [toast]]
+              [clj-time.coerce :as c]
               [org.pipo.database :as db]
+              [org.pipo.utils :as utils]
               )
     (:import [android.widget AbsListView]
              ))
+
+(def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 
 (defn update-punch-list [ctx]
   (let [^android.widget.ListView lv (find-view ctx ::punch-list)]
@@ -70,8 +76,8 @@
    ])
 
 
-(defactivity org.pipo.MyActivity
-  :key :main
+(defactivity org.pipo.DayActivity
+  :key :day
   (onCreate
     [this bundle]
       (.superOnCreate this bundle)
@@ -82,5 +88,9 @@
       ; (create-watchers this)
       ; (update-state this)
       ; (update-cursors this)
+      (let [intent (.getIntent this)
+            date (c/from-long (.getLongExtra intent EXTRA_DATE 0))]
+        (on-ui (toast (str "Display " (utils/date-to-str-date date)))))
+
      )
   )
