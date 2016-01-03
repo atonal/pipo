@@ -72,6 +72,10 @@
 (defn get-longitude []
   (or (:long @location-atom) "unknown"))
 
+(defn set-location [latitude longitude]
+  (set-latitude latitude)
+  (set-longitude longitude))
+
 (defn on-location [^android.location.Location location]
   (let [latitude (.getLatitude ^android.location.Location location)
         longitude (.getLongitude ^android.location.Location location)
@@ -81,11 +85,6 @@
     (.setLongitude dest-location (pref-get PREF_DEST_LONG))
     (on-ui (toast (str "distance: " (.distanceTo location dest-location)) :short))
     ))
-
-(defn set-location [latitude longitude]
-  (set-latitude latitude)
-  (set-longitude longitude)
-  )
 
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
