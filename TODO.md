@@ -8,3 +8,4 @@
 * Move between weeks by swiping left/right
 * Split work at midnight automatically
 * Use local time in all places
+* Add state for start/stop GPS
