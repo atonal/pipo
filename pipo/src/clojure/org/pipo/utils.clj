@@ -65,14 +65,16 @@
     {:week (weeks-in-year (- year 1)) :year (- year 1)}
     {:week (- week-nr 1) :year year}))
 
-(defn get-current-week []
-  (let [today (t/now)
-        week-nr (t/week-number-of-year today)
-        year (if (and (>= week-nr 52) (pred/january? today))
-               (- (t/year today) 1)
-               (t/year today))]
+(defn get-current-week-by-date [^org.joda.time.DateTime date]
+  (let [week-nr (t/week-number-of-year date)
+        year (if (and (>= week-nr 52) (pred/january? date))
+               (- (t/year date) 1)
+               (t/year date))]
     {:week week-nr
      :year year}))
+
+(defn get-current-week []
+  (get-current-week-by-date (t/now)))
 
 (defn long-to-hms [dt-long]
   (date-to-str-hms (c/from-long dt-long)))

@@ -93,3 +93,9 @@
   (is (= (utils/date-equals? (t/date-time 2014 1 1 1 1 1 1)
                              (t/date-time 2015 1 1 1 1 1 1))
          false)))
+
+(deftest get-current-week-by-date
+  (is (= (utils/get-current-week-by-date (t/date-time 2015 12 31))
+         {:week 53 :year 2015}))
+  (is (= (utils/get-current-week-by-date (t/date-time 2016 1 1))
+         {:week 53 :year 2015})))
