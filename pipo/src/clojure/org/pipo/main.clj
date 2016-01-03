@@ -296,11 +296,11 @@
               :layout-height :wrap
               :text TEXT_SERVICE_START
               :on-click (fn [_] (service-start ctx service))}]
-    [:button {:id ::wipe-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text TEXT_WIPE
-              :on-click (fn [_] (wipe-db ctx))}]
+    ; [:button {:id ::wipe-bt
+    ;           :layout-width :wrap
+    ;           :layout-height :wrap
+    ;           :text TEXT_WIPE
+    ;           :on-click (fn [_] (wipe-db ctx))}]
     ]
    ]
   )
