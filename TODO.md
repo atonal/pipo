@@ -9,3 +9,4 @@
 * Split work at midnight automatically
 * Use local time in all places
 * Add state for start/stop GPS
+* Automaticallu subtract lunch break, if work day is long enough (6h)
