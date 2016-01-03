@@ -16,9 +16,7 @@
   (swap! location-data assoc key val))
 
 (defn on-location [location ui-fn]
-  (let [latitude (.getLatitude ^android.location.Location location)
-        longitude (.getLongitude ^android.location.Location location)]
-      (ui-fn latitude longitude)))
+  (ui-fn location))
 
 (defn init-location-manager []
   (if-not (get-state :manager)

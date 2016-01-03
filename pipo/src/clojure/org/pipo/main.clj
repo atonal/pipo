@@ -39,8 +39,8 @@
 (defpref PREF_STATE :state STATE_OUT)
 (defpref PREF_YEAR :year 2015)
 (defpref PREF_WEEK :week 51)
-(defpref PREF_LAT :lat 0)
-(defpref PREF_LONG :long 0)
+(defpref PREF_DEST_LAT :lat 0)
+(defpref PREF_DEST_LONG :long 0)
 
 (defn pref-set-named [pref-atom pref-name new-val]
   (swap! pref-atom assoc (:key pref-name) new-val))
@@ -72,9 +72,20 @@
 (defn get-longitude []
   (or (:long @location-atom) "unknown"))
 
+(defn on-location [^android.location.Location location]
+  (let [latitude (.getLatitude ^android.location.Location location)
+        longitude (.getLongitude ^android.location.Location location)
+        dest-location (android.location.Location. "pipo")]
+    (set-location latitude longitude)
+    (.setLatitude dest-location (pref-get PREF_DEST_LAT))
+    (.setLongitude dest-location (pref-get PREF_DEST_LONG))
+    (on-ui (toast (str "distance: " (.distanceTo location dest-location)) :short))
+    ))
+
 (defn set-location [latitude longitude]
   (set-latitude latitude)
-  (set-longitude longitude))
+  (set-longitude longitude)
+  )
 
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
@@ -199,7 +210,7 @@
   (.startService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_STOP)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
-  (location/start-location-updates set-location)
+  (location/start-location-updates on-location)
   )
 
 (defn week-layout [ctx service]
@@ -359,7 +370,7 @@
                   :input-type (bit-or InputType/TYPE_NUMBER_FLAG_DECIMAL
                                       InputType/TYPE_CLASS_NUMBER)
                   :hint "latitude"
-                  :text (str (pref-get PREF_LAT))
+                  :text (str (pref-get PREF_DEST_LAT))
                   }
       ]
      [:edit-text {:id ::long-et
@@ -369,7 +380,7 @@
                   :input-type (bit-or InputType/TYPE_NUMBER_FLAG_DECIMAL
                                       InputType/TYPE_CLASS_NUMBER)
                   :hint "longitude"
-                  :text (str (pref-get PREF_LONG))
+                  :text (str (pref-get PREF_DEST_LONG))
                   }
       ]]))
 
@@ -421,8 +432,8 @@
                                                  (get-text dialog-layout ::lat-et))
                                       longitude (read-string
                                                   (get-text dialog-layout ::long-et))]
-                                  (pref-set PREF_LAT latitude)
-                                  (pref-set PREF_LONG longitude)))
+                                  (pref-set PREF_DEST_LAT latitude)
+                                  (pref-set PREF_DEST_LONG longitude)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
