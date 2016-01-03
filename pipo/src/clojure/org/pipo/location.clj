@@ -49,7 +49,8 @@
     ^android.location.LocationListener (get-state :listener)))
 
 (defn stop-location-updates []
-  (if (and (get-state :manager) (get-state :istener))
+  (if (and (get-state :manager)
+           (get-state :listener))
     (.removeUpdates
       ^android.location.LocationManager (get-state :manager)
       ^android.location.LocationListener (get-state :listener))
