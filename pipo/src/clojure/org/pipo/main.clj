@@ -366,8 +366,9 @@
                   :layout-width :fill
                   :layout-height :wrap
                   :layout-gravity :right
-                  :input-type (bit-or InputType/TYPE_NUMBER_FLAG_DECIMAL
-                                      InputType/TYPE_CLASS_NUMBER)
+                  :input-type (bit-or InputType/TYPE_CLASS_NUMBER
+                                      InputType/TYPE_NUMBER_FLAG_DECIMAL
+                                      InputType/TYPE_NUMBER_FLAG_SIGNED)
                   :hint "latitude"
                   :text (str (pref-get PREF_DEST_LAT))
                   }
@@ -376,8 +377,9 @@
                   :layout-width :fill
                   :layout-height :wrap
                   :layout-gravity :right
-                  :input-type (bit-or InputType/TYPE_NUMBER_FLAG_DECIMAL
-                                      InputType/TYPE_CLASS_NUMBER)
+                  :input-type (bit-or InputType/TYPE_CLASS_NUMBER
+                                      InputType/TYPE_NUMBER_FLAG_DECIMAL
+                                      InputType/TYPE_NUMBER_FLAG_SIGNED)
                   :hint "longitude"
                   :text (str (pref-get PREF_DEST_LONG))
                   }
