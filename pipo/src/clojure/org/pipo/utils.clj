@@ -3,7 +3,8 @@
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clj-time.format :as f]
-            [clj-time.periodic :as p]))
+            [clj-time.periodic :as p]
+            [clj-time.predicates :as pred]))
 
 (def datetime-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
 (def date-formatter (f/formatters :date))
@@ -65,9 +66,13 @@
     {:week (- week-nr 1) :year year}))
 
 (defn get-current-week []
-  (let [today (t/now)]
-    {:week (t/week-number-of-year today)
-     :year (t/year today)}))
+  (let [today (t/now)
+        week-nr (t/week-number-of-year today)
+        year (if (and (>= week-nr 52) (pred/january? today))
+               (- (t/year today) 1)
+               (t/year today))]
+    {:week week-nr
+     :year year}))
 
 (defn long-to-hms [dt-long]
   (date-to-str-hms (c/from-long dt-long)))
