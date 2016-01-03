@@ -11,7 +11,8 @@
               [clj-time.local :as l]
               [clj-time.coerce :as c]
               [org.pipo.database :as db]
-              [org.pipo.utils :as utils])
+              [org.pipo.utils :as utils]
+              [org.pipo.location :as location])
     (:import [android.graphics Color]
              [android.view Gravity]))
 
@@ -24,6 +25,8 @@
 (def ^:const STATE_OUT "OUT")
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
+(def location-atom (atom {:lat "" :long ""}))
+
 (defpreferences pipo-prefs "pipo_sp")
 
 ; TODO: get the key from the pref-name
@@ -51,6 +54,22 @@
 
 (defn get-text [ctx elmt]
   (str (.getText ^android.widget.TextView (find-view ctx elmt))))
+
+(defn set-latitude [new-lat]
+  (swap! location-atom assoc :lat (str new-lat)))
+
+(defn get-latitude []
+  (or (:lat @location-atom) "unknown"))
+
+(defn set-longitude [new-long]
+  (swap! location-atom assoc :long (str new-long)))
+
+(defn get-longitude []
+  (or (:long @location-atom) "unknown"))
+
+(defn set-location [latitude longitude]
+  (set-latitude latitude)
+  (set-longitude longitude))
 
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
@@ -126,7 +145,12 @@
   (add-watch pipo-prefs :year-week-watcher
              (fn [key atom old-state new-state]
                (update-week-view ctx new-state)
-               (update-days-list ctx))))
+               (update-days-list ctx)))
+  (add-watch location-atom :location-watcher
+             (fn [key atom old-state new-state]
+               (set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
+               (set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
+  )
 
 (defn update-state [ctx]
   (let [type-latest (db/get-type (db/get-latest-punch))]
@@ -162,12 +186,16 @@
 (defn service-stop [ctx service]
   (.stopService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_START)
-  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service)))))
+  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service))))
+  (location/stop-location-updates)
+  )
 
 (defn service-start [ctx service]
   (.startService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_STOP)
-  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service)))))
+  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
+  (location/start-location-updates set-location)
+  )
 
 (defn week-layout [ctx service]
   [:linear-layout {:orientation :vertical
@@ -238,6 +266,18 @@
                     :layout-weight 1}
     (make-days-list ctx)
     ]
+   [:linear-layout {:id ::location-layout
+                    :layout-width :wrap
+                    :layout-height :wrap
+                    :padding-right [10 :px]
+                    :layout-gravity :top
+                    :orientation :horizontal}
+    [:text-view {:id ::location-lat-tv
+                 :text (str "lat: " (get-latitude))
+                 :text-size [10 :dp]}]
+    [:text-view {:id ::location-long-tv
+                 :text (str "long: " (get-longitude))
+                 :text-size [10 :dp]}]]
    [:linear-layout {:orientation :horizontal
                     :layout-width :match-parent
                     :layout-height :wrap}

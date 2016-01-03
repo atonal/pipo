@@ -15,23 +15,22 @@
 (defn update-state [key val]
   (swap! location-data assoc key val))
 
-(defn on-location [host user-id location ui-fn]
+(defn on-location [location ui-fn]
   (let [latitude (.getLatitude ^android.location.Location location)
         longitude (.getLongitude ^android.location.Location location)]
-    ; TODO: do stuff on location update
-    nil))
+      (ui-fn latitude longitude)))
 
 (defn init-location-manager []
   (if-not (get-state :manager)
     (update-state :manager (get-service :location))))
 
-(defn init-location-listener [host user-id ui-fn]
+(defn init-location-listener [ui-fn]
   (if-not (get-state :listener)
     (update-state
       :listener
       (proxy [android.location.LocationListener] []
         (onLocationChanged [^android.location.Location location]
-          (on-location host user-id location ui-fn))
+          (on-location location ui-fn))
         (onProviderDisabled [^String provider] ())
         (onProviderEnabled [^String provider] ())
         (onStatusChanged [^String provider status ^android.os.Bundle extras] ())))))
@@ -39,19 +38,15 @@
 (defn reset-location-listener []
   (update-state :listener nil))
 
-; TODO: get the host dynamically from somewhere
-(defn start-location-updates [host user-id ui-fn]
-  (if-not user-id
-    (on-ui (toast (str "Invalid user-id: " user-id) :short))
-    (do
-      (init-location-manager)
-      (init-location-listener host user-id ui-fn)
-      (.requestLocationUpdates
-        ^android.location.LocationManager (get-state :manager)
-        android.location.LocationManager/GPS_PROVIDER
-        (long UPDATE_INTERVAL_MS)
-        (float UPDATE_DISTANCE_M)
-        ^android.location.LocationListener (get-state :listener)))))
+(defn start-location-updates [ui-fn]
+  (init-location-manager)
+  (init-location-listener ui-fn)
+  (.requestLocationUpdates
+    ^android.location.LocationManager (get-state :manager)
+    android.location.LocationManager/GPS_PROVIDER
+    (long UPDATE_INTERVAL_MS)
+    (float UPDATE_DISTANCE_M)
+    ^android.location.LocationListener (get-state :listener)))
 
 (defn stop-location-updates []
   (if (and (get-state :manager) (get-state :istener))
