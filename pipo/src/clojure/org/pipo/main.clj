@@ -14,16 +14,19 @@
               [org.pipo.utils :as utils]
               [org.pipo.location :as location])
     (:import [android.graphics Color]
-             [android.view Gravity]))
+             [android.view Gravity]
+             [android.text InputType]))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
 (def ^:const TEXT_SERVICE_START "Start")
 (def ^:const TEXT_SERVICE_STOP "Stop")
 (def ^:const TEXT_WIPE "wipe")
+(def ^:const TEXT_SET_GPS "Set GPS")
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
 (def ^:const WEEK_DIALOG_ID 0)
+(def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 (def location-atom (atom {:lat "" :long ""}))
 
@@ -36,6 +39,8 @@
 (defpref PREF_STATE :state STATE_OUT)
 (defpref PREF_YEAR :year 2015)
 (defpref PREF_WEEK :week 51)
+(defpref PREF_LAT :lat 0)
+(defpref PREF_LONG :long 0)
 
 (defn pref-set-named [pref-atom pref-name new-val]
   (swap! pref-atom assoc (:key pref-name) new-val))
@@ -301,11 +306,16 @@
     ;           :layout-height :wrap
     ;           :text TEXT_WIPE
     ;           :on-click (fn [_] (wipe-db ctx))}]
+    [:button {:id ::wipe-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text TEXT_SET_GPS
+              :on-click (fn [_] (on-ui (.showDialog ctx GPS_DIALOG_ID)))}]
     ]
    ]
   )
 
-(defn make-dialog-layout [ctx]
+(defn make-week-dialog-layout [ctx]
   (make-ui
     ctx
     [:linear-layout {:id-holder true
@@ -333,6 +343,36 @@
                   }
       ]]))
 
+(defn make-gps-dialog-layout [ctx]
+  (make-ui
+    ctx
+    [:linear-layout {:id-holder true
+                     :layout-width :fill
+                     :layout-height :wrap
+                     :padding-left [40 :px]
+                     :padding-right [60 :px]
+                     :orientation :vertical}
+     [:edit-text {:id ::lat-et
+                  :layout-width :fill
+                  :layout-height :wrap
+                  :layout-gravity :right
+                  :input-type (bit-or InputType/TYPE_NUMBER_FLAG_DECIMAL
+                                      InputType/TYPE_CLASS_NUMBER)
+                  :hint "latitude"
+                  :text (str (pref-get PREF_LAT))
+                  }
+      ]
+     [:edit-text {:id ::long-et
+                  :layout-width :fill
+                  :layout-height :wrap
+                  :layout-gravity :right
+                  :input-type (bit-or InputType/TYPE_NUMBER_FLAG_DECIMAL
+                                      InputType/TYPE_CLASS_NUMBER)
+                  :hint "longitude"
+                  :text (str (pref-get PREF_LONG))
+                  }
+      ]]))
+
 (defn week-input-valid? [year week]
   (cond
     (not (integer? year))
@@ -349,7 +389,7 @@
     :else true))
 
 (defn create-week-dialog [ctx]
-  (let [dialog-layout (make-dialog-layout ctx)]
+  (let [dialog-layout (make-week-dialog-layout ctx)]
     (-> ctx
         (alert-dialog-builder
           {:message "Week to display"
@@ -364,6 +404,25 @@
                                     (do
                                       (pref-set PREF_YEAR year)
                                       (pref-set PREF_WEEK week)))))
+           :negative-text "Cancel"
+           :negative-callback (fn [_ _] ())})
+        (.setView dialog-layout)
+        .create)))
+
+(defn create-gps-dialog [ctx]
+  (let [dialog-layout (make-gps-dialog-layout ctx)]
+    (-> ctx
+        (alert-dialog-builder
+          {:message "GPS"
+           :cancelable true
+           :positive-text "Set"
+           :positive-callback (fn [dialog res]
+                                (let [latitude (read-string
+                                                 (get-text dialog-layout ::lat-et))
+                                      longitude (read-string
+                                                  (get-text dialog-layout ::long-et))]
+                                  (pref-set PREF_LAT latitude)
+                                  (pref-set PREF_LONG longitude)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
@@ -385,13 +444,13 @@
       ))
   (onPrepareDialog
     [this id dialog dialog-bundle]
-    (cond
-      (= id WEEK_DIALOG_ID)
-      (.removeDialog this id)))
+      (.removeDialog this id))
   (onCreateDialog
     [this id dialog-bundle]
     (cond
       (= id WEEK_DIALOG_ID)
       (create-week-dialog this)
+      (= id GPS_DIALOG_ID)
+      (create-gps-dialog this)
       :else (toast "Invalid ID" :short)))
   )
