@@ -77,11 +77,39 @@
 (defn make-work-adapter [ctx date]
   (cursor-adapter
     ctx
-    (fn [] [:linear-layout {:id-holder true}
-            [:text-view {:id ::caption-tv}]])
+    (fn [] [:linear-layout {:id-holder true
+                            :orientation :horizontal
+                            :layout-width :fill
+                            :layout-height :wrap}
+             [:text-view {:id ::id-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 2}]
+             [:text-view {:id ::validity-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 2}]
+             [:text-view {:id ::start-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 2}]
+             [:text-view {:id ::stop-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 2}]
+             [:text-view {:id ::date-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 4
+                          :gravity :right}]
+             ])
     (fn [view _ data]
-      (let [tv (find-view view ::caption-tv)]
-        (config tv :text (str data))))
+      (let [id-tv (find-view view ::id-tv)
+            validity-tv (find-view view ::validity-tv)
+            start-tv (find-view view ::start-tv)
+            stop-tv (find-view view ::stop-tv)
+            date-tv (find-view view ::date-tv)]
+        (config id-tv :text (str "id:" (db/get-id data)))
+        (config validity-tv :text (str (db/get-validity data)))
+        (config start-tv :text (str "start:" (db/get-start-id data)))
+        (config stop-tv :text (str "stop:" (db/get-stop-id data)))
+        (config date-tv :text (str (db/get-date data)))
+        ))
     (fn [] (get-work-cursor date))))
 
 (defn main-layout [ctx date]
@@ -101,6 +129,7 @@
    [:list-view {:id ::work-list
                 :adapter (make-work-adapter ctx date)
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                :layout-width :fill
                 :layout-height [0 :dp]
                 :layout-weight 1}]
    ])

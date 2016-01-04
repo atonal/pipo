@@ -49,8 +49,14 @@
 (defn get-time [entry-seq]
   (:time entry-seq))
 
+(defn get-date [entry-seq]
+  (:date entry-seq))
+
 (defn get-punch-method [entry-seq]
   (:method entry-seq))
+
+(defn get-validity [entry-seq]
+  (:validity entry-seq))
 
 (def get-db-helper
   (memoize
