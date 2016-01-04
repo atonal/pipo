@@ -180,7 +180,7 @@
         (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
 
 (defn punch-in [ctx]
-  (db/punch-in (l/local-now))
+  (db/punch-in-manual (l/local-now))
   (update-state ctx))
 
 (defn punch-out [ctx]

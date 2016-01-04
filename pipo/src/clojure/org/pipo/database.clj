@@ -9,6 +9,8 @@
 
 (def ^:const IN "in")
 (def ^:const OUT "out")
+(def ^:const MANUAL "manual")
+(def ^:const GPS "gps")
 
 (def pipo-schema
   (db/make-schema
@@ -18,6 +20,7 @@
             {:columns
              {:_id "integer primary key"
               :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
+              :method (str "text check(method in ('" MANUAL "','" GPS "')) not null default '" MANUAL "'")
               :time "long not null default '0'"}}
             :hours
             {:columns
@@ -47,19 +50,26 @@
 
 (defn pipo-db [] (db/get-database (get-db-helper) :write))
 
-(defn add-punch [type-str ^org.joda.time.DateTime punch-time]
+(defn add-punch [type-str method-str ^org.joda.time.DateTime punch-time]
   (log/d "add-punch:" type-str (utils/date-to-str-full punch-time))
   (db/insert (pipo-db) :punches {:type type-str
+                                 :method method-str
                                  :time (c/to-long punch-time)}))
 
 (defn get-punch-with-id [id]
   (first (db/query-seq (pipo-db) :punches {:_id id})))
 
-(defn punch-in [unix-time]
-  (let [id (add-punch IN unix-time)]
+(defn- punch-in [unix-time method]
+  (let [id (add-punch IN method unix-time)]
     (if (< id 0)
       (log/e "punch-in failed")
       id)))
+
+(defn punch-in-manual [unix-time]
+  (punch-in unix-time MANUAL))
+
+(defn punch-in-gps [unix-time]
+  (punch-in unix-time GPS))
 
 (defn get-punches-cursor [where-clause-str]
   (if (instance? String where-clause-str)
@@ -130,7 +140,7 @@
   (-> (pipo-db) .db (.delete "hours" "1" nil)))
 
 (defn punch-out [unix-time]
-  (let [out-id (add-punch OUT unix-time)]
+  (let [out-id (add-punch OUT MANUAL unix-time)]
     (if (< out-id 0)
       (log/e "punch-out failed")
       (add-hours (get-id (get-latest-punch-in)) out-id))))
