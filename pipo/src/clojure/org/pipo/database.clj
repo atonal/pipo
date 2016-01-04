@@ -49,6 +49,9 @@
 (defn get-time [entry-seq]
   (:time entry-seq))
 
+(defn get-punch-method [entry-seq]
+  (:method entry-seq))
+
 (def get-db-helper
   (memoize
     (fn [] (db/create-helper pipo-schema))))

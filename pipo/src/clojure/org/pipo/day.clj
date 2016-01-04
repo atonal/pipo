@@ -40,11 +40,37 @@
 (defn make-punch-adapter [ctx date]
   (cursor-adapter
     ctx
-    (fn [] [:linear-layout {:id-holder true}
-            [:text-view {:id ::caption-tv}]])
+    (fn [] [:linear-layout {:id-holder true
+                            :orientation :horizontal
+                            :layout-width :fill
+                            :layout-height :wrap}
+             [:text-view {:id ::id-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 1}]
+             [:text-view {:id ::type-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 1}]
+             [:text-view {:id ::method-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 1}]
+             [:text-view {:id ::time-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 4
+                          :gravity :right}]
+             ]
+    )
     (fn [view _ data]
-      (let [tv (find-view view ::caption-tv)]
-        (config tv :text (str data))))
+      (let [id-tv (find-view view ::id-tv)
+            type-tv (find-view view ::type-tv)
+            method-tv (find-view view ::method-tv)
+            time-tv (find-view view ::time-tv)]
+        (config id-tv :text (str "id:" (db/get-id data)))
+        (config type-tv :text (str (db/get-type data)))
+        (config method-tv :text (str (db/get-punch-method data)))
+        (config time-tv :text (str (utils/date-to-str-full
+                                     (c/from-long
+                                       (db/get-time data)))))
+        ))
     (fn [] (get-punch-cursor date)) ;; cursor-fn
     ))
 
@@ -61,11 +87,15 @@
 (defn main-layout [ctx date]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
-                   :layout-height :match-parent}
-   [:text-view {:text (str "Work hours on " (utils/date-to-str-date date))}]
+                   :layout-height :match-parent
+                   :padding-left [10 :px]
+                   :padding-right [10 :px]}
+   [:text-view {:text (str "Work hours on " (utils/date-to-str-date date))
+                }]
    [:list-view {:id ::punch-list
                 :adapter (make-punch-adapter ctx date)
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                :layout-width :fill
                 :layout-height [0 :dp]
                 :layout-weight 1}]
    [:list-view {:id ::work-list
