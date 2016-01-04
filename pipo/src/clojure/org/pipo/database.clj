@@ -24,7 +24,7 @@
               :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
               :method (str "text check(method in ('" MANUAL "','" GPS "')) not null default '" MANUAL "'")
               :time "long not null default '0'"}}
-            :hours
+            :work
             {:columns
              {:_id "integer primary key"
               :date "text not null"
@@ -88,9 +88,9 @@
     (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
          (c/to-long (t/floor (t/plus date (t/days 1)) t/day)))))
 
-(defn add-hours [start-id stop-id]
-  (log/d "add-hours:" start-id stop-id)
-  (db/insert (pipo-db) :hours {:date (utils/date-to-str-date
+(defn add-work [start-id stop-id]
+  (log/d "add-work:" start-id stop-id)
+  (db/insert (pipo-db) :work {:date (utils/date-to-str-date
                                        (c/from-long
                                          (get-time
                                            (get-punch-with-id start-id))))
@@ -99,31 +99,31 @@
                                :validity VALID
                                }))
 
-(defn get-hours [where-clause-str]
+(defn get-work [where-clause-str]
   (if (instance? String where-clause-str)
-    (db/query-seq (pipo-db) :hours where-clause-str)
+    (db/query-seq (pipo-db) :work where-clause-str)
     (do
-      (log/w "get-hours - input not a string: " where-clause-str)
+      (log/w "get-work - input not a string: " where-clause-str)
       nil)))
 
-(defn get-hours-cursor [where-clause-str]
+(defn get-work-cursor [where-clause-str]
   (if (instance? String where-clause-str)
-    (db/query (pipo-db) :hours where-clause-str)
+    (db/query (pipo-db) :work where-clause-str)
     (do
-      (log/w "get-hours - input not a string: " where-clause-str)
+      (log/w "get-work - input not a string: " where-clause-str)
       nil)))
 
-(defn get-hours-by-date [^org.joda.time.DateTime date]
-  (get-hours (str "date = '" (utils/date-to-str-date date) "'")))
+(defn get-work-by-date [^org.joda.time.DateTime date]
+  (get-work (str "date = '" (utils/date-to-str-date date) "'")))
 
-(defn get-hours-cursor-by-date [^org.joda.time.DateTime date]
-  (get-hours-cursor (str "date = '" (utils/date-to-str-date date) "'")))
+(defn get-work-cursor-by-date [^org.joda.time.DateTime date]
+  (get-work-cursor (str "date = '" (utils/date-to-str-date date) "'")))
 
 ;; in milliseconds?
-(defn get-hours-duration [hours]
+(defn get-work-duration [work]
   (-
-   (get-time (get-punch-with-id (get-stop-id hours)))
-   (get-time (get-punch-with-id (get-start-id hours))))
+   (get-time (get-punch-with-id (get-stop-id work)))
+   (get-time (get-punch-with-id (get-start-id work))))
   )
 
 (defn get-latest-punch []
@@ -144,13 +144,13 @@
 
 (defn wipe []
   (-> (pipo-db) .db (.delete "punches" "1" nil))
-  (-> (pipo-db) .db (.delete "hours" "1" nil)))
+  (-> (pipo-db) .db (.delete "work" "1" nil)))
 
 (defn punch-out [unix-time]
   (let [out-id (add-punch OUT MANUAL unix-time)]
     (if (< out-id 0)
       (log/e "punch-out failed")
-      (add-hours (get-id (get-latest-punch-in)) out-id))))
+      (add-work (get-id (get-latest-punch-in)) out-id))))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})

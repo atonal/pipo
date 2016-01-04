@@ -21,21 +21,21 @@
     ;; initialized with a cursor-fn instead of cursor
     (update-cursor (.getAdapter lv))))
 
-(defn update-hours-list [ctx]
-  (let [^android.widget.ListView lv (find-view ctx ::hours-list)]
+(defn update-work-list [ctx]
+  (let [^android.widget.ListView lv (find-view ctx ::work-list)]
     ;; update-cursor called with 1 argument because cursor-adapter was
     ;; initialized with a cursor-fn instead of cursor
     (update-cursor (.getAdapter lv))))
 
 (defn update-cursors [ctx]
   (update-punch-list ctx)
-  (update-hours-list ctx))
+  (update-work-list ctx))
 
 (defn get-punch-cursor [date]
   (db/get-punches-cursor-by-date date))
 
-(defn get-hours-cursor [date]
-  (db/get-hours-cursor-by-date date))
+(defn get-work-cursor [date]
+  (db/get-work-cursor-by-date date))
 
 (defn make-punch-adapter [ctx date]
   (cursor-adapter
@@ -48,7 +48,7 @@
     (fn [] (get-punch-cursor date)) ;; cursor-fn
     ))
 
-(defn make-hours-adapter [ctx date]
+(defn make-work-adapter [ctx date]
   (cursor-adapter
     ctx
     (fn [] [:linear-layout {:id-holder true}
@@ -56,7 +56,7 @@
     (fn [view _ data]
       (let [tv (find-view view ::caption-tv)]
         (config tv :text (str data))))
-    (fn [] (get-hours-cursor date))))
+    (fn [] (get-work-cursor date))))
 
 (defn main-layout [ctx date]
   [:linear-layout {:orientation :vertical
@@ -68,8 +68,8 @@
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]
-   [:list-view {:id ::hours-list
-                :adapter (make-hours-adapter ctx date)
+   [:list-view {:id ::work-list
+                :adapter (make-work-adapter ctx date)
                 :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                 :layout-height [0 :dp]
                 :layout-weight 1}]

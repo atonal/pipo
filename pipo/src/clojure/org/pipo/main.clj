@@ -129,8 +129,8 @@
                          }]
             [:text-view {:text (utils/long-to-hms
                                  (reduce
-                                   + (map db/get-hours-duration
-                                          (db/get-hours-by-date date))))
+                                   + (map db/get-work-duration
+                                          (db/get-work-by-date date))))
                          :padding-right [20 :px]
                          :padding-left [20 :px]
                          :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
