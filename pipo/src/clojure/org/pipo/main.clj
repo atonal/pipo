@@ -103,12 +103,16 @@
                    (< distance RADIUS_M))
               (do
                 (db/punch-in-gps (l/local-now))
+                (on-ui (toast "GPS punch in" :short))
                 (update-state ctx))
               (and (= (pref-get PREF_STATE) STATE_IN)
                    (> distance RADIUS_M))
               (do
                 (db/punch-out-gps (l/local-now))
+                (on-ui (toast "GPS punch out" :short))
                 (update-state ctx))
+              :else
+              (log/w (str "no GPS punch, state: " (pref-get PREF_STATE) ", distance: " distance))
               )))))
 
 (defn get-day-color [date]
