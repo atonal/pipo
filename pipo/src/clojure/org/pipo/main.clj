@@ -128,9 +128,9 @@
     (.putExtra intent EXTRA_DATE (c/to-long date))
     (.startActivity ctx intent)))
 
-(defn make-days-list [ctx]
+(defn make-week-list [ctx]
   (concat
-    [:linear-layout {:id ::inner-days
+    [:linear-layout {:id ::inner-week
                      :orientation :vertical
                      :layout-width :match-parent
                      :layout-height :match-parent
@@ -168,11 +168,11 @@
                week (pref-get PREF_WEEK)]
            (utils/week-from-week-number week year)))))
 
-(defn update-days-list [ctx]
-  (on-ui (.removeAllViews (find-view ctx ::inner-days)))
-  (on-ui (.addView (find-view ctx ::inner-days) (make-ui ctx (make-days-list ctx)))))
+(defn update-week-list [ctx]
+  (on-ui (.removeAllViews (find-view ctx ::inner-week)))
+  (on-ui (.addView (find-view ctx ::inner-week) (make-ui ctx (make-week-list ctx)))))
 
-(defn update-week-view [ctx new-state]
+(defn update-week-nr-view [ctx new-state]
   (let [new-year (pref-get PREF_YEAR new-state)
         new-week (pref-get PREF_WEEK new-state)]
   (set-text ctx ::year-tv (str new-year " / " new-week))
@@ -184,8 +184,8 @@
 (defn create-watchers [ctx]
   (add-watch pipo-prefs :year-week-watcher
              (fn [key atom old-state new-state]
-               (update-week-view ctx new-state)
-               (update-days-list ctx)))
+               (update-week-nr-view ctx new-state)
+               (update-week-list ctx)))
   (add-watch location-atom :location-watcher
              (fn [key atom old-state new-state]
                (set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
@@ -287,12 +287,12 @@
                                   (pref-set PREF_YEAR (:year next-week))
                                   (pref-set PREF_WEEK (:week next-week))))}]
     ]
-   [:linear-layout {:id ::days-layout
+   [:linear-layout {:id ::week-layout
                     :orientation :vertical
                     :layout-width :match-parent
                     :layout-height [0 :dp]
                     :layout-weight 1}
-    (make-days-list ctx)
+    (make-week-list ctx)
     ]
    [:linear-layout {:id ::location-layout
                     :layout-width :wrap
