@@ -11,6 +11,8 @@
 (def ^:const OUT "out")
 (def ^:const MANUAL "manual")
 (def ^:const GPS "gps")
+(def ^:const VALID "valid")
+(def ^:const INVALID "invalid")
 
 (def pipo-schema
   (db/make-schema
@@ -27,7 +29,10 @@
              {:_id "integer primary key"
               :date "text not null"
               :start_id "integer not null"
-              :stop_id "integer not null"}}}))
+              :stop_id "integer not null"
+              :validity (str "text check(validity in ('" VALID "','" INVALID "')) not null default '" VALID "'")
+              ; :validity "integer not null"
+              }}}))
 
 (defn get-id [entry-seq]
   (:_id entry-seq))
@@ -90,7 +95,9 @@
                                          (get-time
                                            (get-punch-with-id start-id))))
                                :start_id start-id
-                               :stop_id stop-id}))
+                               :stop_id stop-id
+                               :validity VALID
+                               }))
 
 (defn get-hours [where-clause-str]
   (if (instance? String where-clause-str)
