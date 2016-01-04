@@ -28,6 +28,7 @@
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
+(def ^:const RADIUS_M 100)
 (def location-atom (atom {:lat "" :long ""}))
 
 (defpreferences pipo-prefs "pipo_sp")
@@ -76,15 +77,39 @@
   (set-latitude latitude)
   (set-longitude longitude))
 
-(defn on-location [^android.location.Location location]
-  (let [latitude (.getLatitude ^android.location.Location location)
-        longitude (.getLongitude ^android.location.Location location)
-        dest-location (android.location.Location. "pipo")]
-    (set-location latitude longitude)
-    (.setLatitude dest-location (pref-get PREF_DEST_LAT))
-    (.setLongitude dest-location (pref-get PREF_DEST_LONG))
-    (on-ui (toast (str "distance: " (.distanceTo location dest-location)) :short))
-    ))
+(defn update-state [ctx]
+  (let [type-latest (db/get-type (db/get-latest-punch))]
+    (if (= type-latest db/IN)
+      (do
+        (pref-set PREF_STATE STATE_IN)
+        (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
+        (on-ui (config (find-view ctx ::punch-out-bt) :enabled true)))
+      (do
+        (pref-set PREF_STATE STATE_OUT)
+        (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
+        (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
+
+(defn make-on-location-fn [ctx]
+  (fn [^android.location.Location location]
+    (let [latitude (.getLatitude ^android.location.Location location)
+          longitude (.getLongitude ^android.location.Location location)
+          dest-location (android.location.Location. "pipo")]
+      (set-location latitude longitude)
+      (.setLatitude dest-location (pref-get PREF_DEST_LAT))
+      (.setLongitude dest-location (pref-get PREF_DEST_LONG))
+      (let [distance (.distanceTo location dest-location)]
+        (on-ui (toast (str "distance: " distance) :short))
+        (cond (and (= (pref-get PREF_STATE) STATE_OUT)
+                   (< distance RADIUS_M))
+              (do
+                (db/punch-in-gps (l/local-now))
+                (update-state ctx))
+              (and (= (pref-get PREF_STATE) STATE_IN)
+                   (> distance RADIUS_M))
+              (do
+                (db/punch-out-gps (l/local-now))
+                (update-state ctx))
+              )))))
 
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
@@ -167,24 +192,12 @@
                (set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
   )
 
-(defn update-state [ctx]
-  (let [type-latest (db/get-type (db/get-latest-punch))]
-    (if (= type-latest db/IN)
-      (do
-        (pref-set PREF_STATE STATE_IN)
-        (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
-        (on-ui (config (find-view ctx ::punch-out-bt) :enabled true)))
-      (do
-        (pref-set PREF_STATE STATE_OUT)
-        (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
-        (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
-
 (defn punch-in [ctx]
   (db/punch-in-manual (l/local-now))
   (update-state ctx))
 
 (defn punch-out [ctx]
-  (db/punch-out (l/local-now))
+  (db/punch-out-manual (l/local-now))
   (update-state ctx))
 
 (defn wipe-db [ctx]
@@ -209,7 +222,7 @@
   (.startService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_STOP)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
-  (location/start-location-updates on-location)
+  (location/start-location-updates (make-on-location-fn ctx))
   )
 
 (defn week-layout [ctx service]

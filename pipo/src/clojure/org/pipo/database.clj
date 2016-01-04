@@ -146,11 +146,17 @@
   (-> (pipo-db) .db (.delete "punches" "1" nil))
   (-> (pipo-db) .db (.delete "work" "1" nil)))
 
-(defn punch-out [unix-time]
-  (let [out-id (add-punch OUT MANUAL unix-time)]
+(defn punch-out [unix-time method]
+  (let [out-id (add-punch OUT method unix-time)]
     (if (< out-id 0)
       (log/e "punch-out failed")
       (add-work (get-id (get-latest-punch-in)) out-id))))
+
+(defn punch-out-manual [unix-time]
+  (punch-out unix-time MANUAL))
+
+(defn punch-out-gps [unix-time]
+  (punch-out unix-time GPS))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
