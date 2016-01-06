@@ -35,7 +35,7 @@
   (db/get-punches-cursor-by-date date))
 
 (defn get-work-cursor [date]
-  (db/get-work-cursor-by-date date))
+  (db/get-work-by-date-cursor date))
 
 (defn make-punch-adapter [ctx date]
   (cursor-adapter
