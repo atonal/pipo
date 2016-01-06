@@ -93,9 +93,12 @@
              [:text-view {:id ::stop-tv
                           :layout-width [0 :dp]
                           :layout-weight 2}]
+             [:text-view {:id ::lunch-tv
+                          :layout-width [0 :dp]
+                          :layout-weight 3}]
              [:text-view {:id ::date-tv
                           :layout-width [0 :dp]
-                          :layout-weight 4
+                          :layout-weight 3
                           :gravity :right}]
              ])
     (fn [view _ data]
@@ -103,11 +106,13 @@
             validity-tv (find-view view ::validity-tv)
             start-tv (find-view view ::start-tv)
             stop-tv (find-view view ::stop-tv)
+            lunch-tv (find-view view ::lunch-tv)
             date-tv (find-view view ::date-tv)]
         (config id-tv :text (str "id:" (db/get-id data)))
         (config validity-tv :text (str (db/get-validity data)))
         (config start-tv :text (str "start:" (db/get-start-id data)))
         (config stop-tv :text (str "stop:" (db/get-stop-id data)))
+        (config lunch-tv :text (str (db/get-lunch data)))
         (config date-tv :text (str (db/get-date data)))
         ))
     (fn [] (get-work-cursor date))))
