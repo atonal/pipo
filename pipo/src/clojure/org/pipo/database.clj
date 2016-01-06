@@ -140,13 +140,6 @@
                                :validity VALID
                                }))
 
-(defn get-work [where-clause-str]
-  (if (instance? String where-clause-str)
-    (db/query-seq (pipo-db) :work where-clause-str)
-    (do
-      (log/w "get-work - input not a string: " where-clause-str)
-      nil)))
-
 (defn get-work-cursor [where-clause-str]
   (if (instance? String where-clause-str)
     (db/query (pipo-db) :work where-clause-str)
@@ -154,11 +147,14 @@
       (log/w "get-work - input not a string: " where-clause-str)
       nil)))
 
-(defn get-work-by-date [^org.joda.time.DateTime date]
-  (get-work (str "date = '" (utils/date-to-str-date date) "'")))
+(defn get-work [where-clause-str]
+  (db/seq-cursor (get-work-cursor where-clause-str)))
 
 (defn get-work-cursor-by-date [^org.joda.time.DateTime date]
   (get-work-cursor (str "date = '" (utils/date-to-str-date date) "'")))
+
+(defn get-work-by-date [^org.joda.time.DateTime date]
+  (db/seq-cursor (get-work-cursor-by-date date)))
 
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
