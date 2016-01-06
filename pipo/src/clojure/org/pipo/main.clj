@@ -158,7 +158,7 @@
                          }]
             [:text-view {:text (utils/long-to-hms
                                  (reduce
-                                   + (map db/get-work-duration
+                                   + (map db/get-work-hours
                                           (db/get-work-by-date date))))
                          :padding-right [20 :px]
                          :padding-left [20 :px]

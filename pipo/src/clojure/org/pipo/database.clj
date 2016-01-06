@@ -13,6 +13,10 @@
 (def ^:const GPS "gps")
 (def ^:const VALID "valid")
 (def ^:const INVALID "invalid")
+(def ^:const LUNCH "lunch")
+(def ^:const NO_LUNCH "no lunch")
+(def ^:const HOURS_FOR_LUNCH_MILLIS 21600000) ; 6 h
+(def ^:const LUNCH_BREAK_MILLIS 1800000) ; 30 min
 
 (def pipo-schema
   (db/make-schema
@@ -30,8 +34,8 @@
               :date "text not null"
               :start_id "integer not null"
               :stop_id "integer not null"
+              :lunch (str "text check(lunch in ('" LUNCH "','" NO_LUNCH "')) not null default '" NO_LUNCH "'")
               :validity (str "text check(validity in ('" VALID "','" INVALID "')) not null default '" VALID "'")
-              ; :validity "integer not null"
               }}}))
 
 (defn get-id [entry-seq]
@@ -57,6 +61,12 @@
 
 (defn get-validity [entry-seq]
   (:validity entry-seq))
+
+(defn get-lunch [entry-seq]
+  (:lunch entry-seq))
+
+(defn has-lunch [entry-seq]
+  (= LUNCH (get-lunch entry-seq)))
 
 (def get-db-helper
   (memoize
@@ -97,6 +107,25 @@
     (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
          (c/to-long (t/floor (t/plus date (t/days 1)) t/day)))))
 
+;; includes lunch break!
+(defn get-work-hours [work-seq]
+  (let [duration (- (get-time (get-punch-with-id (get-stop-id work-seq)))
+                    (get-time (get-punch-with-id (get-start-id work-seq))))]
+    (if (has-lunch work-seq)
+      (- duration LUNCH_BREAK_MILLIS)
+      duration)))
+
+;; does not include lunch break!
+(defn get-work-duration
+  ([start-id stop-id]
+   (- (get-time (get-punch-with-id stop-id))
+      (get-time (get-punch-with-id start-id)))))
+
+(defn work-includes-lunch [start-id stop-id]
+  (if (> (get-work-duration start-id stop-id) HOURS_FOR_LUNCH_MILLIS)
+    true
+    false))
+
 (defn add-work [start-id stop-id]
   (log/d "add-work:" start-id stop-id)
   (db/insert (pipo-db) :work {:date (utils/date-to-str-date
@@ -105,6 +134,9 @@
                                            (get-punch-with-id start-id))))
                                :start_id start-id
                                :stop_id stop-id
+                               :lunch (if (work-includes-lunch start-id stop-id)
+                                        LUNCH
+                                        NO_LUNCH)
                                :validity VALID
                                }))
 
@@ -127,13 +159,6 @@
 
 (defn get-work-cursor-by-date [^org.joda.time.DateTime date]
   (get-work-cursor (str "date = '" (utils/date-to-str-date date) "'")))
-
-;; in milliseconds?
-(defn get-work-duration [work]
-  (-
-   (get-time (get-punch-with-id (get-stop-id work)))
-   (get-time (get-punch-with-id (get-start-id work))))
-  )
 
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
