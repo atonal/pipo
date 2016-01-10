@@ -29,6 +29,7 @@
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 (def ^:const RADIUS_M 100)
+(def ^:const THRESHOLD_M 20)
 (def location-atom (atom {:lat "" :long ""}))
 
 (defpreferences pipo-prefs "pipo_sp")
@@ -106,7 +107,7 @@
                 (on-ui (toast "GPS punch in" :short))
                 (update-state ctx))
               (and (= (pref-get PREF_STATE) STATE_IN)
-                   (> distance RADIUS_M))
+                   (> distance (+ RADIUS_M THRESHOLD_M)))
               (do
                 (db/punch-out-gps (l/local-now))
                 (on-ui (toast "GPS punch out" :short))
