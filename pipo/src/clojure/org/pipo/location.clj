@@ -9,20 +9,20 @@
 
 (defonce location-data (atom {}))
 
-(defn get-state [key]
+(defn- get-state [key]
   (@location-data key))
 
-(defn update-state [key val]
+(defn- update-state [key val]
   (swap! location-data assoc key val))
 
-(defn on-location [location ui-fn]
+(defn- on-location [location ui-fn]
   (ui-fn location))
 
-(defn init-location-manager []
+(defn- init-location-manager []
   (if-not (get-state :manager)
     (update-state :manager (get-service :location))))
 
-(defn init-location-listener [ui-fn]
+(defn- init-location-listener [ui-fn]
   (if-not (get-state :listener)
     (update-state
       :listener
@@ -33,7 +33,7 @@
         (onProviderEnabled [^String provider] ())
         (onStatusChanged [^String provider status ^android.os.Bundle extras] ())))))
 
-(defn reset-location-listener []
+(defn- reset-location-listener []
   (update-state :listener nil))
 
 (defn start-location-updates [ui-fn]
