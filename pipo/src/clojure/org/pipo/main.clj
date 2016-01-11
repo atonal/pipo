@@ -149,14 +149,12 @@
   (.stopService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_START)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service))))
-  (location/stop-location-updates)
   )
 
 (defn service-start [ctx service]
   (.startService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_STOP)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
-  (location/start-location-updates (location/make-on-location-fn ctx))
   )
 
 (defn week-layout [ctx service]

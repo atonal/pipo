@@ -2,7 +2,8 @@
   (:require
     [neko.threading :refer [on-ui]]
     [neko.resource :as res]
-    [neko.notify :refer [toast notification fire cancel]])
+    [neko.notify :refer [toast notification fire cancel]]
+    [org.pipo.location :as location])
   (:import [android.app Service])
   (:gen-class
     :prefix "-"
@@ -34,10 +35,12 @@
 (defn -onStartCommand [this intent flags start-id]
   (let [state (.state this)]
     (on-ui (toast "Service started" :short))
+    (location/start-location-updates)
     Service/START_STICKY
     ))
 
 (defn -onDestroy [this]
   (cancel :notification-key)
   (on-ui (toast "Service destroyed" :short))
+  (location/stop-location-updates)
   )

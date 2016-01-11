@@ -38,20 +38,47 @@
   (set-latitude latitude)
   (set-longitude longitude))
 
-(defn- on-location [location ui-fn]
-  (ui-fn location))
+(defn my-on-location-fn [^android.location.Location location]
+  (let [latitude (.getLatitude ^android.location.Location location)
+        longitude (.getLongitude ^android.location.Location location)
+        dest-location (android.location.Location. "pipo")]
+    (set-location latitude longitude)
+    (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
+    (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
+    (let [distance (.distanceTo location dest-location)]
+      (on-ui (toast (str "distance: " distance) :short))
+      (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
+                 (< distance RADIUS_M))
+            (do
+              (db/punch-in-gps (l/local-now))
+              (on-ui (toast "GPS punch in" :short))
+              ; (update-state ctx)
+              )
+            (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
+                 (> distance (+ RADIUS_M THRESHOLD_M)))
+            (do
+              (db/punch-out-gps (l/local-now))
+              (on-ui (toast "GPS punch out" :short))
+              ; (update-state ctx)
+              )
+            :else
+            (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
+            ))))
+
+(defn- on-location [location]
+  (my-on-location-fn location))
 
 (defn- init-location-manager []
   (if-not (get-state :manager)
     (update-state :manager (get-service :location))))
 
-(defn- init-location-listener [ui-fn]
+(defn- init-location-listener []
   (if-not (get-state :listener)
     (update-state
       :listener
       (proxy [android.location.LocationListener] []
         (onLocationChanged [^android.location.Location location]
-          (on-location location ui-fn))
+          (on-location location))
         (onProviderDisabled [^String provider] ())
         (onProviderEnabled [^String provider] ())
         (onStatusChanged [^String provider status ^android.os.Bundle extras] ())))))
@@ -62,9 +89,9 @@
 (defn get-location-data []
   location-data)
 
-(defn start-location-updates [ui-fn]
+(defn start-location-updates []
   (init-location-manager)
-  (init-location-listener ui-fn)
+  (init-location-listener)
   (.requestLocationUpdates
     ^android.location.LocationManager (get-state :manager)
     android.location.LocationManager/GPS_PROVIDER
@@ -79,29 +106,3 @@
       ^android.location.LocationManager (get-state :manager)
       ^android.location.LocationListener (get-state :listener))
     (reset-location-listener)))
-
-(defn make-on-location-fn [ctx]
-  (fn [^android.location.Location location]
-    (let [latitude (.getLatitude ^android.location.Location location)
-          longitude (.getLongitude ^android.location.Location location)
-          dest-location (android.location.Location. "pipo")]
-      (set-location latitude longitude)
-      (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
-      (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
-      (let [distance (.distanceTo location dest-location)]
-        (on-ui (toast (str "distance: " distance) :short))
-        (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
-                   (< distance RADIUS_M))
-              (do
-                (db/punch-in-gps (l/local-now))
-                (on-ui (toast "GPS punch in" :short))
-                (update-state ctx))
-              (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
-                   (> distance (+ RADIUS_M THRESHOLD_M)))
-              (do
-                (db/punch-out-gps (l/local-now))
-                (on-ui (toast "GPS punch out" :short))
-                (update-state ctx))
-              :else
-              (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
-              )))))
