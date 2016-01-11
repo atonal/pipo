@@ -2,18 +2,41 @@
   (:require [neko.context :refer [get-service]]
             [neko.threading :refer [on-ui]]
             [neko.notify :refer [toast]]
+            [neko.log :as log]
+            [clj-time.local :as l]
+            [org.pipo.prefs :as prefs]
+            [org.pipo.database :as db]
             ))
 
 (def ^:const UPDATE_INTERVAL_MS 2000)
 (def ^:const UPDATE_DISTANCE_M 0)
+(def ^:const RADIUS_M 100)
+(def ^:const THRESHOLD_M 20)
 
-(defonce location-data (atom {}))
+(defonce location-state (atom {}))
+(def location-data (atom {:lat "" :long ""}))
 
 (defn- get-state [key]
-  (@location-data key))
+  (@location-state key))
 
 (defn- update-state [key val]
-  (swap! location-data assoc key val))
+  (swap! location-state assoc key val))
+
+(defn- set-latitude [new-lat]
+  (swap! location-data assoc :lat (str new-lat)))
+
+(defn- set-longitude [new-long]
+  (swap! location-data assoc :long (str new-long)))
+
+(defn get-latitude []
+  (or (:lat @location-data) "unknown"))
+
+(defn get-longitude []
+  (or (:long @location-data) "unknown"))
+
+(defn- set-location [latitude longitude]
+  (set-latitude latitude)
+  (set-longitude longitude))
 
 (defn- on-location [location ui-fn]
   (ui-fn location))
@@ -36,6 +59,9 @@
 (defn- reset-location-listener []
   (update-state :listener nil))
 
+(defn get-location-data []
+  location-data)
+
 (defn start-location-updates [ui-fn]
   (init-location-manager)
   (init-location-listener ui-fn)
@@ -53,3 +79,29 @@
       ^android.location.LocationManager (get-state :manager)
       ^android.location.LocationListener (get-state :listener))
     (reset-location-listener)))
+
+(defn make-on-location-fn [ctx]
+  (fn [^android.location.Location location]
+    (let [latitude (.getLatitude ^android.location.Location location)
+          longitude (.getLongitude ^android.location.Location location)
+          dest-location (android.location.Location. "pipo")]
+      (set-location latitude longitude)
+      (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
+      (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
+      (let [distance (.distanceTo location dest-location)]
+        (on-ui (toast (str "distance: " distance) :short))
+        (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
+                   (< distance RADIUS_M))
+              (do
+                (db/punch-in-gps (l/local-now))
+                (on-ui (toast "GPS punch in" :short))
+                (update-state ctx))
+              (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
+                   (> distance (+ RADIUS_M THRESHOLD_M)))
+              (do
+                (db/punch-out-gps (l/local-now))
+                (on-ui (toast "GPS punch out" :short))
+                (update-state ctx))
+              :else
+              (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
+              )))))

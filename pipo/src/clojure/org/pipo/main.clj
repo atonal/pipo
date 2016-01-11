@@ -26,32 +26,12 @@
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
-(def ^:const RADIUS_M 100)
-(def ^:const THRESHOLD_M 20)
-
-(def location-atom (atom {:lat "" :long ""}))
 
 (defn set-text [ctx elmt s]
   (on-ui (config (find-view ctx elmt) :text s)))
 
 (defn get-text [ctx elmt]
   (str (.getText ^android.widget.TextView (find-view ctx elmt))))
-
-(defn set-latitude [new-lat]
-  (swap! location-atom assoc :lat (str new-lat)))
-
-(defn get-latitude []
-  (or (:lat @location-atom) "unknown"))
-
-(defn set-longitude [new-long]
-  (swap! location-atom assoc :long (str new-long)))
-
-(defn get-longitude []
-  (or (:long @location-atom) "unknown"))
-
-(defn set-location [latitude longitude]
-  (set-latitude latitude)
-  (set-longitude longitude))
 
 (defn update-state [ctx]
   (let [type-latest (db/get-type (db/get-latest-punch))]
@@ -64,32 +44,6 @@
         (prefs/pref-set prefs/PREF_STATE prefs/STATE_OUT)
         (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
         (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
-
-(defn make-on-location-fn [ctx]
-  (fn [^android.location.Location location]
-    (let [latitude (.getLatitude ^android.location.Location location)
-          longitude (.getLongitude ^android.location.Location location)
-          dest-location (android.location.Location. "pipo")]
-      (set-location latitude longitude)
-      (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
-      (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
-      (let [distance (.distanceTo location dest-location)]
-        (on-ui (toast (str "distance: " distance) :short))
-        (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
-                   (< distance RADIUS_M))
-              (do
-                (db/punch-in-gps (l/local-now))
-                (on-ui (toast "GPS punch in" :short))
-                (update-state ctx))
-              (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
-                   (> distance (+ RADIUS_M THRESHOLD_M)))
-              (do
-                (db/punch-out-gps (l/local-now))
-                (on-ui (toast "GPS punch out" :short))
-                (update-state ctx))
-              :else
-              (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
-              )))))
 
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
@@ -166,7 +120,7 @@
              (fn [key atom old-state new-state]
                (update-week-nr-view ctx new-state)
                (update-week-list ctx)))
-  (add-watch location-atom :location-watcher
+  (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
                (set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
                (set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
@@ -202,7 +156,7 @@
   (.startService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_STOP)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
-  (location/start-location-updates (make-on-location-fn ctx))
+  (location/start-location-updates (location/make-on-location-fn ctx))
   )
 
 (defn week-layout [ctx service]
@@ -281,10 +235,10 @@
                     :layout-gravity :top
                     :orientation :horizontal}
     [:text-view {:id ::location-lat-tv
-                 :text (str "lat: " (get-latitude))
+                 :text (str "lat: " (location/get-latitude))
                  :text-size [10 :dp]}]
     [:text-view {:id ::location-long-tv
-                 :text (str "long: " (get-longitude))
+                 :text (str "long: " (location/get-longitude))
                  :text-size [10 :dp]}]]
    [:linear-layout {:orientation :horizontal
                     :layout-width :match-parent
