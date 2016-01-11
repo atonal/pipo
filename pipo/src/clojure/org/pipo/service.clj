@@ -31,10 +31,11 @@
   (on-ui (toast "Service created" :short))
   )
 
-(defn -onStartCommand [this a e w]
-  (on-ui (toast "Service started" :short))
-  Service/START_STICKY
-  )
+(defn -onStartCommand [this intent flags start-id]
+  (let [state (.state this)]
+    (on-ui (toast "Service started" :short))
+    Service/START_STICKY
+    ))
 
 (defn -onDestroy [this]
   (cancel :notification-key)
