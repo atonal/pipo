@@ -86,8 +86,8 @@
 (defn- punch-in [unix-time method]
   (let [id (add-punch IN method unix-time)]
     (if (< id 0)
-      (log/e "punch-in failed")
-      id)))
+      (log/e "punch-in failed"))
+    (>= id 0)))
 
 (defn punch-in-manual [unix-time]
   (punch-in unix-time MANUAL))

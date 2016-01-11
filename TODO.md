@@ -11,4 +11,3 @@
 * Add state for start/stop GPS
 * Automaticallu subtract lunch break, if work day is long enough (6h)
 * Put location updates into a separate thread inside the service
-* Add state and watch for it in main, if service updates it in the background

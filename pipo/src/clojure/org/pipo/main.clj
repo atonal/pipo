@@ -1,21 +1,21 @@
 (ns org.pipo.main
-    (:require [neko.activity :refer [defactivity set-content-view!]]
-              [neko.debug :refer [*a]]
-              [neko.threading :refer [on-ui]]
-              [neko.find-view :refer [find-view]]
-              [neko.ui :refer [config make-ui]]
-              [neko.log :as log]
-              [neko.notify :refer [toast]]
-              [neko.dialog.alert :refer [alert-dialog-builder]]
-              [clj-time.local :as l]
-              [clj-time.coerce :as c]
-              [org.pipo.prefs :as prefs]
-              [org.pipo.database :as db]
-              [org.pipo.utils :as utils]
-              [org.pipo.location :as location])
-    (:import [android.graphics Color]
-             [android.view Gravity]
-             [android.text InputType]))
+  (:require [neko.activity :refer [defactivity set-content-view!]]
+            [neko.debug :refer [*a]]
+            [neko.threading :refer [on-ui]]
+            [neko.find-view :refer [find-view]]
+            [neko.ui :refer [config make-ui]]
+            [neko.log :as log]
+            [neko.notify :refer [toast]]
+            [neko.dialog.alert :refer [alert-dialog-builder]]
+            [clj-time.local :as l]
+            [clj-time.coerce :as c]
+            [org.pipo.prefs :as prefs]
+            [org.pipo.database :as db]
+            [org.pipo.utils :as utils]
+            [org.pipo.location :as location])
+  (:import [android.graphics Color]
+           [android.view Gravity]
+           [android.text InputType]))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -33,18 +33,6 @@
 (defn get-text [ctx elmt]
   (str (.getText ^android.widget.TextView (find-view ctx elmt))))
 
-(defn update-state [ctx]
-  (let [type-latest (db/get-type (db/get-latest-punch))]
-    (if (= type-latest db/IN)
-      (do
-        (prefs/pref-set prefs/PREF_STATE prefs/STATE_IN)
-        (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
-        (on-ui (config (find-view ctx ::punch-out-bt) :enabled true)))
-      (do
-        (prefs/pref-set prefs/PREF_STATE prefs/STATE_OUT)
-        (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
-        (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
-
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
     Color/GRAY
@@ -55,7 +43,6 @@
     (if (and (= (:year current) year) (= (:week current) week))
       Color/GRAY
       Color/DKGRAY)))
-
 
 (defn start-day-activity [ctx ^org.joda.time.DateTime date]
   (let [intent (android.content.Intent. ctx org.pipo.DayActivity)]
@@ -115,10 +102,21 @@
             :background-color
             (get-week-color new-year new-week)))))
 
+(defn update-state-ui [ctx new-state]
+  (let [state (prefs/pref-get prefs/PREF_STATE new-state)]
+    (if (= state prefs/STATE_IN)
+      (do
+        (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
+        (on-ui (config (find-view ctx ::punch-out-bt) :enabled true)))
+      (do
+        (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
+        (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
+
 (defn create-watchers [ctx]
   (add-watch (prefs/get-prefs) :year-week-watcher
              (fn [key atom old-state new-state]
                (update-week-nr-view ctx new-state)
+               (update-state-ui ctx new-state)
                (update-week-list ctx)))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
@@ -126,17 +124,17 @@
                (set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
   )
 
-(defn punch-in [ctx]
-  (db/punch-in-manual (l/local-now))
-  (update-state ctx))
+(defn punch-in []
+  (if (db/punch-in-manual (l/local-now))
+    (prefs/update-state)))
 
-(defn punch-out [ctx]
-  (db/punch-out-manual (l/local-now))
-  (update-state ctx))
+(defn punch-out []
+  (if (db/punch-out-manual (l/local-now))
+    (prefs/update-state)))
 
-(defn wipe-db [ctx]
+(defn wipe-db []
   (db/wipe)
-  (update-state ctx))
+  (prefs/update-state))
 
 
 (defn change-to-current-week []
@@ -245,12 +243,12 @@
               :layout-width :wrap
               :layout-height :wrap
               :text TEXT_PUNCH_IN
-              :on-click (fn [_] (punch-in ctx))}]
+              :on-click (fn [_] (punch-in))}]
     [:button {:id ::punch-out-bt
               :layout-width :wrap
               :layout-height :wrap
               :text TEXT_PUNCH_OUT
-              :on-click (fn [_] (punch-out ctx))}]
+              :on-click (fn [_] (punch-out))}]
     [:button {:id ::service-bt
               :layout-width :wrap
               :layout-height :wrap
@@ -260,7 +258,7 @@
     ;           :layout-width :wrap
     ;           :layout-height :wrap
     ;           :text TEXT_WIPE
-    ;           :on-click (fn [_] (wipe-db ctx))}]
+    ;           :on-click (fn [_] (wipe-db))}]
     [:button {:id ::wipe-bt
               :layout-width :wrap
               :layout-height :wrap
@@ -394,10 +392,9 @@
       (on-ui
         (set-content-view!
           this
-          ; (main-layout this)))
           (week-layout this service)))
       (create-watchers this)
-      (update-state this)
+      (prefs/update-state)
       ))
   (onPrepareDialog
     [this id dialog dialog-bundle]

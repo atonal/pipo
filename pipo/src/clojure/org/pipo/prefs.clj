@@ -1,5 +1,6 @@
 (ns org.pipo.prefs
-  (:require [neko.data.shared-prefs :refer [defpreferences]]))
+  (:require [neko.data.shared-prefs :refer [defpreferences]]
+            [org.pipo.database :as db]))
 
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
@@ -31,3 +32,8 @@
       ((:key pref-name) pref)
       (:default pref-name))))
 
+(defn update-state []
+  (let [type-latest (db/get-type (db/get-latest-punch))]
+    (if (= type-latest db/IN)
+      (pref-set PREF_STATE STATE_IN)
+      (pref-set PREF_STATE STATE_OUT))))
