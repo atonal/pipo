@@ -1,6 +1,7 @@
 (ns org.pipo.prefs
-  (:require [neko.data.shared-prefs :refer [defpreferences]]
-            [org.pipo.database :as db]))
+  (:require [neko.data.shared-prefs :refer [defpreferences put]]
+            [org.pipo.database :as db])
+  (:import android.preference.PreferenceManager))
 
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
@@ -37,3 +38,22 @@
     (if (= type-latest db/IN)
       (pref-set PREF_STATE STATE_IN)
       (pref-set PREF_STATE STATE_OUT))))
+
+;; is update needed? at least if app is running, perhaps?
+(defn update-state-raw [ctx]
+  (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
+    (map (fn [[key val]] (swap! pipo-prefs assoc key val))
+         (reduce (fn [m [key val]] (assoc m (keyword key) val))
+                 {} (.getAll pref-raw)))))
+
+(defn raw-in [ctx]
+  (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
+    (-> (.edit pref-raw)
+        (put (:key PREF_STATE) STATE_IN)
+        .commit)))
+
+(defn raw-out [ctx]
+  (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
+    (-> (.edit pref-raw)
+        (put (:key PREF_STATE) STATE_OUT)
+        .commit)))

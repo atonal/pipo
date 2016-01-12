@@ -115,6 +115,7 @@
 (defn create-watchers [ctx]
   (add-watch (prefs/get-prefs) :year-week-watcher
              (fn [key atom old-state new-state]
+               (log/d "pref updated" :tag "pipo")
                (update-week-nr-view ctx new-state)
                (update-state-ui ctx new-state)
                (update-week-list ctx)))

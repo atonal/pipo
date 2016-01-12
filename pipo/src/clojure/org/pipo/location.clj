@@ -38,7 +38,7 @@
   (set-latitude latitude)
   (set-longitude longitude))
 
-(defn my-on-location-fn [^android.location.Location location]
+(defn my-on-location-fn [ctx ^android.location.Location location]
   (let [latitude (.getLatitude ^android.location.Location location)
         longitude (.getLongitude ^android.location.Location location)
         dest-location (android.location.Location. "pipo")]
@@ -51,32 +51,36 @@
                  (< distance RADIUS_M))
             (do
               (if (db/punch-in-gps (l/local-now))
-                (on-ui (toast "GPS punch in" :short))
-                (prefs/update-state)))
+                (do
+                  (on-ui (toast "GPS punch in" :short))
+                  (prefs/raw-in ctx)
+                  (prefs/update-state-raw ctx))))
             (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
                  (> distance (+ RADIUS_M THRESHOLD_M)))
             (do
               (if (db/punch-out-gps (l/local-now))
-                (on-ui (toast "GPS punch out" :short))
-                (prefs/update-state)))
+                (do
+                  (on-ui (toast "GPS punch out" :short))
+                  (prefs/raw-out ctx)
+                  (prefs/update-state-raw ctx))))
             :else
             (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
             ))))
 
-(defn- on-location [location]
-  (my-on-location-fn location))
+(defn- on-location [ctx location]
+  (my-on-location-fn ctx location))
 
 (defn- init-location-manager []
   (if-not (get-state :manager)
     (update-state :manager (get-service :location))))
 
-(defn- init-location-listener []
+(defn- init-location-listener [ctx]
   (if-not (get-state :listener)
     (update-state
       :listener
       (proxy [android.location.LocationListener] []
         (onLocationChanged [^android.location.Location location]
-          (on-location location))
+          (on-location ctx location))
         (onProviderDisabled [^String provider] ())
         (onProviderEnabled [^String provider] ())
         (onStatusChanged [^String provider status ^android.os.Bundle extras] ())))))
@@ -87,9 +91,9 @@
 (defn get-location-data []
   location-data)
 
-(defn start-location-updates []
+(defn start-location-updates [ctx]
   (init-location-manager)
-  (init-location-listener)
+  (init-location-listener ctx)
   (.requestLocationUpdates
     ^android.location.LocationManager (get-state :manager)
     android.location.LocationManager/GPS_PROVIDER

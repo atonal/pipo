@@ -3,8 +3,10 @@
     [neko.threading :refer [on-ui]]
     [neko.resource :as res]
     [neko.notify :refer [toast notification fire cancel]]
+    [neko.log :as log]
     [org.pipo.location :as location])
-  (:import [android.app Service])
+  (:import [android.app Service]
+           android.preference.PreferenceManager)
   (:gen-class
     :prefix "-"
     :extends android.app.Service
@@ -33,9 +35,12 @@
   )
 
 (defn -onStartCommand [this intent flags start-id]
-  (let [state (.state this)]
+  (let [state (.state this)
+        pref (PreferenceManager/getDefaultSharedPreferences this)]
+    (log/w pref :tag "pipo")
+    ;SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
     (on-ui (toast "Service started" :short))
-    (location/start-location-updates)
+    (location/start-location-updates this)
     Service/START_STICKY
     ))
 
