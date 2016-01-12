@@ -14,3 +14,4 @@
 * Play a sound and/or vibrate on punches
 * Better detailed punch view, where user can manually edit the punches
 * Adjust GPS query frequency based on time of day
+* Represent in/out state in service's status bar icon
