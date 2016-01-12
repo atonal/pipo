@@ -1,5 +1,5 @@
 (ns org.pipo.utils
-  (:require [neko.log :as log]
+  (:require [org.pipo.log :as log]
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clj-time.format :as f]

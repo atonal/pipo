@@ -4,7 +4,7 @@
             [neko.threading :refer [on-ui]]
             [neko.find-view :refer [find-view]]
             [neko.ui :refer [config make-ui]]
-            [neko.log :as log]
+            [org.pipo.log :as log]
             [neko.notify :refer [toast]]
             [neko.dialog.alert :refer [alert-dialog-builder]]
             [clj-time.local :as l]
@@ -115,7 +115,7 @@
 (defn create-watchers [ctx]
   (add-watch (prefs/get-prefs) :year-week-watcher
              (fn [key atom old-state new-state]
-               (log/d "pref updated" :tag "pipo")
+               (log/d "pref updated")
                (update-week-nr-view ctx new-state)
                (update-state-ui ctx new-state)
                (update-week-list ctx)))

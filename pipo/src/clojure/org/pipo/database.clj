@@ -1,6 +1,6 @@
 (ns org.pipo.database
   (:require [neko.data.sqlite :as db]
-            [neko.log :as log]
+            [org.pipo.log :as log]
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clj-time.local :as l]

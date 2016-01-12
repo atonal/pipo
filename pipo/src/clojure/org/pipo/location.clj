@@ -2,7 +2,7 @@
   (:require [neko.context :refer [get-service]]
             [neko.threading :refer [on-ui]]
             [neko.notify :refer [toast]]
-            [neko.log :as log]
+            [org.pipo.log :as log]
             [clj-time.local :as l]
             [org.pipo.prefs :as prefs]
             [org.pipo.database :as db]
