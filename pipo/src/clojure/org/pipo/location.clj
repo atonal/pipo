@@ -53,16 +53,14 @@
               (if (db/punch-in-gps (l/local-now))
                 (do
                   (on-ui (toast "GPS punch in" :short))
-                  (prefs/raw-in ctx)
-                  (prefs/update-state-raw ctx))))
+                  (prefs/set-state-in ctx))))
             (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
                  (> distance (+ RADIUS_M THRESHOLD_M)))
             (do
               (if (db/punch-out-gps (l/local-now))
                 (do
                   (on-ui (toast "GPS punch out" :short))
-                  (prefs/raw-out ctx)
-                  (prefs/update-state-raw ctx))))
+                  (prefs/set-state-out ctx))))
             :else
             (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
             ))))

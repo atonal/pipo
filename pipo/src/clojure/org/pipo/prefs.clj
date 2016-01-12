@@ -1,6 +1,7 @@
 (ns org.pipo.prefs
   (:require [neko.data.shared-prefs :refer [defpreferences put]]
-            [org.pipo.database :as db])
+            [org.pipo.database :as db]
+            [org.pipo.log :as log])
   (:import android.preference.PreferenceManager))
 
 (def ^:const STATE_IN "IN")
@@ -19,6 +20,7 @@
 (defpref PREF_DEST_LONG :long 0)
 
 (defn get-prefs []
+  (log/d "get-prefs" pipo-prefs)
   pipo-prefs)
 
 (defn pref-set-named [pref-atom pref-name new-val]
@@ -39,21 +41,24 @@
       (pref-set PREF_STATE STATE_IN)
       (pref-set PREF_STATE STATE_OUT))))
 
-;; is update needed? at least if app is running, perhaps?
-(defn update-state-raw [ctx]
-  (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
-    (map (fn [[key val]] (swap! pipo-prefs assoc key val))
-         (reduce (fn [m [key val]] (assoc m (keyword key) val))
-                 {} (.getAll pref-raw)))))
+;; Functions that need to be called from service to update pref atom
+;; TODO: merge these into one update-state-from-service function
+(defn- update-state-raw [ctx pref-raw]
+  (dorun
+    (map (fn [[key val]]
+           (swap! pipo-prefs assoc (keyword key) val))
+         (.getAll pref-raw))))
 
-(defn raw-in [ctx]
+(defn set-state-in [ctx]
   (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
     (-> (.edit pref-raw)
         (put (:key PREF_STATE) STATE_IN)
-        .commit)))
+        .commit)
+    (update-state-raw ctx pref-raw)))
 
-(defn raw-out [ctx]
+(defn set-state-out [ctx]
   (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
     (-> (.edit pref-raw)
         (put (:key PREF_STATE) STATE_OUT)
-        .commit)))
+        .commit)
+    (update-state-raw ctx pref-raw)))
