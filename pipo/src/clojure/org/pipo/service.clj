@@ -5,7 +5,7 @@
     [neko.notify :refer [toast notification fire cancel]]
     [org.pipo.log :as log]
     [org.pipo.location :as location])
-  (:import [android.app Service]
+  (:import [android.app Service Notification]
            android.preference.PreferenceManager)
   (:gen-class
     :prefix "-"
@@ -20,11 +20,11 @@
   [[] (atom {:data "state-data"})])
 
 (defn create-notification []
-  (let [mynotification (notification {:icon R$drawable/ic_launcher
-                                      :ticker-text "Activate location updates"
-                                      :content-title "PiPo"
-                                      :content-text "Location updates are being sent"
-                                      :action [:activity "org.pipo.MAIN"]})]
+  (let [mynotification ^Notification (notification {:icon R$drawable/ic_launcher
+                                                    :ticker-text "Activate location updates"
+                                                    :content-title "PiPo"
+                                                    :content-text "Location updates are being sent"
+                                                    :action [:activity "org.pipo.MAIN"]})]
     ; Set the notification persistent
     (set! (. mynotification flags) android.app.Notification/FLAG_ONGOING_EVENT)
     (fire :notification-key mynotification)))
@@ -34,11 +34,8 @@
   (on-ui (toast "Service created" :short))
   )
 
-(defn -onStartCommand [this intent flags start-id]
-  (let [state (.state this)
-        pref (PreferenceManager/getDefaultSharedPreferences this)]
-    (log/w pref)
-    ;SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+(defn -onStartCommand [^org.pipo.service this intent flags start-id]
+  (let [state (.state this)]
     (on-ui (toast "Service started" :short))
     (location/start-location-updates this)
     Service/START_STICKY

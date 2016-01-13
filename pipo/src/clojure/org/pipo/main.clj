@@ -13,9 +13,13 @@
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
             [org.pipo.location :as location])
-  (:import [android.graphics Color]
-           [android.view Gravity]
-           [android.text InputType]))
+  (:import [android.view ViewGroup Gravity]
+           android.graphics.Color
+           android.text.InputType
+           android.app.Activity
+           android.content.Intent
+           java.lang.Long
+           org.joda.time.DateTime))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -44,9 +48,9 @@
       Color/GRAY
       Color/DKGRAY)))
 
-(defn start-day-activity [ctx ^org.joda.time.DateTime date]
-  (let [intent (android.content.Intent. ctx org.pipo.DayActivity)]
-    (.putExtra intent EXTRA_DATE (c/to-long date))
+(defn start-day-activity [^Activity ctx ^DateTime date]
+  (let [^Intent intent (Intent. ctx org.pipo.DayActivity)]
+    (.putExtra intent EXTRA_DATE ^Long (c/to-long date))
     (.startActivity ctx intent)))
 
 (defn make-week-list [ctx]
@@ -57,7 +61,7 @@
                      :layout-height :match-parent
                      }
      ]
-    (map (fn [^org.joda.time.DateTime date]
+    (map (fn [^DateTime date]
            [:linear-layout {:orientation :horizontal
                             :layout-width :fill
                             :layout-height [0 :dp]
@@ -90,17 +94,18 @@
            (utils/week-from-week-number week year)))))
 
 (defn update-week-list [ctx]
-  (on-ui (.removeAllViews (find-view ctx ::inner-week)))
-  (on-ui (.addView (find-view ctx ::inner-week) (make-ui ctx (make-week-list ctx)))))
+  (let [week-list-view ^ViewGroup (find-view ctx ::inner-week)]
+    (on-ui (.removeAllViews week-list-view))
+    (on-ui (.addView week-list-view (make-ui ctx (make-week-list ctx))))))
 
 (defn update-week-nr-view [ctx new-state]
   (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
         new-week (prefs/pref-get prefs/PREF_WEEK new-state)]
-  (set-text ctx ::year-tv (str new-year " / " new-week))
-  (on-ui
-    (config (find-view ctx ::year-tv)
-            :background-color
-            (get-week-color new-year new-week)))))
+    (set-text ctx ::year-tv (str new-year " / " new-week))
+    (on-ui
+      (config (find-view ctx ::year-tv)
+              :background-color
+              (get-week-color new-year new-week)))))
 
 (defn update-state-ui [ctx new-state]
   (let [state (prefs/pref-get prefs/PREF_STATE new-state)]
@@ -144,19 +149,19 @@
     (prefs/pref-set prefs/PREF_WEEK (:week current))))
 
 (declare service-start)
-(defn service-stop [ctx service]
+(defn service-stop [^Activity ctx service]
   (.stopService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_START)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service))))
   )
 
-(defn service-start [ctx service]
+(defn service-start [^Activity ctx service]
   (.startService ctx service)
   (set-text ctx ::service-bt TEXT_SERVICE_STOP)
   (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
   )
 
-(defn week-layout [ctx service]
+(defn week-layout [^Activity ctx service]
   [:linear-layout {:orientation :vertical
                    :layout-width :match-parent
                    :layout-height :match-parent
@@ -266,8 +271,8 @@
               :text TEXT_SET_GPS
               :on-click (fn [_] (on-ui (.showDialog ctx GPS_DIALOG_ID)))}]
     ]
-   ]
-  )
+]
+)
 
 (defn make-week-dialog-layout [ctx]
   (make-ui
@@ -388,7 +393,7 @@
   :key :main
   (onCreate
     [this bundle]
-    (let [service (android.content.Intent. this org.pipo.service)]
+    (let [service (Intent. this org.pipo.service)]
       (.superOnCreate this bundle)
       (on-ui
         (set-content-view!
@@ -399,7 +404,7 @@
       ))
   (onPrepareDialog
     [this id dialog dialog-bundle]
-      (.removeDialog this id))
+    (.removeDialog this id))
   (onCreateDialog
     [this id dialog-bundle]
     (cond

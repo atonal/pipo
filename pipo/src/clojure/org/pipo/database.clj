@@ -5,7 +5,9 @@
             [clj-time.coerce :as c]
             [clj-time.local :as l]
             [clj-time.periodic :as p]
-            [org.pipo.utils :as utils]))
+            [org.pipo.utils :as utils])
+  (:import android.database.sqlite.SQLiteDatabase
+           neko.data.sqlite.TaggedDatabase))
 
 (def ^:const IN "in")
 (def ^:const OUT "out")
@@ -173,8 +175,8 @@
   (get-latest-punch-type OUT))
 
 (defn wipe []
-  (-> (pipo-db) .db (.delete "punches" "1" nil))
-  (-> (pipo-db) .db (.delete "work" "1" nil)))
+  (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "punches" "1" nil)
+  (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "work" "1" nil))
 
 (defn punch-out [unix-time method]
   (let [out-id (add-punch OUT method unix-time)]

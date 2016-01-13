@@ -2,7 +2,8 @@
   (:require [neko.data.shared-prefs :refer [defpreferences put]]
             [org.pipo.database :as db]
             [org.pipo.log :as log])
-  (:import android.preference.PreferenceManager))
+  (:import android.preference.PreferenceManager
+           android.content.SharedPreferences))
 
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
@@ -43,7 +44,7 @@
 
 ;; Functions that need to be called from service to update pref atom
 ;; TODO: merge these into one update-state-from-service function
-(defn- update-state-raw [ctx pref-raw]
+(defn- update-state-raw [ctx ^SharedPreferences pref-raw]
   (dorun
     (map (fn [[key val]]
            (swap! pipo-prefs assoc (keyword key) val))
