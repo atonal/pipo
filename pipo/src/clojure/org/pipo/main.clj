@@ -117,12 +117,45 @@
         (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
         (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
 
-(defn create-watchers [ctx]
+(declare service-start)
+(defn service-stop [^Activity ctx service]
+  (.stopService ctx service)
+  ;; TODO: these not needed when pref updates automatically
+  ; (set-text ctx ::service-bt TEXT_SERVICE_START)
+  ; (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service))))
+  )
+
+(defn service-start [^Activity ctx service]
+  (.startService ctx service)
+  ; (set-text ctx ::service-bt TEXT_SERVICE_STOP)
+  ; (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
+  )
+
+(defn update-service-ui [ctx new-state service]
+  (let [state (prefs/pref-get prefs/PREF_STATE_SERVICE new-state)]
+    (if (= state prefs/SERVICE_RUNNING)
+      (do
+        (set-text ctx ::service-bt TEXT_SERVICE_STOP)
+        (on-ui
+          (config
+            (find-view ctx ::service-bt)
+            :on-click
+            (fn [_] (service-stop ctx service)))))
+      (do
+        (set-text ctx ::service-bt TEXT_SERVICE_START)
+        (on-ui
+          (config
+            (find-view ctx ::service-bt)
+            :on-click
+            (fn [_] (service-start ctx service))))))))
+
+(defn create-watchers [ctx service]
   (add-watch (prefs/get-prefs) :year-week-watcher
              (fn [key atom old-state new-state]
                (log/d "pref updated")
                (update-week-nr-view ctx new-state)
                (update-state-ui ctx new-state)
+               (update-service-ui ctx new-state service)
                (update-week-list ctx)))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
@@ -147,19 +180,6 @@
   (let [current (utils/get-current-week)]
     (prefs/pref-set prefs/PREF_YEAR (:year current))
     (prefs/pref-set prefs/PREF_WEEK (:week current))))
-
-(declare service-start)
-(defn service-stop [^Activity ctx service]
-  (.stopService ctx service)
-  (set-text ctx ::service-bt TEXT_SERVICE_START)
-  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service))))
-  )
-
-(defn service-start [^Activity ctx service]
-  (.startService ctx service)
-  (set-text ctx ::service-bt TEXT_SERVICE_STOP)
-  (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
-  )
 
 (defn week-layout [^Activity ctx service]
   [:linear-layout {:orientation :vertical
@@ -399,7 +419,7 @@
         (set-content-view!
           this
           (week-layout this service)))
-      (create-watchers this)
+      (create-watchers this service)
       (prefs/update-state)
       ))
   (onPrepareDialog

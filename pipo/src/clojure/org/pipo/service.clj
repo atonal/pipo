@@ -4,6 +4,7 @@
     [neko.resource :as res]
     [neko.notify :refer [toast notification fire cancel]]
     [org.pipo.log :as log]
+    [org.pipo.prefs :as prefs]
     [org.pipo.location :as location])
   (:import [android.app Service Notification]
            android.preference.PreferenceManager)
@@ -36,6 +37,7 @@
 
 (defn -onStartCommand [^org.pipo.service this intent flags start-id]
   (let [state (.state this)]
+    (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING) ;; TODO: this needs to be raw
     (on-ui (toast "Service started" :short))
     (location/start-location-updates this)
     Service/START_STICKY
@@ -43,6 +45,7 @@
 
 (defn -onDestroy [this]
   (cancel :notification-key)
+  (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
   (on-ui (toast "Service destroyed" :short))
   (location/stop-location-updates)
   )

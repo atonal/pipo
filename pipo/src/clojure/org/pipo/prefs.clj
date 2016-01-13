@@ -7,6 +7,8 @@
 
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
+(def ^:const SERVICE_RUNNING "RUNNING")
+(def ^:const SERVICE_STOPPED "STOPPED")
 
 (defpreferences pipo-prefs "pipo_sp")
 
@@ -15,6 +17,7 @@
   `(def ~(vary-meta pref-name assoc :tag `:const) {:key ~pref-key :default ~default}))
 
 (defpref PREF_STATE :state STATE_OUT)
+(defpref PREF_STATE_SERVICE :state-service SERVICE_STOPPED)
 (defpref PREF_YEAR :year 2015)
 (defpref PREF_WEEK :week 51)
 (defpref PREF_DEST_LAT :lat 0)

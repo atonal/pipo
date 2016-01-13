@@ -15,3 +15,5 @@
 * Better detailed punch view, where user can manually edit the punches
 * Adjust GPS query frequency based on time of day
 * Represent in/out state in service's status bar icon
+* Close all bare cursors after use in try-finally block
+* db/query-seq and db/seq-cursor _should_ close the cursor after use
