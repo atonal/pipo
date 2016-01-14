@@ -32,7 +32,7 @@
   (update-work-list ctx))
 
 (defn get-punch-cursor [date]
-  (db/get-punches-cursor-by-date date))
+  (db/get-punches-by-date-cursor date))
 
 (defn get-work-cursor [date]
   (db/get-work-by-date-cursor date))

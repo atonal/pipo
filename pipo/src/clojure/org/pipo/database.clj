@@ -104,7 +104,7 @@
       (log/w "get-punches-cursor - input not a string: " where-clause-str)
       nil)))
 
-(defn get-punches-cursor-by-date [^org.joda.time.DateTime date]
+(defn get-punches-by-date-cursor [^org.joda.time.DateTime date]
   (get-punches-cursor
     (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
          (c/to-long (t/floor (t/plus date (t/days 1)) t/day)))))
