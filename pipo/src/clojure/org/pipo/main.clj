@@ -119,17 +119,10 @@
 
 (declare service-start)
 (defn service-stop [^Activity ctx service]
-  (.stopService ctx service)
-  ;; TODO: these not needed when pref updates automatically
-  ; (set-text ctx ::service-bt TEXT_SERVICE_START)
-  ; (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-start ctx service))))
-  )
+  (.stopService ctx service))
 
 (defn service-start [^Activity ctx service]
-  (.startService ctx service)
-  ; (set-text ctx ::service-bt TEXT_SERVICE_STOP)
-  ; (on-ui (config (find-view ctx ::service-bt) :on-click (fn [_] (service-stop ctx service))))
-  )
+  (.startService ctx service))
 
 (defn update-service-ui [ctx new-state service]
   (let [state (prefs/pref-get prefs/PREF_STATE_SERVICE new-state)]

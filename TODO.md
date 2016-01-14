@@ -7,7 +7,6 @@
 * Move between weeks by swiping left/right
 * Split work at midnight automatically
 * Use local time in all places
-* Add state for start/stop GPS
 * Add automatic lunch break if _total_ work hours by day is more than 6h?
 * Put location updates into a separate thread inside the service
 * Setup target location by drawing onto a map

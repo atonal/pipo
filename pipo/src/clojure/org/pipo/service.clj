@@ -21,11 +21,12 @@
   [[] (atom {:data "state-data"})])
 
 (defn create-notification []
-  (let [mynotification ^Notification (notification {:icon R$drawable/ic_launcher
-                                                    :ticker-text "Activate location updates"
-                                                    :content-title "PiPo"
-                                                    :content-text "Location updates are being sent"
-                                                    :action [:activity "org.pipo.MAIN"]})]
+  (let [mynotification
+        ^Notification (notification {:icon R$drawable/ic_launcher
+                                     :ticker-text "Activate location updates"
+                                     :content-title "PiPo"
+                                     :content-text "Location updates are being sent"
+                                     :action [:activity "org.pipo.MAIN"]})]
     ; Set the notification persistent
     (set! (. mynotification flags) android.app.Notification/FLAG_ONGOING_EVENT)
     (fire :notification-key mynotification)))
@@ -37,7 +38,7 @@
 
 (defn -onStartCommand [^org.pipo.service this intent flags start-id]
   (let [state (.state this)]
-    (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING) ;; TODO: this needs to be raw
+    (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
     (on-ui (toast "Service started" :short))
     (location/start-location-updates this)
     Service/START_STICKY
@@ -45,7 +46,7 @@
 
 (defn -onDestroy [this]
   (cancel :notification-key)
-  (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
+  (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
   (on-ui (toast "Service destroyed" :short))
   (location/stop-location-updates)
   )

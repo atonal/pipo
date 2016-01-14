@@ -46,23 +46,21 @@
       (pref-set PREF_STATE STATE_OUT))))
 
 ;; Functions that need to be called from service to update pref atom
-;; TODO: merge these into one update-state-from-service function
-(defn- update-state-raw [ctx ^SharedPreferences pref-raw]
+(defn- update-pref-atom [ctx ^SharedPreferences pref-raw]
   (dorun
     (map (fn [[key val]]
            (swap! pipo-prefs assoc (keyword key) val))
          (.getAll pref-raw))))
 
-(defn set-state-in [ctx]
+(defn pref-set-service [ctx pref-name new-val]
   (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
     (-> (.edit pref-raw)
-        (put (:key PREF_STATE) STATE_IN)
+        (put (:key pref-name) new-val)
         .commit)
-    (update-state-raw ctx pref-raw)))
+    (update-pref-atom ctx pref-raw)))
 
-(defn set-state-out [ctx]
-  (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
-    (-> (.edit pref-raw)
-        (put (:key PREF_STATE) STATE_OUT)
-        .commit)
-    (update-state-raw ctx pref-raw)))
+(defn update-state-service [ctx]
+  (let [type-latest (db/get-type (db/get-latest-punch))]
+    (if (= type-latest db/IN)
+      (pref-set-service ctx PREF_STATE STATE_IN)
+      (pref-set-service ctx PREF_STATE STATE_OUT))))
