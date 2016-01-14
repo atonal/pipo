@@ -15,4 +15,5 @@
 * Adjust GPS query frequency based on time of day
 * Represent in/out state in service's status bar icon
 * Close all bare cursors after use in try-finally block
-* db/query-seq and db/seq-cursor _should_ close the cursor after use
+  (db/query-seq and db/seq-cursor _should_ close the cursor after use)
+* Consider usin Loaders and LoaderManager to handle cursors automatically
