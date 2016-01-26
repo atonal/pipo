@@ -17,3 +17,5 @@
 * Close all bare cursors after use in try-finally block
   (db/query-seq and db/seq-cursor _should_ close the cursor after use)
 * Consider usin Loaders and LoaderManager to handle cursors automatically
+* Store the location of punch to db for debugging purposes
+* Add option to view hours as decimals instead of HH:mm
