@@ -1,16 +1,19 @@
 (ns org.pipo.service
   (:require
     [neko.threading :refer [on-ui]]
+    [neko.debug :refer [*a]]
     [neko.resource :as res]
     [neko.notify :refer [toast notification fire cancel]]
     [org.pipo.log :as log]
     [org.pipo.prefs :as prefs]
     [org.pipo.broadcastreceiver :as tick]
+    [org.pipo.servicehandler :as handler]
     [org.pipo.location :as location])
   (:import [android.app Service Notification]
-           android.preference.PreferenceManager)
+           android.preference.PreferenceManager
+           [android.os  Message])
   (:gen-class
-    :prefix "-"
+    :prefix "service-"
     :extends android.app.Service
     :state state
     :init init
@@ -26,7 +29,16 @@
 (defn -init []
   [[] (atom {:data "state-data"})])
 
-(defn create-notification []
+;; little functions to safely set the fields.
+(defn- setfield
+  [this key value]
+  (swap! (.state this) into {key value}))
+
+(defn- getfield
+  [this key]
+  (@(.state this) key))
+
+(defn- create-notification []
   (let [mynotification
         ^Notification (notification {:icon R$drawable/ic_launcher
                                      :ticker-text "Activate location updates"
@@ -37,21 +49,30 @@
     (set! (. mynotification flags) android.app.Notification/FLAG_ONGOING_EVENT)
     (fire :notification-key mynotification)))
 
-(defn -onCreate [this]
-  (create-notification)
-  (on-ui (toast "Service created" :short))
-  )
+(defn service-init []
+  [[] (atom {:service-handler nil})])
 
-(defn -onStartCommand [^org.pipo.service this intent flags start-id]
-  (let [state (.state this)]
+(defn service-onCreate [this]
+  (let [thread (android.os.HandlerThread.
+                 "LocationServiceThread")]
+    (.start thread)
+    (setfield this :service-handler (org.pipo.servicehandler. (.getLooper thread)))
+    (create-notification)
+    (on-ui (toast "Service created" :short))))
+
+(defn service-onStartCommand [^org.pipo.service this intent flags start-id]
+  (let [state (.state this)
+        service-handler (getfield this :service-handler)
+        msg (.obtainMessage service-handler) ]
     (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
-    (on-ui (toast "Service started" :short))
-    (location/start-location-updates)
+    (on-ui (toast (str "Service id: " start-id " started") :short))
+    (set! (.-arg1 msg) start-id)
+    (.sendMessage service-handler msg)
     (reset! tick-receiver (tick/register-receiver this tick-func))
     Service/START_STICKY
     ))
 
-(defn -onDestroy [this]
+(defn service-onDestroy [this]
   (cancel :notification-key)
   (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
   (on-ui (toast "Service destroyed" :short))
