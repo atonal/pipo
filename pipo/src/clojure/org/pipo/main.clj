@@ -55,6 +55,16 @@
     (.putExtra intent EXTRA_DATE ^Long (c/to-long date))
     (.startActivity ctx intent)))
 
+(defn get-work-hours-for-date [^DateTime date]
+  (reduce
+    + (map db/get-work-hours
+           (db/get-work-by-date date))))
+
+(defn add-current-work [^DateTime date]
+  (if (utils/date-equals? (l/local-now) date)
+    (db/get-time-since-latest-punch-in (l/local-now))
+    0))
+
 (defn make-week-list [ctx]
   (concat
     [:linear-layout {:id ::inner-week
@@ -80,9 +90,8 @@
                          :background-color (get-day-color date)
                          }]
             [:text-view {:text (utils/long-to-hms
-                                 (reduce
-                                   + (map db/get-work-hours
-                                          (db/get-work-by-date date))))
+                                 (+ (get-work-hours-for-date date)
+                                    (add-current-work date)))
                          :padding-right [20 :px]
                          :padding-left [20 :px]
                          :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
@@ -404,8 +413,10 @@
         (.setView dialog-layout)
         .create)))
 
-(defn tick-func []
-  (on-ui (toast (str "Time changed! (from Activity)") :short)))
+(defn make-tick-func [ctx]
+  (fn []
+    (update-week-list ctx)
+    (on-ui (toast (str "Time changed! (from Activity)") :short))))
 
 (defactivity org.pipo.MyActivity
   :key :main
@@ -434,7 +445,7 @@
   (onStart
     [this]
     (.superOnStart this)
-    (reset! tick-receiver (tick/register-receiver this tick-func))
+    (reset! tick-receiver (tick/register-receiver this (make-tick-func this)))
     )
   (onResume
     [this]

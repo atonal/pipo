@@ -9,6 +9,7 @@
 (def datetime-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
 (def date-formatter (f/formatters :date))
 (def hms-formatter (f/formatters :hour-minute-second))
+(def hm-formatter (f/formatters :hour-minute))
 (def daylist-formatter (f/formatter "E d.M."))
 
 (defn date-to-str-full [^org.joda.time.DateTime date-time]
@@ -19,6 +20,9 @@
 
 (defn date-to-str-hms [^org.joda.time.DateTime date-time]
   (f/unparse hms-formatter date-time))
+
+(defn date-to-str-hm [^org.joda.time.DateTime date-time]
+  (f/unparse hm-formatter date-time))
 
 (defn date-to-str-day [^org.joda.time.DateTime date-time]
   (f/unparse daylist-formatter date-time))
@@ -78,6 +82,9 @@
 
 (defn long-to-hms [dt-long]
   (date-to-str-hms (c/from-long dt-long)))
+
+(defn long-to-hm [dt-long]
+  (date-to-str-hm (c/from-long dt-long)))
 
 (defn date-equals? [^org.joda.time.DateTime dt1 ^org.joda.time.DateTime dt2]
   (and (= (t/year dt1) (t/year dt2))

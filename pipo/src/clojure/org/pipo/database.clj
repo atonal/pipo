@@ -174,6 +174,17 @@
 (defn get-latest-punch-out []
   (get-latest-punch-type OUT))
 
+(defn get-time-since-latest-punch-in [^org.joda.time.DateTime date]
+  (let [latest-punch (get-latest-punch)]
+    (if (= (get-type latest-punch) IN)
+      (let [diff (- (c/to-long date)
+                    (get-time latest-punch))]
+        (if (< diff 0)
+          0
+          diff
+          ))
+      0)))
+
 (defn wipe []
   (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "punches" "1" nil)
   (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "work" "1" nil))
