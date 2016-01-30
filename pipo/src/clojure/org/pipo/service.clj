@@ -5,6 +5,7 @@
     [neko.notify :refer [toast notification fire cancel]]
     [org.pipo.log :as log]
     [org.pipo.prefs :as prefs]
+    [org.pipo.broadcastreceiver :as tick]
     [org.pipo.location :as location])
   (:import [android.app Service Notification]
            android.preference.PreferenceManager)
@@ -16,6 +17,9 @@
     ))
 
 (res/import-all)
+
+(defn tick-func []
+  (on-ui (toast (str "Time changed! (from Service)") :short)))
 
 (defn -init []
   [[] (atom {:data "state-data"})])
@@ -41,6 +45,7 @@
     (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
     (on-ui (toast "Service started" :short))
     (location/start-location-updates this)
+    (tick/register-receiver this tick-func)
     Service/START_STICKY
     ))
 

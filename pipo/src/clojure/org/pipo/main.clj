@@ -12,6 +12,7 @@
             [org.pipo.prefs :as prefs]
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
+            [org.pipo.broadcastreceiver :as tick]
             [org.pipo.location :as location])
   (:import [android.view ViewGroup Gravity]
            android.graphics.Color
@@ -30,6 +31,7 @@
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
+(def tick-receiver (atom nil))
 
 (defn set-text [ctx elmt s]
   (on-ui (config (find-view ctx elmt) :text s)))
@@ -402,6 +404,9 @@
         (.setView dialog-layout)
         .create)))
 
+(defn tick-func []
+  (on-ui (toast (str "Time changed! (from Activity)") :short)))
+
 (defactivity org.pipo.MyActivity
   :key :main
   (onCreate
@@ -426,4 +431,29 @@
       (= id GPS_DIALOG_ID)
       (create-gps-dialog this)
       :else (toast "Invalid ID" :short)))
+  (onStart
+    [this]
+    (.superOnStart this)
+    (reset! tick-receiver (tick/register-receiver this tick-func))
+    )
+  (onResume
+    [this]
+    (.superOnResume this)
+    )
+  (onPause
+    [this]
+    (.superOnPause this)
+    )
+  (onStop
+    [this]
+    (.superOnStop this)
+    (tick/unregister-receiver this @tick-receiver)
+    (reset! tick-receiver nil)
+    )
+  (onDestroy
+    [this]
+    (.superOnDestroy this)
+    )
   )
+
+; (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
