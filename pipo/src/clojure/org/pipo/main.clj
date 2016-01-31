@@ -130,7 +130,9 @@
 
 (declare service-start)
 (defn service-stop [^Activity ctx service]
-  (.stopService ctx service))
+  (.stopService ctx service)
+  (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
+  )
 
 (defn service-start [^Activity ctx service]
   (.startService ctx service))
