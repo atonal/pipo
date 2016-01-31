@@ -31,7 +31,25 @@
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
+(def ^:const HOUR_FORMATTERS {:dec utils/long-to-decimal :hm utils/long-to-hm})
 (def tick-receiver (atom nil))
+
+(defn get-hour-formatter-kw []
+  (keyword (prefs/pref-get prefs/PREF_HOUR_FORMATTER)))
+
+(defn get-hour-formatter []
+  ((get-hour-formatter-kw) HOUR_FORMATTERS))
+
+(defn set-hour-formatter [fmt]
+  ;; pre is-string?
+  (if (not (nil? ((keyword fmt) HOUR_FORMATTERS)))
+    (prefs/pref-set prefs/PREF_HOUR_FORMATTER fmt)))
+
+; TODO: more generic toggle function, if more that two formatters
+(defn toggle-hour-formatter []
+  (if (= :dec (get-hour-formatter-kw))
+    (set-hour-formatter "hm")
+    (set-hour-formatter "dec")))
 
 (defn set-text [ctx elmt s]
   (on-ui (config (find-view ctx elmt) :text s)))
@@ -91,7 +109,7 @@
                          :padding-left [20 :px]
                          :background-color (get-day-color date)
                          }]
-            [:text-view {:text (utils/long-to-hms
+            [:text-view {:text ((get-hour-formatter)
                                  (+ (get-work-hours-for-date date)
                                     (add-current-work date)))
                          :padding-right [20 :px]
@@ -258,6 +276,11 @@
                                                   year)]
                                   (prefs/pref-set prefs/PREF_YEAR (:year next-week))
                                   (prefs/pref-set prefs/PREF_WEEK (:week next-week))))}]
+    [:button {:id ::toggle-fmt-bt
+              :layout-width :wrap
+              :layout-height :wrap
+              :text "fmt"
+              :on-click (fn [_] (toggle-hour-formatter))}]
     ]
    [:linear-layout {:id ::week-layout
                     :orientation :vertical

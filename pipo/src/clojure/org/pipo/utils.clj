@@ -27,6 +27,10 @@
 (defn date-to-str-day [^org.joda.time.DateTime date-time]
   (f/unparse daylist-formatter date-time))
 
+(defn date-to-str-hour-decimal [^org.joda.time.DateTime date-time]
+  (str (t/hour date-time) "."
+       (format "%02d" (int (/ (* 100 (t/minute date-time)) 60)))))
+
 (defn previous-monday [^org.joda.time.DateTime dt]
   (t/minus dt (t/days (- (t/day-of-week dt) 1))))
 
@@ -85,6 +89,9 @@
 
 (defn long-to-hm [dt-long]
   (date-to-str-hm (c/from-long dt-long)))
+
+(defn long-to-decimal [dt-long]
+  (date-to-str-hour-decimal (c/from-long dt-long)))
 
 (defn date-equals? [^org.joda.time.DateTime dt1 ^org.joda.time.DateTime dt2]
   (and (= (t/year dt1) (t/year dt2))

@@ -20,6 +20,14 @@
   (is (= (utils/date-to-str-day (t/date-time 2015 12 23 2 3 4))
          "Wed 23.12.")))
 
+(deftest date-to-str-hour-decimal
+  (is (= (utils/date-to-str-hour-decimal (t/date-time 2015 12 23 2 0 4))
+         "2.00"))
+  (is (= (utils/date-to-str-hour-decimal (t/date-time 2015 12 23 2 45 4))
+         "2.75"))
+  (is (= (utils/date-to-str-hour-decimal (t/date-time 2015 12 23 2 30 4))
+         "2.50")))
+
 (deftest previous-monday
   (is (t/equal? (utils/previous-monday (t/date-time 2015 12 18))
                 (t/date-time 2015 12 14)))
