@@ -153,14 +153,22 @@
             :on-click
             (fn [_] (service-start ctx service))))))))
 
+(defn update-uis [ctx service & pref-state]
+  (let [state (or (first pref-state) @(prefs/get-prefs))]
+    (update-week-nr-view ctx state)
+    (update-state-ui ctx state)
+    (update-service-ui ctx state service)
+    (update-week-list ctx)))
+
 (defn create-watchers [ctx service]
   (add-watch (prefs/get-prefs) :year-week-watcher
              (fn [key atom old-state new-state]
-               (log/d "pref updated")
-               (update-week-nr-view ctx new-state)
-               (update-state-ui ctx new-state)
-               (update-service-ui ctx new-state service)
-               (update-week-list ctx)))
+               (log/d "pref updated:" new-state)
+               (update-uis ctx service new-state)))
+               ; (update-week-nr-view ctx new-state)
+               ; (update-state-ui ctx new-state)
+               ; (update-service-ui ctx new-state service)
+               ; (update-week-list ctx)))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
                (set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
@@ -449,8 +457,10 @@
     )
   (onResume
     [this]
-    (.superOnResume this)
-    )
+    (let [service (Intent. this org.pipo.service)]
+      (.superOnResume this)
+      (update-uis this service)
+      ))
   (onPause
     [this]
     (.superOnPause this)
