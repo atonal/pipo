@@ -24,6 +24,7 @@
 (res/import-all)
 
 (defn tick-func []
+  (log/d "service tick thread id " (Thread/currentThread))
   (on-ui (toast (str "Time changed! (from Service)") :short)))
 
 (defn -init []
@@ -69,7 +70,7 @@
     (on-ui (toast (str "Service id: " start-id " started") :short))
     (set! (.-arg1 msg) start-id)
     (.sendMessage service-handler msg)
-    (reset! tick-receiver (tick/register-receiver this tick-func))
+    (reset! tick-receiver (tick/register-receiver this tick-func service-handler))
     Service/START_STICKY
     ))
 

@@ -11,11 +11,11 @@
     :constructors {[clojure.lang.IFn] []}
     ))
 
-(defn register-receiver [ctx func]
+(defn register-receiver [ctx func handler]
   (let [intent-filter (android.content.IntentFilter.)
         receiver (org.pipo.broadcastreceiver. func)]
     (-> intent-filter (.addAction android.content.Intent/ACTION_TIME_TICK))
-    (-> ctx (.registerReceiver receiver intent-filter))
+    (-> ctx (.registerReceiver receiver intent-filter nil handler))
     receiver))
 
 (defn unregister-receiver [ctx receiver]

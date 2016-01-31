@@ -428,6 +428,7 @@
 (defn make-tick-func [ctx]
   (fn []
     (update-week-list ctx)
+    (log/d "main tick thread id " (Thread/currentThread))
     (on-ui (toast (str "Time changed! (from Activity)") :short))))
 
 (defactivity org.pipo.MyActivity
@@ -458,7 +459,7 @@
   (onStart
     [this]
     (.superOnStart this)
-    (reset! tick-receiver (tick/register-receiver this (make-tick-func this)))
+    (reset! tick-receiver (tick/register-receiver this (make-tick-func this) nil))
     )
   (onResume
     [this]
