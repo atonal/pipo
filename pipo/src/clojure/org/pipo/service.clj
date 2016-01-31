@@ -55,6 +55,7 @@
 (defn service-onCreate [this]
   (let [thread (android.os.HandlerThread.
                  "LocationServiceThread")]
+    (log/d "service create thread id " (Thread/currentThread))
     (.start thread)
     (setfield this :service-handler (org.pipo.servicehandler. (.getLooper thread)))
     (create-notification)

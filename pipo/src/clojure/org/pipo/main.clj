@@ -442,6 +442,7 @@
           (week-layout this service)))
       (create-watchers this service)
       (prefs/update-state)
+      (log/d "main thread id " (Thread/currentThread))
       ))
   (onPrepareDialog
     [this id dialog dialog-bundle]

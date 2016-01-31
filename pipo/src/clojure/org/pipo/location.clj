@@ -42,6 +42,7 @@
   (let [latitude (.getLatitude ^android.location.Location location)
         longitude (.getLongitude ^android.location.Location location)
         dest-location (android.location.Location. "pipo")]
+    (log/d "on-location thread id " (Thread/currentThread))
     (set-location latitude longitude)
     (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
     (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
