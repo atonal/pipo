@@ -44,16 +44,16 @@
 
 (defn -onStartCommand [^org.pipo.service this intent flags start-id]
   (let [state (.state this)]
-    (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
+    (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
     (on-ui (toast "Service started" :short))
-    (location/start-location-updates this)
+    (location/start-location-updates)
     (reset! tick-receiver (tick/register-receiver this tick-func))
     Service/START_STICKY
     ))
 
 (defn -onDestroy [this]
   (cancel :notification-key)
-  (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
+  (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
   (on-ui (toast "Service destroyed" :short))
   (location/stop-location-updates)
   (tick/unregister-receiver this @tick-receiver)

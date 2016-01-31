@@ -1,9 +1,7 @@
 (ns org.pipo.prefs
   (:require [neko.data.shared-prefs :refer [defpreferences put]]
             [org.pipo.database :as db]
-            [org.pipo.log :as log])
-  (:import android.preference.PreferenceManager
-           android.content.SharedPreferences))
+            [org.pipo.log :as log]))
 
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
@@ -44,23 +42,3 @@
     (if (= type-latest db/IN)
       (pref-set PREF_STATE STATE_IN)
       (pref-set PREF_STATE STATE_OUT))))
-
-;; Functions that need to be called from service to update pref atom
-(defn- update-pref-atom [ctx ^SharedPreferences pref-raw]
-  (dorun
-    (map (fn [[key val]]
-           (swap! pipo-prefs assoc (keyword key) val))
-         (.getAll pref-raw))))
-
-(defn pref-set-service [ctx pref-name new-val]
-  (let [pref-raw (PreferenceManager/getDefaultSharedPreferences ctx)]
-    (-> (.edit pref-raw)
-        (put (:key pref-name) new-val)
-        .commit)
-    (update-pref-atom ctx pref-raw)))
-
-(defn update-state-service [ctx]
-  (let [type-latest (db/get-type (db/get-latest-punch))]
-    (if (= type-latest db/IN)
-      (pref-set-service ctx PREF_STATE STATE_IN)
-      (pref-set-service ctx PREF_STATE STATE_OUT))))
