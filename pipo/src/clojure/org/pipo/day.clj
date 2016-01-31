@@ -9,27 +9,27 @@
               [clj-time.coerce :as c]
               [org.pipo.database :as db]
               [org.pipo.utils :as utils]
+              [org.pipo.log :as log]
               )
     (:import [android.widget AbsListView]
              ))
 
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 
-(defn update-punch-list [ctx]
-  (let [^android.widget.ListView lv (find-view ctx ::punch-list)]
-    ;; update-cursor called with 1 argument because cursor-adapter was
-    ;; initialized with a cursor-fn instead of cursor
-    (update-cursor (.getAdapter lv))))
+(def cursors (atom {:punch nil :work nil}))
 
-(defn update-work-list [ctx]
-  (let [^android.widget.ListView lv (find-view ctx ::work-list)]
-    ;; update-cursor called with 1 argument because cursor-adapter was
-    ;; initialized with a cursor-fn instead of cursor
-    (update-cursor (.getAdapter lv))))
+; (defn update-punch-list [ctx]
+;   (let [^android.widget.ListView lv (find-view ctx ::punch-list)]
+;     (update-cursor (.getAdapter lv) new-cursor)))
 
-(defn update-cursors [ctx]
-  (update-punch-list ctx)
-  (update-work-list ctx))
+; (defn update-work-list [ctx]
+;   (let [^android.widget.ListView lv (find-view ctx ::work-list)]
+;     (update-cursor (.getAdapter lv) new-cursor)))
+
+; (defn update-cursors [ctx]
+;   (log/d "update cursors")
+;   (update-punch-list ctx)
+;   (update-work-list ctx))
 
 (defn get-punch-cursor [date]
   (db/get-punches-by-date-cursor date))
@@ -37,7 +37,7 @@
 (defn get-work-cursor [date]
   (db/get-work-by-date-cursor date))
 
-(defn make-punch-adapter [ctx date]
+(defn make-punch-adapter [ctx date cursor]
   (cursor-adapter
     ctx
     (fn [] [:linear-layout {:id-holder true
@@ -71,10 +71,10 @@
                                      (c/from-long
                                        (db/get-time data)))))
         ))
-    (fn [] (get-punch-cursor date)) ;; cursor-fn
+    cursor
     ))
 
-(defn make-work-adapter [ctx date]
+(defn make-work-adapter [ctx date cursor]
   (cursor-adapter
     ctx
     (fn [] [:linear-layout {:id-holder true
@@ -115,29 +115,31 @@
         (config lunch-tv :text (str (db/get-lunch data)))
         (config date-tv :text (str (db/get-date data)))
         ))
-    (fn [] (get-work-cursor date))))
+    cursor))
 
-(defn main-layout [ctx date]
-  [:linear-layout {:orientation :vertical
-                   :layout-width :match-parent
-                   :layout-height :match-parent
-                   :padding-left [10 :px]
-                   :padding-right [10 :px]}
-   [:text-view {:text (str "Work hours on " (utils/date-to-str-date date))
-                }]
-   [:list-view {:id ::punch-list
-                :adapter (make-punch-adapter ctx date)
-                :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
-                :layout-width :fill
-                :layout-height [0 :dp]
-                :layout-weight 1}]
-   [:list-view {:id ::work-list
-                :adapter (make-work-adapter ctx date)
-                :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
-                :layout-width :fill
-                :layout-height [0 :dp]
-                :layout-weight 1}]
-   ])
+(defn main-layout [ctx date cursors]
+  (let [punch-cursor (:punch cursors)
+        work-cursor (:work cursors)]
+    [:linear-layout {:orientation :vertical
+                     :layout-width :match-parent
+                     :layout-height :match-parent
+                     :padding-left [10 :px]
+                     :padding-right [10 :px]}
+     [:text-view {:text (str "Work hours on " (utils/date-to-str-date date))
+                  }]
+     [:list-view {:id ::punch-list
+                  :adapter (make-punch-adapter ctx date punch-cursor)
+                  :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                  :layout-width :fill
+                  :layout-height [0 :dp]
+                  :layout-weight 1}]
+     [:list-view {:id ::work-list
+                  :adapter (make-work-adapter ctx date work-cursor)
+                  :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                  :layout-width :fill
+                  :layout-height [0 :dp]
+                  :layout-weight 1}]
+     ]))
 
 
 (defactivity org.pipo.DayActivity
@@ -147,13 +149,49 @@
     (let [intent (.getIntent this)
           date (c/from-long (.getLongExtra intent EXTRA_DATE 0))]
       (.superOnCreate this bundle)
+      (swap! cursors assoc :punch (get-punch-cursor date ))
+      (swap! cursors assoc :work (get-work-cursor date))
       (on-ui
         (set-content-view!
           this
-          (main-layout this date)))
-      ; (create-watchers this)
-      ; (update-state this)
+          (main-layout this date @cursors)))
       ; (update-cursors this)
+      )
+      (log/d "day thread id " (Thread/currentThread))
+    )
+  (onStart
+    [this]
+    (.superOnStart this)
+    )
+  (onResume
+    [this]
+    (.superOnResume this)
+    )
+  (onPause
+    [this]
+    (.superOnPause this)
+    )
+  (onStop
+    [this]
+    (.superOnStop this)
+    )
+  (onDestroy
+    [this]
+    (let [punch-cursor (:punch @cursors)
+          work-cursor (:work @cursors)]
+      (.superOnDestroy this)
+      (if (not (nil? punch-cursor))
+        (do
+          (log/d "closing punch cursor")
+          (.close punch-cursor)
+          (swap! cursors assoc :punch nil)
+          ))
+      (if (not (nil? work-cursor))
+        (do
+          (log/d "closing work cursor")
+          (.close work-cursor)
+          (swap! cursors assoc :work nil)
+          ))
       )
     )
   )
