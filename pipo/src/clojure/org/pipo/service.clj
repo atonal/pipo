@@ -16,6 +16,8 @@
     :init init
     ))
 
+(def tick-receiver (atom nil))
+
 (res/import-all)
 
 (defn tick-func []
@@ -45,7 +47,7 @@
     (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
     (on-ui (toast "Service started" :short))
     (location/start-location-updates this)
-    (tick/register-receiver this tick-func)
+    (reset! tick-receiver (tick/register-receiver this tick-func))
     Service/START_STICKY
     ))
 
@@ -54,4 +56,6 @@
   (prefs/pref-set-service this prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
   (on-ui (toast "Service destroyed" :short))
   (location/stop-location-updates)
+  (tick/unregister-receiver this @tick-receiver)
+  (reset! tick-receiver nil)
   )
