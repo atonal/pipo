@@ -68,8 +68,6 @@
       Color/GRAY
       Color/DKGRAY)))
 
-; (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
-
 (defn start-day-activity [^Activity ctx ^DateTime date]
   (let [^Intent intent (Intent. ctx org.pipo.DayActivity)]
     (.putExtra intent EXTRA_DATE ^Long (c/to-long date))
