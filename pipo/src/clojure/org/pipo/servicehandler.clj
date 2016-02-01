@@ -15,11 +15,8 @@
 (defn handler-init [looper]
   [[looper] (atom {:data "state-data"})])
 
+;; TODO: is this class needed?
 (defn handler-handleMessage [this msg]
   (log/d "handle message thread id " (Thread/currentThread))
   (on-ui (toast (str "handler started with " (.-arg1 msg))))
-  (log/d "sleep 10")
-  (Thread/sleep 10000)
-  (location/start-location-updates)
-  (log/d "location updates started")
   )

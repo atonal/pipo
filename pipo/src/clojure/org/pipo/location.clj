@@ -3,23 +3,17 @@
             [neko.threading :refer [on-ui]]
             [neko.notify :refer [toast]]
             [org.pipo.log :as log]
-            [clj-time.local :as l]
-            [org.pipo.prefs :as prefs]
-            [org.pipo.database :as db]
             ))
 
 (def ^:const UPDATE_INTERVAL_MS 2000)
 (def ^:const UPDATE_DISTANCE_M 0)
-(def ^:const RADIUS_M 100)
-(def ^:const THRESHOLD_M 20)
-
 (defonce location-state (atom {}))
 (def location-data (atom {:lat "" :long ""}))
 
-(defn- get-state [key]
+(defn- get-location-state [key]
   (@location-state key))
 
-(defn- update-state [key val]
+(defn- update-location-state [key val]
   (swap! location-state assoc key val))
 
 (defn- set-latitude [new-lat]
@@ -38,72 +32,50 @@
   (set-latitude latitude)
   (set-longitude longitude))
 
-(defn my-on-location-fn [^android.location.Location location]
-  (let [latitude (.getLatitude ^android.location.Location location)
-        longitude (.getLongitude ^android.location.Location location)
-        dest-location (android.location.Location. "pipo")]
-    (log/d "on-location thread id " (Thread/currentThread))
-    (set-location latitude longitude)
-    (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
-    (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
-    (let [distance (.distanceTo location dest-location)]
-      (on-ui (toast (str "distance: " distance) :short))
-      (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
-                 (< distance RADIUS_M))
-            (do
-              (if (db/punch-in-gps (l/local-now))
-                (do
-                  (on-ui (toast "GPS punch in" :short))
-                  (prefs/update-state))))
-            (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
-                 (> distance (+ RADIUS_M THRESHOLD_M)))
-            (do
-              (if (db/punch-out-gps (l/local-now))
-                (do
-                  (on-ui (toast "GPS punch out" :short))
-                  (prefs/update-state))))
-            :else
-            (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
-            ))))
-
-(defn- on-location [location]
-  (my-on-location-fn location))
-
 (defn- init-location-manager []
-  (if-not (get-state :manager)
-    (update-state :manager (get-service :location))))
+  (if-not (get-location-state :manager)
+    (update-location-state :manager (get-service :location))))
 
-(defn- init-location-listener []
-  (if-not (get-state :listener)
-    (update-state
+(defn- init-location-listener [on-location-fn]
+  (if-not (get-location-state :listener)
+    (update-location-state
       :listener
       (proxy [android.location.LocationListener] []
         (onLocationChanged [^android.location.Location location]
-          (on-location location))
+          (let [latitude (.getLatitude location)
+                longitude (.getLongitude location)]
+            (set-location latitude longitude)
+            (on-location-fn location)
+            ))
         (onProviderDisabled [^String provider] ())
         (onProviderEnabled [^String provider] ())
         (onStatusChanged [^String provider status ^android.os.Bundle extras] ())))))
 
 (defn- reset-location-listener []
-  (update-state :listener nil))
+  (update-location-state :listener nil))
 
 (defn get-location-data []
   location-data)
 
-(defn start-location-updates []
+(defn location-updates-running []
+  ;; TODO: need to check if listener is enabled?
+  (and (not (nil? (get-location-state :manager)))
+       (not (nil? (get-location-state :listener)))))
+
+(defn start-location-updates [on-location-fn]
   (init-location-manager)
-  (init-location-listener)
+  (init-location-listener on-location-fn)
   (.requestLocationUpdates
-    ^android.location.LocationManager (get-state :manager)
+    ^android.location.LocationManager (get-location-state :manager)
     android.location.LocationManager/GPS_PROVIDER
     (long UPDATE_INTERVAL_MS)
     (float UPDATE_DISTANCE_M)
-    ^android.location.LocationListener (get-state :listener)))
+    ^android.location.LocationListener (get-location-state :listener)))
 
 (defn stop-location-updates []
-  (if (and (get-state :manager)
-           (get-state :listener))
-    (.removeUpdates
-      ^android.location.LocationManager (get-state :manager)
-      ^android.location.LocationListener (get-state :listener))
-    (reset-location-listener)))
+  (if (location-updates-running)
+    (do
+      (.removeUpdates
+        ^android.location.LocationManager (get-location-state :manager)
+        ^android.location.LocationListener (get-location-state :listener))
+      (reset-location-listener))))
