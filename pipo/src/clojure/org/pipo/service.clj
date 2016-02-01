@@ -27,7 +27,7 @@
 
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
-(def ^:const MAX_UPDATES 1)
+(def ^:const MAX_UPDATES 3)
 (def ^:const BASE_DATE (t/date-time 1 1 1))
 (def INTERVAL_MORNING (t/interval
                                 (t/date-time 1 1 1 7)
@@ -89,7 +89,6 @@
 ;; TODO: use local times here. need to adjust time zone?
 (defn time-to-get-location [^org.joda.time.DateTime date-time]
   (let [now (utils/get-time date-time)]
-    ; (log/d "time-to-get-location?" (utils/date-to-str-full date-time))
     (cond (and (t/within? INTERVAL_MORNING now)
                (= 0 (mod (t/minute now) 5)))
           true
@@ -110,18 +109,18 @@
           )))
 
 (defn tick-func []
-  (log/d "service tick thread id " (Thread/currentThread))
-  (on-ui (toast (str "Time changed! (from Service)") :short))
-  (if (location/location-updates-running)
-    (location/stop-location-updates))
-  (if (time-to-get-location (l/local-now))
-    (do
-      (log/d "yes")
-      (location/start-location-updates my-on-location-fn)
-      (log/d "location updates started"))
-    (log/d "no")
-    )
-  )
+  (let [now (l/local-now)]
+    (log/d "service tick thread id " (Thread/currentThread))
+    (on-ui (toast (str "Time changed! (from Service)") :short))
+    (if (location/location-updates-running)
+      (location/stop-location-updates))
+    (log/d "time-to-get-location?" (utils/date-to-str-full now))
+    (if (time-to-get-location now)
+      (do
+        (log/d "yes")
+        (location/start-location-updates my-on-location-fn)
+        (log/d "location updates started"))
+      (log/d "no"))))
 
 (defn -init []
   [[] (atom {:data "state-data"})])
