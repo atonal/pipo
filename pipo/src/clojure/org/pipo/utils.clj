@@ -97,3 +97,10 @@
   (and (= (t/year dt1) (t/year dt2))
        (= (t/month dt1) (t/month dt2))
        (= (t/day dt1) (t/day dt2))))
+
+(defn get-time [^org.joda.time.DateTime date-time]
+  (let [hour (t/hour date-time)
+        day (if (< hour 7)
+              2
+              1)]
+    (t/date-time 1 1 day (t/hour date-time) (t/minute date-time))))

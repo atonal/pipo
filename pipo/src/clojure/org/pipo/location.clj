@@ -62,15 +62,17 @@
   (and (not (nil? (get-location-state :manager)))
        (not (nil? (get-location-state :listener)))))
 
-(defn start-location-updates [on-location-fn]
-  (init-location-manager)
-  (init-location-listener on-location-fn)
-  (.requestLocationUpdates
-    ^android.location.LocationManager (get-location-state :manager)
-    android.location.LocationManager/GPS_PROVIDER
-    (long UPDATE_INTERVAL_MS)
-    (float UPDATE_DISTANCE_M)
-    ^android.location.LocationListener (get-location-state :listener)))
+(defn start-location-updates [on-location-fn & looper]
+  (let [looper-thread (first looper)] ;; looper or nil
+    (init-location-manager)
+    (init-location-listener on-location-fn)
+    (.requestLocationUpdates
+      ^android.location.LocationManager (get-location-state :manager)
+      android.location.LocationManager/GPS_PROVIDER
+      (long UPDATE_INTERVAL_MS)
+      (float UPDATE_DISTANCE_M)
+      ^android.location.LocationListener (get-location-state :listener)
+      looper-thread)))
 
 (defn stop-location-updates []
   (if (location-updates-running)

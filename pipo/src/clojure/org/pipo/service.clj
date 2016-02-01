@@ -4,9 +4,11 @@
     [neko.debug :refer [*a]]
     [neko.resource :as res]
     [neko.notify :refer [toast notification fire cancel]]
+    [clj-time.core :as t]
     [clj-time.local :as l]
     [org.pipo.log :as log]
     [org.pipo.prefs :as prefs]
+    [org.pipo.utils :as utils]
     [org.pipo.broadcastreceiver :as tick]
     [org.pipo.servicehandler :as handler]
     [org.pipo.database :as db]
@@ -26,6 +28,22 @@
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
 (def ^:const MAX_UPDATES 1)
+(def ^:const BASE_DATE (t/date-time 1 1 1))
+(def INTERVAL_MORNING (t/interval
+                                (t/date-time 1 1 1 7)
+                                (t/date-time 1 1 1 9 30)))
+(def INTERVAL_DAY (t/interval
+                            (t/date-time 1 1 1 9 30)
+                            (t/date-time 1 1 1 15 30)))
+(def INTERVAL_DAY_OUT (t/interval
+                                (t/date-time 1 1 1 15 30)
+                                (t/date-time 1 1 1 17 30)))
+(def INTERVAL_EVENING (t/interval
+                                (t/date-time 1 1 1 17 30)
+                                (t/date-time 1 1 1 22)))
+(def INTERVAL_NIGHT (t/interval
+                              (t/date-time 1 1 1 22)
+                              (t/date-time 1 1 2 7)))
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
 
@@ -68,18 +86,41 @@
       (location/stop-location-updates))
     ))
 
-(defn time-to-get-location []
-  true)
+;; TODO: use local times here. need to adjust time zone?
+(defn time-to-get-location [^org.joda.time.DateTime date-time]
+  (let [now (utils/get-time date-time)]
+    ; (log/d "time-to-get-location?" (utils/date-to-str-full date-time))
+    (cond (and (t/within? INTERVAL_MORNING now)
+               (= 0 (mod (t/minute now) 5)))
+          true
+          (and (t/within? INTERVAL_DAY now)
+               (= 0 (mod (t/minute now) 15)))
+          true
+          (and (t/within? INTERVAL_DAY_OUT now)
+               (= 0 (mod (t/minute now) 5)))
+          true
+          (and (t/within? INTERVAL_EVENING now)
+               (= 0 (t/minute now)))
+          true
+          (and (t/within? INTERVAL_NIGHT now)
+               (and (= 0 (mod (t/hour now) 2))
+                    (= 0 (t/minute now))))
+          true
+          :else false
+          )))
 
 (defn tick-func []
   (log/d "service tick thread id " (Thread/currentThread))
   (on-ui (toast (str "Time changed! (from Service)") :short))
-  (if (and (time-to-get-location)
-           ;; TODO: If already running, check if need to change update parameters
-           (not (location/location-updates-running)))
+  (if (location/location-updates-running)
+    (location/stop-location-updates))
+  (if (time-to-get-location (l/local-now))
     (do
+      (log/d "yes")
       (location/start-location-updates my-on-location-fn)
-      (log/d "location updates started")))
+      (log/d "location updates started"))
+    (log/d "no")
+    )
   )
 
 (defn -init []
@@ -125,6 +166,8 @@
     (on-ui (toast (str "Service id: " start-id " started") :short))
     ; (set! (.-arg1 msg) start-id)
     ; (.sendMessage service-handler msg)
+
+    (location/start-location-updates my-on-location-fn (.getLooper service-handler))
 
     ; TICKs are handled in tick-func by the service-handler thread
     (reset! tick-receiver
