@@ -14,6 +14,7 @@
 
   :dependencies [[org.clojure-android/clojure "1.7.0-RC1" :use-resources true]
                  [neko/neko "4.0.0-alpha5"]
+                 [net.danlew/android.joda "2.9.2" :extension "aar"]
                  [clj-time "0.11.0"]
                  [org.clojure/java.jdbc "0.4.2"]]
   :profiles {:default [:dev]

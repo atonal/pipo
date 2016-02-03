@@ -20,7 +20,8 @@
            android.app.Activity
            android.content.Intent
            java.lang.Long
-           org.joda.time.DateTime))
+           org.joda.time.DateTime
+           net.danlew.android.joda.JodaTimeAndroid))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -458,6 +459,7 @@
     [this bundle]
     (let [service (Intent. this org.pipo.service)]
       (.superOnCreate this bundle)
+      (JodaTimeAndroid/init this)
       (on-ui
         (set-content-view!
           this
