@@ -12,6 +12,10 @@
 (def hm-formatter (f/formatters :hour-minute))
 (def daylist-formatter (f/formatter "E d.M."))
 
+;; TODO: get time zone offset:
+; (/ (.getOffset (java.util.TimeZone/getDefault) (c/to-long (l/local-now))) 3600000)
+; (/ (.getRawOffset (java.util.TimeZone/getDefault)) 3600000)
+
 (defn date-to-str-full [^org.joda.time.DateTime date-time]
   (f/unparse datetime-formatter date-time))
 
