@@ -21,6 +21,8 @@
            android.content.Intent
            java.lang.Long
            org.joda.time.DateTime
+           org.joda.time.DateTimeZone
+           java.util.TimeZone
            net.danlew.android.joda.JodaTimeAndroid))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
@@ -453,6 +455,13 @@
     (log/d "main tick thread id " (Thread/currentThread))
     (on-ui (toast (str "Time changed! (from Activity)") :short))))
 
+(defn init-time-zone []
+  (let [tzId (TimeZone/getDefault)]
+    (try
+      (DateTimeZone/setDefault (DateTimeZone/forTimeZone tzId))
+      (catch IllegalArgumentException e
+        (log/w "Could not recognize timezone id \"" + tzId + "\"" e)))))
+
 (defactivity org.pipo.MyActivity
   :key :main
   (onCreate
@@ -460,6 +469,7 @@
     (let [service (Intent. this org.pipo.service)]
       (.superOnCreate this bundle)
       (JodaTimeAndroid/init this)
+      (init-time-zone)
       (on-ui
         (set-content-view!
           this
