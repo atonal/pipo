@@ -12,7 +12,7 @@
   :plugins [[lein-droid "0.4.3"]
             [cider/cider-nrepl "0.8.2"]]
 
-  :dependencies [[org.clojure-android/clojure "1.7.0-RC1" :use-resources true]
+  :dependencies [[org.clojure-android/clojure "1.7.0-r4" :use-resources true]
                  [neko/neko "4.0.0-alpha5"]
                  [net.danlew/android.joda "2.9.2" :extension "aar"]
                  [clj-time "0.11.0"]
