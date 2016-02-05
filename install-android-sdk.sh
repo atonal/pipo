@@ -5,7 +5,7 @@ set -u
 set -o pipefail
 
 DIR=$(readlink -f "$(dirname "$0")")
-SDK_FILE=android-sdk_r24.3.3-linux.tgz
+SDK_FILE=android-sdk_r24.4.1-linux.tgz
 ANDROID_SDK_DOWNLOAD_URL="http://dl.google.com/android/$SDK_FILE"
 SDK_DIR="$DIR/sdk"
 
