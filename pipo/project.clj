@@ -52,7 +52,7 @@
             ;; If previous option didn't work, uncomment this as well.
             ;; :force-dex-optimize true
 
-            :target-version "19"
+            :target-version "22"
             :aot-exclude-ns ["clojure.parallel" "clojure.core.reducers"
                              "cljs-tooling.complete" "cljs-tooling.info"
                              "cljs-tooling.util.analysis" "cljs-tooling.util.misc"
