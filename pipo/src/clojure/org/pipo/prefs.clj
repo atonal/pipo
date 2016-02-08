@@ -20,7 +20,7 @@
 (defpref PREF_WEEK :week 51)
 (defpref PREF_DEST_LAT :lat 0)
 (defpref PREF_DEST_LONG :long 0)
-(defpref PREF_HOUR_FORMATTER :fmt "hms")
+(defpref PREF_HOUR_FORMATTER :fmt "hm")
 
 (defn get-prefs []
   (log/d "get-prefs" pipo-prefs)
