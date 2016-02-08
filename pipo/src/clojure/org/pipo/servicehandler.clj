@@ -18,5 +18,5 @@
 ;; TODO: is this class needed?
 (defn handler-handleMessage [this msg]
   (log/d "handle message thread id " (Thread/currentThread))
-  (on-ui (toast (str "handler started with " (.-arg1 msg))))
+  (log/d (str "handler started with " (.-arg1 msg)))
   )

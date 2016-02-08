@@ -64,7 +64,7 @@
     (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
     (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
     (let [distance (.distanceTo location dest-location)]
-      (on-ui (toast (str "distance: " distance) :short))
+      (log/d (str "distance: " distance))
       (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
                  (< distance RADIUS_M))
             (do
@@ -111,7 +111,6 @@
 (defn tick-func []
   (let [now (l/local-now)]
     (log/d "service tick thread id " (Thread/currentThread))
-    (on-ui (toast (str "Time changed! (from Service)") :short))
     (if (location/location-updates-running)
       (location/stop-location-updates))
     (log/d "time-to-get-location?" (utils/date-to-str-full now))
@@ -155,14 +154,14 @@
     (.start thread)
     (setfield this :service-handler (org.pipo.servicehandler. (.getLooper thread)))
     (create-notification)
-    (on-ui (toast "Service created" :short))))
+    (log/i "Service created")))
 
 (defn service-onStartCommand [^org.pipo.service this intent flags start-id]
   (let [state (.state this)
         service-handler (getfield this :service-handler)
         msg (.obtainMessage service-handler) ]
     (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
-    (on-ui (toast (str "Service id: " start-id " started") :short))
+    (log/i (str "Service id: " start-id " started"))
     ; (set! (.-arg1 msg) start-id)
     ; (.sendMessage service-handler msg)
 
@@ -177,7 +176,7 @@
 (defn service-onDestroy [this]
   (cancel :notification-key)
   (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_STOPPED)
-  (on-ui (toast "Service destroyed" :short))
+  (log/i "Service destroyed")
   (location/stop-location-updates)
   (tick/unregister-receiver this @tick-receiver)
   (reset! tick-receiver nil)

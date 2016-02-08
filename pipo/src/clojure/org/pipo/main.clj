@@ -452,8 +452,7 @@
 (defn make-tick-func [ctx]
   (fn []
     (update-week-list ctx)
-    (log/d "main tick thread id " (Thread/currentThread))
-    (on-ui (toast (str "Time changed! (from Activity)") :short))))
+    (log/d "main tick thread id " (Thread/currentThread))))
 
 (defn init-time-zone []
   (let [tzId (TimeZone/getDefault)]
