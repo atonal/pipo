@@ -188,10 +188,6 @@
              (fn [key atom old-state new-state]
                (log/d "pref updated:" new-state)
                (update-uis ctx service new-state)))
-               ; (update-week-nr-view ctx new-state)
-               ; (update-state-ui ctx new-state)
-               ; (update-service-ui ctx new-state service)
-               ; (update-week-list ctx)))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
                (set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
