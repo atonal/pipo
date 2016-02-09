@@ -68,8 +68,9 @@
         (config type-tv :text (str (db/get-type data)))
         (config method-tv :text (str (db/get-punch-method data)))
         (config time-tv :text (str (utils/date-to-str-full
-                                     (c/from-long
-                                       (db/get-time data)))))
+                                     (utils/local-time
+                                       (c/from-long
+                                         (db/get-time data))))))
         ))
     cursor
     ))
@@ -147,7 +148,7 @@
   (onCreate
     [this bundle]
     (let [intent (.getIntent this)
-          date (c/from-long (.getLongExtra intent EXTRA_DATE 0))]
+          date (utils/local-time (c/from-long (.getLongExtra intent EXTRA_DATE 0)))]
       (.superOnCreate this bundle)
       (swap! cursors assoc :punch (get-punch-cursor date ))
       (swap! cursors assoc :work (get-work-cursor date))

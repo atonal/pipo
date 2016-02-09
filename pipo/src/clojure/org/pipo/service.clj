@@ -28,22 +28,22 @@
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
 (def ^:const MAX_UPDATES 3)
-(def ^:const BASE_DATE (t/date-time 1 1 1))
+(def ^:const BASE_DATE (utils/local-time (t/date-time 1 1 1)))
 (def INTERVAL_MORNING (t/interval
-                                (t/date-time 1 1 1 7)
-                                (t/date-time 1 1 1 9 30)))
+                                (utils/local-time (t/date-time 1 1 1 7))
+                                (utils/local-time (t/date-time 1 1 1 9 30))))
 (def INTERVAL_DAY (t/interval
-                            (t/date-time 1 1 1 9 30)
-                            (t/date-time 1 1 1 15 30)))
+                            (utils/local-time (t/date-time 1 1 1 9 30))
+                            (utils/local-time (t/date-time 1 1 1 15 30))))
 (def INTERVAL_DAY_OUT (t/interval
-                                (t/date-time 1 1 1 15 30)
-                                (t/date-time 1 1 1 17 30)))
+                                (utils/local-time (t/date-time 1 1 1 15 30))
+                                (utils/local-time (t/date-time 1 1 1 17 30))))
 (def INTERVAL_EVENING (t/interval
-                                (t/date-time 1 1 1 17 30)
-                                (t/date-time 1 1 1 22)))
+                                (utils/local-time (t/date-time 1 1 1 17 30))
+                                (utils/local-time (t/date-time 1 1 1 22))))
 (def INTERVAL_NIGHT (t/interval
-                              (t/date-time 1 1 1 22)
-                              (t/date-time 1 1 2 7)))
+                              (utils/local-time (t/date-time 1 1 1 22))
+                              (utils/local-time (t/date-time 1 1 2 7))))
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
 

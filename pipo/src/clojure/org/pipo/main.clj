@@ -95,32 +95,33 @@
                      }
      ]
     (map (fn [^DateTime date]
-           [:linear-layout {:orientation :horizontal
-                            :layout-width :fill
-                            :layout-height [0 :dp]
-                            :layout-weight 1
-                            :padding [4 :px]
-                            :on-click (fn [_] (start-day-activity ctx date))
-                            }
-            [:text-view {:text (utils/date-to-str-day date)
-                         :gravity :center_vertical
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 1
-                         :padding-left [20 :px]
-                         :background-color (get-day-color date)
-                         }]
-            [:text-view {:text ((get-hour-formatter)
-                                 (+ (get-work-hours-for-date date)
-                                    (add-current-work date)))
-                         :padding-right [20 :px]
-                         :padding-left [20 :px]
-                         :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
-                         :layout-width :wrap
-                         :layout-height :fill
-                         :background-color (get-day-color date)
-                         }]
-            ])
+           (let [local-date (utils/local-time date)]
+             [:linear-layout {:orientation :horizontal
+                              :layout-width :fill
+                              :layout-height [0 :dp]
+                              :layout-weight 1
+                              :padding [4 :px]
+                              :on-click (fn [_] (start-day-activity ctx local-date))
+                              }
+              [:text-view {:text (utils/date-to-str-day local-date)
+                           :gravity :center_vertical
+                           :layout-width [0 :dp]
+                           :layout-height :fill
+                           :layout-weight 1
+                           :padding-left [20 :px]
+                           :background-color (get-day-color local-date)
+                           }]
+              [:text-view {:text ((get-hour-formatter)
+                                  (+ (get-work-hours-for-date local-date)
+                                     (add-current-work local-date)))
+                           :padding-right [20 :px]
+                           :padding-left [20 :px]
+                           :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
+                           :layout-width :wrap
+                           :layout-height :fill
+                           :background-color (get-day-color local-date)
+                           }]
+              ]))
          (let [year (prefs/pref-get prefs/PREF_YEAR)
                week (prefs/pref-get prefs/PREF_WEEK)]
            (utils/week-from-week-number week year)))))

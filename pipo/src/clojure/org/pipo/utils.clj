@@ -4,32 +4,45 @@
             [clj-time.coerce :as c]
             [clj-time.format :as f]
             [clj-time.periodic :as p]
+            [clj-time.local :as l]
             [clj-time.predicates :as pred]))
 
-(def datetime-formatter (f/formatter "yyyy-MM-dd HH:mm:ss.SSS"))
-(def date-formatter (f/formatters :date))
-(def hms-formatter (f/formatters :hour-minute-second))
-(def hm-formatter (f/formatters :hour-minute))
-(def daylist-formatter (f/formatter "E d.M."))
+(defn datetime-formatter []
+  (f/with-zone (f/formatter "yyyy-MM-dd HH:mm:ss.SSS") (t/default-time-zone)))
+
+(defn date-formatter []
+  (f/with-zone (f/formatters :date) (t/default-time-zone)))
+
+(defn hms-formatter []
+  (f/formatters :hour-minute-second))
+
+(defn hm-formatter []
+  (f/formatters :hour-minute))
+
+(defn daylist-formatter []
+  (f/with-zone (f/formatter "E d.M.") (t/default-time-zone)))
 
 ;; TODO: get time zone offset:
 ; (/ (.getOffset (java.util.TimeZone/getDefault) (c/to-long (l/local-now))) 3600000)
 ; (/ (.getRawOffset (java.util.TimeZone/getDefault)) 3600000)
 
+(defn local-time [^org.joda.time.DateTime date-time]
+  (t/to-time-zone date-time (t/default-time-zone)))
+
 (defn date-to-str-full [^org.joda.time.DateTime date-time]
-  (f/unparse datetime-formatter date-time))
+  (f/unparse (datetime-formatter) date-time))
 
 (defn date-to-str-date [^org.joda.time.DateTime date-time]
-  (f/unparse date-formatter date-time))
+  (f/unparse (date-formatter) date-time))
 
 (defn date-to-str-hms [^org.joda.time.DateTime date-time]
-  (f/unparse hms-formatter date-time))
+  (f/unparse (hms-formatter) date-time))
 
 (defn date-to-str-hm [^org.joda.time.DateTime date-time]
-  (f/unparse hm-formatter date-time))
+  (f/unparse (hm-formatter) date-time))
 
 (defn date-to-str-day [^org.joda.time.DateTime date-time]
-  (f/unparse daylist-formatter date-time))
+  (f/unparse (daylist-formatter) date-time))
 
 (defn date-to-str-hour-decimal [^org.joda.time.DateTime date-time]
   (str (t/hour date-time) "."
@@ -86,7 +99,7 @@
      :year year}))
 
 (defn get-current-week []
-  (get-current-week-by-date (t/now)))
+  (get-current-week-by-date (l/local-now)))
 
 (defn long-to-hms [dt-long]
   (date-to-str-hms (c/from-long dt-long)))
@@ -107,4 +120,6 @@
         day (if (< hour 7)
               2
               1)]
-    (t/date-time 1 1 day (t/hour date-time) (t/minute date-time))))
+    (t/to-time-zone
+      (t/date-time 1 1 day (t/hour date-time) (t/minute date-time))
+      (t/default-time-zone))))

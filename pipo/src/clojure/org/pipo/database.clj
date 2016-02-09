@@ -3,8 +3,6 @@
             [org.pipo.log :as log]
             [clj-time.core :as t]
             [clj-time.coerce :as c]
-            [clj-time.local :as l]
-            [clj-time.periodic :as p]
             [org.pipo.utils :as utils])
   (:import android.database.sqlite.SQLiteDatabase
            neko.data.sqlite.TaggedDatabase))
@@ -131,9 +129,10 @@
 (defn add-work [start-id stop-id]
   (log/d "add-work:" start-id stop-id)
   (db/insert (pipo-db) :work {:date (utils/date-to-str-date
-                                       (c/from-long
-                                         (get-time
-                                           (get-punch-with-id start-id))))
+                                      (utils/local-time
+                                        (c/from-long
+                                          (get-time
+                                            (get-punch-with-id start-id)))))
                                :start_id start-id
                                :stop_id stop-id
                                :lunch (if (work-includes-lunch start-id stop-id)
