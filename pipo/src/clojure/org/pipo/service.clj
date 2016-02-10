@@ -28,22 +28,19 @@
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
 (def ^:const MAX_UPDATES 3)
-(def ^:const BASE_DATE (utils/local-time (t/date-time 1 1 1)))
-(def INTERVAL_MORNING (t/interval
-                                (utils/local-time (t/date-time 1 1 1 7))
-                                (utils/local-time (t/date-time 1 1 1 9 30))))
-(def INTERVAL_DAY (t/interval
-                            (utils/local-time (t/date-time 1 1 1 9 30))
-                            (utils/local-time (t/date-time 1 1 1 15 30))))
-(def INTERVAL_DAY_OUT (t/interval
-                                (utils/local-time (t/date-time 1 1 1 15 30))
-                                (utils/local-time (t/date-time 1 1 1 17 30))))
-(def INTERVAL_EVENING (t/interval
-                                (utils/local-time (t/date-time 1 1 1 17 30))
-                                (utils/local-time (t/date-time 1 1 1 22))))
-(def INTERVAL_NIGHT (t/interval
-                              (utils/local-time (t/date-time 1 1 1 22))
-                              (utils/local-time (t/date-time 1 1 2 7))))
+;; TODO: define the interval change times only, construct the intervals from them
+(def INTERVAL_DAY_IN {:begin (t/local-time 7)
+                      :end (t/minus (t/local-time 9 30) (t/millis 1))})
+(def INTERVAL_DAY {:begin (t/local-time 9 30)
+                   :end (t/minus (t/local-time 15 30) (t/millis 1))})
+(def INTERVAL_DAY_OUT {:begin (t/local-time 15 30)
+                       :end (t/minus (t/local-time 17 30) (t/millis 1))})
+(def INTERVAL_EVENING {:begin (t/local-time 17 30)
+                       :end (t/minus (t/local-time 22) (t/millis 1))})
+(def INTERVAL_DUSK {:begin (t/local-time 22)
+                    :end (t/minus (t/local-time 0) (t/millis 1))})
+(def INTERVAL_DAWN {:begin (t/local-time 0)
+                    :end (t/minus (t/local-time 7) (t/millis 1))})
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
 
@@ -86,22 +83,23 @@
       (location/stop-location-updates))
     ))
 
-;; TODO: use local times here. need to adjust time zone?
 (defn time-to-get-location [^org.joda.time.DateTime date-time]
-  (let [now (utils/get-time date-time)]
-    (cond (and (t/within? INTERVAL_MORNING now)
+  (let [now (utils/get-local-time date-time)]
+    ;; TODO: use some kind of map/any function
+    (cond (and (t/within? (:begin INTERVAL_DAY_IN) (:end INTERVAL_DAY_IN) now)
                (= 0 (mod (t/minute now) 5)))
           true
-          (and (t/within? INTERVAL_DAY now)
+          (and (t/within? (:begin INTERVAL_DAY) (:end INTERVAL_DAY) now)
                (= 0 (mod (t/minute now) 15)))
           true
-          (and (t/within? INTERVAL_DAY_OUT now)
+          (and (t/within? (:begin INTERVAL_DAY_OUT) (:end INTERVAL_DAY_OUT) now)
                (= 0 (mod (t/minute now) 5)))
           true
-          (and (t/within? INTERVAL_EVENING now)
+          (and (t/within? (:begin INTERVAL_EVENING) (:end INTERVAL_EVENING) now)
                (= 0 (t/minute now)))
           true
-          (and (t/within? INTERVAL_NIGHT now)
+          (and (or (t/within? (:begin INTERVAL_DUSK) (:end INTERVAL_DUSK) now)
+                   (t/within? (:begin INTERVAL_DAWN) (:end INTERVAL_DAWN) now))
                (and (= 0 (mod (t/hour now) 2))
                     (= 0 (t/minute now))))
           true

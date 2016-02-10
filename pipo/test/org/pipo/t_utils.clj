@@ -109,9 +109,9 @@
          {:week 53 :year 2015})))
 
 (deftest get-time
-  (is (t/equal? (utils/get-time (t/date-time 5 5 5 6 59))
-                (t/date-time 1 1 2 6 59)))
-  (is (t/equal? (utils/get-time (t/date-time 5 5 5 7))
-                (t/date-time 1 1 1 7)))
-  (is (t/equal? (utils/get-time (t/date-time 5 5 5 23 55))
-                (t/date-time 1 1 1 23 55))))
+  (is (t/equal? (utils/get-local-time (t/date-time 5 5 5 6 59))
+                (t/local-time 6 59)))
+  (is (t/equal? (utils/get-local-time (t/date-time 5 5 5 7))
+                (t/local-time 7)))
+  (is (t/equal? (utils/get-local-time (t/date-time 5 5 5 23 55))
+                (t/local-time 23 55))))

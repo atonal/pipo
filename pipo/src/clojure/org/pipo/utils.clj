@@ -26,8 +26,18 @@
 ; (/ (.getOffset (java.util.TimeZone/getDefault) (c/to-long (l/local-now))) 3600000)
 ; (/ (.getRawOffset (java.util.TimeZone/getDefault)) 3600000)
 
+;; TODO: rename to-local-time(-zone)
 (defn local-time [^org.joda.time.DateTime date-time]
   (t/to-time-zone date-time (t/default-time-zone)))
+
+(defn from-local-time [^org.joda.time.DateTime date-time]
+  (t/from-time-zone date-time (t/default-time-zone)))
+
+(defn get-local-time [^org.joda.time.DateTime date-time]
+  (t/local-time (t/hour date-time)
+                (t/minute date-time)
+                (t/second date-time)
+                (t/milli date-time)))
 
 (defn date-to-str-full [^org.joda.time.DateTime date-time]
   (f/unparse (datetime-formatter) date-time))
@@ -114,12 +124,3 @@
   (and (= (t/year dt1) (t/year dt2))
        (= (t/month dt1) (t/month dt2))
        (= (t/day dt1) (t/day dt2))))
-
-(defn get-time [^org.joda.time.DateTime date-time]
-  (let [hour (t/hour date-time)
-        day (if (< hour 7)
-              2
-              1)]
-    (t/to-time-zone
-      (t/date-time 1 1 day (t/hour date-time) (t/minute date-time))
-      (t/default-time-zone))))
