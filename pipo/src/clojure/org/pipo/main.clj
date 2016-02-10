@@ -95,7 +95,7 @@
                      }
      ]
     (map (fn [^DateTime date]
-           (let [local-date (utils/local-time date)]
+           (let [local-date (utils/to-local-time-zone date)]
              [:linear-layout {:orientation :horizontal
                               :layout-width :fill
                               :layout-height [0 :dp]

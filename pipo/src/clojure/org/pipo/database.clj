@@ -129,7 +129,7 @@
 (defn add-work [start-id stop-id]
   (log/d "add-work:" start-id stop-id)
   (db/insert (pipo-db) :work {:date (utils/date-to-str-date
-                                      (utils/local-time
+                                      (utils/to-local-time-zone
                                         (c/from-long
                                           (get-time
                                             (get-punch-with-id start-id)))))

@@ -27,10 +27,10 @@
 ; (/ (.getRawOffset (java.util.TimeZone/getDefault)) 3600000)
 
 ;; TODO: rename to-local-time(-zone)
-(defn local-time [^org.joda.time.DateTime date-time]
+(defn to-local-time-zone [^org.joda.time.DateTime date-time]
   (t/to-time-zone date-time (t/default-time-zone)))
 
-(defn from-local-time [^org.joda.time.DateTime date-time]
+(defn from-local-time-zone [^org.joda.time.DateTime date-time]
   (t/from-time-zone date-time (t/default-time-zone)))
 
 (defn get-local-time [^org.joda.time.DateTime date-time]
