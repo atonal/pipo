@@ -28,21 +28,28 @@
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
 (def ^:const MAX_UPDATES 3)
-;; TODO: define the interval change times only, construct the intervals from them
-(def INTERVAL_DAY_IN {:begin (t/local-time 7)
-                      :end (t/minus (t/local-time 9 30) (t/millis 1))})
-(def INTERVAL_DAY {:begin (t/local-time 9 30)
-                   :end (t/minus (t/local-time 15 30) (t/millis 1))})
-(def INTERVAL_DAY_OUT {:begin (t/local-time 15 30)
-                       :end (t/minus (t/local-time 17 30) (t/millis 1))})
-(def INTERVAL_EVENING {:begin (t/local-time 17 30)
-                       :end (t/minus (t/local-time 22) (t/millis 1))})
-(def INTERVAL_DUSK {:begin (t/local-time 22)
-                    :end (t/minus (t/local-time 0) (t/millis 1))})
-(def INTERVAL_DAWN {:begin (t/local-time 0)
-                    :end (t/minus (t/local-time 7) (t/millis 1))})
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
+
+;; TODO: define the interval change times only, construct the intervals from them
+(defn interval_day_in []
+  {:begin (t/local-time 7)
+   :end (t/minus (t/local-time 9 30) (t/millis 1))})
+(defn interval_day []
+  {:begin (t/local-time 9 30)
+   :end (t/minus (t/local-time 15 30) (t/millis 1))})
+(defn interval_day_out []
+  {:begin (t/local-time 15 30)
+   :end (t/minus (t/local-time 17 30) (t/millis 1))})
+(defn interval_evening []
+  {:begin (t/local-time 17 30)
+   :end (t/minus (t/local-time 22) (t/millis 1))})
+(defn interval_dusk []
+  {:begin (t/local-time 22)
+   :end (t/minus (t/local-time 0) (t/millis 1))})
+(defn interval_dawn []
+  {:begin (t/local-time 0)
+   :end (t/minus (t/local-time 7) (t/millis 1))})
 
 (defn enough-updates []
   ;;TODO: timeout in addition to count
@@ -86,20 +93,20 @@
 (defn time-to-get-location [^org.joda.time.DateTime date-time]
   (let [now (utils/get-local-time date-time)]
     ;; TODO: use some kind of map/any function
-    (cond (and (t/within? (:begin INTERVAL_DAY_IN) (:end INTERVAL_DAY_IN) now)
+    (cond (and (t/within? (:begin (interval_day_in)) (:end (interval_day_in)) now)
                (= 0 (mod (t/minute now) 5)))
           true
-          (and (t/within? (:begin INTERVAL_DAY) (:end INTERVAL_DAY) now)
+          (and (t/within? (:begin (interval_day)) (:end (interval_day)) now)
                (= 0 (mod (t/minute now) 15)))
           true
-          (and (t/within? (:begin INTERVAL_DAY_OUT) (:end INTERVAL_DAY_OUT) now)
+          (and (t/within? (:begin (interval_day_out)) (:end (interval_day_out)) now)
                (= 0 (mod (t/minute now) 5)))
           true
-          (and (t/within? (:begin INTERVAL_EVENING) (:end INTERVAL_EVENING) now)
+          (and (t/within? (:begin (interval_evening)) (:end (interval_evening)) now)
                (= 0 (t/minute now)))
           true
-          (and (or (t/within? (:begin INTERVAL_DUSK) (:end INTERVAL_DUSK) now)
-                   (t/within? (:begin INTERVAL_DAWN) (:end INTERVAL_DAWN) now))
+          (and (or (t/within? (:begin (interval_dusk)) (:end (interval_dusk)) now)
+                   (t/within? (:begin (interval_dawn)) (:end (interval_dawn)) now))
                (and (= 0 (mod (t/hour now) 2))
                     (= 0 (t/minute now))))
           true
@@ -149,6 +156,7 @@
   (let [thread (android.os.HandlerThread.
                  "LocationServiceThread")]
     (log/d "service create thread id " (Thread/currentThread))
+    (utils/init-time-zone this)
     (.start thread)
     (setfield this :service-handler (org.pipo.servicehandler. (.getLooper thread)))
     (create-notification)
