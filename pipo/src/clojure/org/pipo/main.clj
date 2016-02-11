@@ -20,10 +20,7 @@
            android.app.Activity
            android.content.Intent
            java.lang.Long
-           org.joda.time.DateTime
-           org.joda.time.DateTimeZone
-           java.util.TimeZone
-           net.danlew.android.joda.JodaTimeAndroid))
+           org.joda.time.DateTime))
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -451,21 +448,13 @@
     (update-week-list ctx)
     (log/d "main tick thread id " (Thread/currentThread))))
 
-(defn init-time-zone []
-  (let [tzId (TimeZone/getDefault)]
-    (try
-      (DateTimeZone/setDefault (DateTimeZone/forTimeZone tzId))
-      (catch IllegalArgumentException e
-        (log/w "Could not recognize timezone id \"" + tzId + "\"" e)))))
-
 (defactivity org.pipo.MyActivity
   :key :main
   (onCreate
     [this bundle]
     (let [service (Intent. this org.pipo.service)]
       (.superOnCreate this bundle)
-      (JodaTimeAndroid/init this)
-      (init-time-zone)
+      (utils/init-time-zone this)
       (on-ui
         (set-content-view!
           this

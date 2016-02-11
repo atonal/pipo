@@ -5,7 +5,19 @@
             [clj-time.format :as f]
             [clj-time.periodic :as p]
             [clj-time.local :as l]
-            [clj-time.predicates :as pred]))
+            [clj-time.predicates :as pred])
+  (:import
+    java.util.TimeZone
+    org.joda.time.DateTimeZone
+    net.danlew.android.joda.JodaTimeAndroid))
+
+(defn init-time-zone [ctx]
+  (let [tzId (TimeZone/getDefault)]
+    (JodaTimeAndroid/init ctx)
+    (try
+      (DateTimeZone/setDefault (DateTimeZone/forTimeZone tzId))
+      (catch IllegalArgumentException e
+        (log/w "Could not recognize timezone id \"" + tzId + "\"" e)))))
 
 (defn datetime-formatter []
   (f/with-zone (f/formatter "yyyy-MM-dd HH:mm:ss.SSS") (t/default-time-zone)))
