@@ -29,6 +29,7 @@
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
 (def ^:const MAX_UPDATES 3)
+(def ^:const HISTORY_LEN 3)
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
 
@@ -78,35 +79,47 @@
       true)
     false))
 
-(defn my-on-location-fn [^android.location.Location location]
-  (let [latitude (.getLatitude ^android.location.Location location)
-        longitude (.getLongitude ^android.location.Location location)
-        dest-location (android.location.Location. "pipo")]
-    (log/d "on-location thread id " (Thread/currentThread))
-    (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
-    (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
-    (let [distance (.distanceTo location dest-location)]
-      (log/d (str "distance: " distance))
-      (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
-                 (< distance RADIUS_M))
-            (do
-              (if (db/punch-in-gps (l/local-now))
+(defn enough-updates? [coll]
+  (and
+    (>= (count coll) HISTORY_LEN)
+    (apply = coll)))
+
+(defn update-history [latest history]
+  (take HISTORY_LEN (swap! history conj latest)))
+
+(defn make-my-on-location-fn []
+  (let [history nil]
+    (fn [^android.location.Location location]
+      (let [latitude (.getLatitude ^android.location.Location location)
+            longitude (.getLongitude ^android.location.Location location)
+            dest-location (android.location.Location. "pipo")]
+        (log/d "on-location thread id " (Thread/currentThread))
+        (.setLatitude dest-location (prefs/pref-get prefs/PREF_DEST_LAT))
+        (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
+        (let [distance (.distanceTo location dest-location)]
+          (log/d (str "distance: " distance))
+          (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
+                     (< distance RADIUS_M))
                 (do
-                  (on-ui (toast "GPS punch in" :short))
-                  (prefs/update-state))))
-            (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
-                 (> distance (+ RADIUS_M THRESHOLD_M)))
-            (do
-              (if (db/punch-out-gps (l/local-now))
+                  (if (db/punch-in-gps (l/local-now))
+                    (do
+                      (on-ui (toast "GPS punch in" :short))
+                      (prefs/update-state))))
+                (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
+                     (> distance (+ RADIUS_M THRESHOLD_M)))
                 (do
-                  (on-ui (toast "GPS punch out" :short))
-                  (prefs/update-state))))
-            :else
-            (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
-            ))
-    (if (enough-updates)
-      (location/stop-location-updates))
-    ))
+                  (if (db/punch-out-gps (l/local-now))
+                    (do
+                      (on-ui (toast "GPS punch out" :short))
+                      (prefs/update-state))))
+                :else
+                (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
+                ))
+        (update-history (prefs/pref-get prefs/PREF_STATE) history)
+        (log/d "enough-updates?" history)
+        (if (enough-updates? history)
+          (location/stop-location-updates))
+        ))))
 
 (defn time-to-get-location [^org.joda.time.DateTime date-time]
   (let [now (utils/get-local-time date-time)]
@@ -127,7 +140,7 @@
     (if (time-to-get-location now)
       (do
         (log/d "yes")
-        (location/start-location-updates my-on-location-fn)
+        (location/start-location-updates (make-my-on-location-fn))
         (log/d "location updates started"))
       (log/d "no"))))
 
@@ -176,7 +189,7 @@
     ; (set! (.-arg1 msg) start-id)
     ; (.sendMessage service-handler msg)
 
-    (location/start-location-updates my-on-location-fn (.getLooper service-handler))
+    (location/start-location-updates (make-my-on-location-fn) (.getLooper service-handler))
 
     ; TICKs are handled in tick-func by the service-handler thread
     (reset! tick-receiver
