@@ -28,7 +28,7 @@
 
 (def ^:const RADIUS_M 100)
 (def ^:const THRESHOLD_M 20)
-(def ^:const MAX_UPDATES 3)
+(def ^:const MAX_UPDATES 10)
 (def ^:const HISTORY_LEN 3)
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
@@ -54,7 +54,7 @@
 
 (def intervals
   [{:hour 0 :minute 0 :freq-func every-second-hour?}
-   {:hour 7 :minute 0 :freq-func every-five-minutes?}
+   {:hour 7 :minute 0 :freq-func every-minute?}
    {:hour 9 :minute 30 :freq-func every-fifteen-minutes?}
    {:hour 15 :minute 30 :freq-func every-five-minutes?}
    {:hour 17 :minute 30 :freq-func every-hour?}
@@ -70,8 +70,7 @@
 (defn end-time [end]
    (t/minus (t/local-time (:hour end) (:minute end)) (t/millis 1)))
 
-(defn enough-updates []
-  ;;TODO: timeout in addition to count
+(defn max-updates []
   (swap! update-count inc)
   (if (>= @update-count MAX_UPDATES)
     (do
@@ -79,7 +78,7 @@
       true)
     false))
 
-(defn enough-updates? [coll]
+(defn history-threshold? [coll]
   (and
     (>= (count coll) HISTORY_LEN)
     (apply = coll)))
@@ -87,6 +86,7 @@
 (defn update-history [latest history]
   (take HISTORY_LEN (swap! history conj latest)))
 
+;; TODO: split this into parts
 (defn make-my-on-location-fn []
   (let [history (atom nil)]
     (fn [^android.location.Location location]
@@ -98,26 +98,33 @@
         (.setLongitude dest-location (prefs/pref-get prefs/PREF_DEST_LONG))
         (let [distance (.distanceTo location dest-location)]
           (log/d (str "distance: " distance))
+          (if (< distance RADIUS_M)
+            (update-history prefs/STATE_IN history)
+            (update-history prefs/STATE_OUT history))
           (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
                      (< distance RADIUS_M))
                 (do
-                  (if (db/punch-in-gps (l/local-now))
-                    (do
-                      (on-ui (toast "GPS punch in" :short))
-                      (prefs/update-state))))
+                  (log/d "history-threshold?" @history)
+                  (if (history-threshold? @history)
+                    ;; stop location updates?
+                    (if (db/punch-in-gps (l/local-now))
+                      (do
+                        (on-ui (toast "GPS punch in" :short))
+                        (prefs/update-state)))))
                 (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
                      (> distance (+ RADIUS_M THRESHOLD_M)))
                 (do
-                  (if (db/punch-out-gps (l/local-now))
-                    (do
-                      (on-ui (toast "GPS punch out" :short))
-                      (prefs/update-state))))
+                  (log/d "history-threshold?" @history)
+                  (if (history-threshold? @history)
+                    ;; stop location updates?
+                    (if (db/punch-out-gps (l/local-now))
+                      (do
+                        (on-ui (toast "GPS punch out" :short))
+                        (prefs/update-state)))))
                 :else
                 (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
                 ))
-        (update-history (prefs/pref-get prefs/PREF_STATE) history)
-        (log/d "enough-updates?" @history)
-        (if (enough-updates? @history)
+        (if (max-updates)
           (location/stop-location-updates))
         ))))
 

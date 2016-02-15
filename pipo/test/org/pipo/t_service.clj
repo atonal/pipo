@@ -15,7 +15,7 @@
          false))
   (is (= (service/time-to-get-location (utils/from-local-time-zone
                                          (t/date-time 1998 1 2 7 33 24 123)))
-         false))
+         true))
   (is (= (service/time-to-get-location (utils/from-local-time-zone
                                          (t/date-time 1998 1 2 7 35 24 123)))
          true))
@@ -53,14 +53,14 @@
                                          (t/date-time 1998 1 2 4 0 24 123)))
          true)))
 
-(deftest enough-updates?
-  (is (= (service/enough-updates? '(1 1))
+(deftest history-threshold?
+  (is (= (service/history-threshold? '(1 1))
          false))
-  (is (= (service/enough-updates? '(1 1 1))
+  (is (= (service/history-threshold? '(1 1 1))
          true))
-  (is (= (service/enough-updates? '(1 1 2))
+  (is (= (service/history-threshold? '(1 1 2))
          false))
-  (is (= (service/enough-updates? '(2 2 2 2))
+  (is (= (service/history-threshold? '(2 2 2 2))
          true)))
 
 (deftest update-history

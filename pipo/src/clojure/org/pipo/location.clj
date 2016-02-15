@@ -5,7 +5,7 @@
             [org.pipo.log :as log]
             ))
 
-(def ^:const UPDATE_INTERVAL_MS 2000)
+(def ^:const UPDATE_INTERVAL_MS 5000)
 (def ^:const UPDATE_DISTANCE_M 0)
 (defonce location-state (atom {}))
 (def location-data (atom {:lat "" :long ""}))
