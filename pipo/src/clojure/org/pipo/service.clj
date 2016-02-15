@@ -88,7 +88,7 @@
   (take HISTORY_LEN (swap! history conj latest)))
 
 (defn make-my-on-location-fn []
-  (let [history nil]
+  (let [history (atom nil)]
     (fn [^android.location.Location location]
       (let [latitude (.getLatitude ^android.location.Location location)
             longitude (.getLongitude ^android.location.Location location)
@@ -116,8 +116,8 @@
                 (log/w (str "no GPS punch, state: " (prefs/pref-get prefs/PREF_STATE) ", distance: " distance))
                 ))
         (update-history (prefs/pref-get prefs/PREF_STATE) history)
-        (log/d "enough-updates?" history)
-        (if (enough-updates? history)
+        (log/d "enough-updates?" @history)
+        (if (enough-updates? @history)
           (location/stop-location-updates))
         ))))
 
