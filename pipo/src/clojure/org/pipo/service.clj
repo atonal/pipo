@@ -84,7 +84,7 @@
     (apply = coll)))
 
 (defn update-history [latest history]
-  (take HISTORY_LEN (swap! history conj latest)))
+  (swap! history #(take HISTORY_LEN (conj % latest))))
 
 ;; TODO: split this into parts
 (defn make-my-on-location-fn []
@@ -101,10 +101,10 @@
           (if (< distance RADIUS_M)
             (update-history prefs/STATE_IN history)
             (update-history prefs/STATE_OUT history))
+          (log/d "history-threshold?" @history)
           (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
                      (< distance RADIUS_M))
                 (do
-                  (log/d "history-threshold?" @history)
                   (if (history-threshold? @history)
                     ;; stop location updates?
                     (if (db/punch-in-gps (l/local-now))
@@ -114,7 +114,6 @@
                 (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
                      (> distance (+ RADIUS_M THRESHOLD_M)))
                 (do
-                  (log/d "history-threshold?" @history)
                   (if (history-threshold? @history)
                     ;; stop location updates?
                     (if (db/punch-out-gps (l/local-now))
