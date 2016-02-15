@@ -63,10 +63,10 @@
   (let [rotated (take (count coll) (drop 1 (cycle coll)))]
     (map #(hash-map :begin %1 :end %2) coll rotated)))
 
-(defn interval-begin [begin]
+(defn begin-time [begin]
   (t/local-time (:hour begin) (:minute begin)))
 
-(defn interval-end [end]
+(defn end-time [end]
    (t/minus (t/local-time (:hour end) (:minute end)) (t/millis 1)))
 
 (defn enough-updates []
@@ -112,7 +112,7 @@
   (let [now (utils/get-local-time date-time)]
     (cond (or (pred/saturday? date-time) (pred/sunday? date-time))
           false
-          (some #(and (t/within? (interval-begin (:begin %)) (interval-end (:end %)) now)
+          (some #(and (t/within? (begin-time (:begin %)) (end-time (:end %)) now)
                       ((-> % :begin :freq-func) now)) (get-intervals intervals))
           true
           :else false
