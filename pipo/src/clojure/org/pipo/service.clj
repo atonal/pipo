@@ -112,8 +112,8 @@
   (let [now (utils/get-local-time date-time)]
     (cond (or (pred/saturday? date-time) (pred/sunday? date-time))
           false
-          (some #(and (t/within? (:begin %) (:end %) now)
-                      ((:freq-func %) now)) (get-intervals intervals))
+          (some #(and (t/within? (interval-begin (:begin %)) (interval-end (:end %)) now)
+                      ((-> % :begin :freq-func) now)) (get-intervals intervals))
           true
           :else false
           )))
