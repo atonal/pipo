@@ -6,6 +6,7 @@
     [neko.notify :refer [toast notification fire cancel]]
     [clj-time.core :as t]
     [clj-time.local :as l]
+    [clj-time.predicates :as pred]
     [org.pipo.log :as log]
     [org.pipo.prefs :as prefs]
     [org.pipo.utils :as utils]
@@ -31,25 +32,42 @@
 (def tick-receiver (atom nil))
 (def update-count (atom 0))
 
-;; TODO: define the interval change times only, construct the intervals from them
-(defn interval_day_in []
-  {:begin (t/local-time 7)
-   :end (t/minus (t/local-time 9 30) (t/millis 1))})
-(defn interval_day []
-  {:begin (t/local-time 9 30)
-   :end (t/minus (t/local-time 15 30) (t/millis 1))})
-(defn interval_day_out []
-  {:begin (t/local-time 15 30)
-   :end (t/minus (t/local-time 17 30) (t/millis 1))})
-(defn interval_evening []
-  {:begin (t/local-time 17 30)
-   :end (t/minus (t/local-time 22) (t/millis 1))})
-(defn interval_dusk []
-  {:begin (t/local-time 22)
-   :end (t/minus (t/local-time 0) (t/millis 1))})
-(defn interval_dawn []
-  {:begin (t/local-time 0)
-   :end (t/minus (t/local-time 7) (t/millis 1))})
+(defn every-minute? [^org.joda.time.LocalTime local-time]
+  true)
+
+(defn every-five-minutes? [^org.joda.time.LocalTime local-time]
+  (= 0 (mod (t/minute local-time) 5)))
+
+(defn every-fifteen-minutes? [^org.joda.time.LocalTime local-time]
+  (= 0 (mod (t/minute local-time) 15)))
+
+(defn every-half-hour? [^org.joda.time.LocalTime local-time]
+  (= 0 (mod (t/minute local-time) 30)))
+
+(defn every-hour? [^org.joda.time.LocalTime local-time]
+  (= 0 (t/minute local-time)))
+
+(defn every-second-hour? [^org.joda.time.LocalTime local-time]
+  (and (= 0 (mod (t/hour local-time) 2))
+       (= 0 (t/minute local-time))))
+
+(def intervals
+  [{:hour 0 :minute 0 :freq-func every-second-hour?}
+   {:hour 7 :minute 0 :freq-func every-five-minutes?}
+   {:hour 9 :minute 30 :freq-func every-fifteen-minutes?}
+   {:hour 15 :minute 30 :freq-func every-five-minutes?}
+   {:hour 17 :minute 30 :freq-func every-hour?}
+   {:hour 22 :minute 0 :freq-func every-second-hour?}])
+
+(defn get-intervals [coll]
+  (let [rotated (take (count coll) (drop 1 (cycle coll)))]
+    (map #(hash-map :begin %1 :end %2) coll rotated)))
+
+(defn interval-begin [begin]
+  (t/local-time (:hour begin) (:minute begin)))
+
+(defn interval-end [end]
+   (t/minus (t/local-time (:hour end) (:minute end)) (t/millis 1)))
 
 (defn enough-updates []
   ;;TODO: timeout in addition to count
@@ -92,23 +110,10 @@
 
 (defn time-to-get-location [^org.joda.time.DateTime date-time]
   (let [now (utils/get-local-time date-time)]
-    ;; TODO: use some kind of map/any function
-    (cond (and (t/within? (:begin (interval_day_in)) (:end (interval_day_in)) now)
-               (= 0 (mod (t/minute now) 5)))
-          true
-          (and (t/within? (:begin (interval_day)) (:end (interval_day)) now)
-               (= 0 (mod (t/minute now) 15)))
-          true
-          (and (t/within? (:begin (interval_day_out)) (:end (interval_day_out)) now)
-               (= 0 (mod (t/minute now) 5)))
-          true
-          (and (t/within? (:begin (interval_evening)) (:end (interval_evening)) now)
-               (= 0 (t/minute now)))
-          true
-          (and (or (t/within? (:begin (interval_dusk)) (:end (interval_dusk)) now)
-                   (t/within? (:begin (interval_dawn)) (:end (interval_dawn)) now))
-               (and (= 0 (mod (t/hour now) 2))
-                    (= 0 (t/minute now))))
+    (cond (or (pred/saturday? date-time) (pred/sunday? date-time))
+          false
+          (some #(and (t/within? (:begin %) (:end %) now)
+                      ((:freq-func %) now)) (get-intervals intervals))
           true
           :else false
           )))
