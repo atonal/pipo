@@ -1,20 +1,20 @@
 (ns org.pipo.day
-    (:require [neko.activity :refer [defactivity set-content-view!]]
-              [neko.ui.adapters :refer [cursor-adapter update-cursor]]
-              [neko.debug :refer [*a]]
-              [neko.find-view :refer [find-view]]
-              [neko.ui :refer [config]]
-              [neko.threading :refer [on-ui]]
-              [neko.notify :refer [toast]]
-              [clj-time.coerce :as c]
-              [org.pipo.database :as db]
-              [org.pipo.utils :as utils]
-              [org.pipo.log :as log]
-              )
-    (:import [android.widget AbsListView]
-             [android.view Gravity]
-             android.graphics.Color
-             ))
+  (:require [neko.activity :refer [defactivity set-content-view!]]
+            [neko.ui.adapters :refer [cursor-adapter update-cursor]]
+            [neko.debug :refer [*a]]
+            [neko.find-view :refer [find-view]]
+            [neko.ui :refer [config]]
+            [neko.threading :refer [on-ui]]
+            [neko.notify :refer [toast]]
+            [clj-time.coerce :as c]
+            [org.pipo.database :as db]
+            [org.pipo.utils :as utils]
+            [org.pipo.log :as log]
+            )
+  (:import [android.widget AbsListView]
+           [android.view Gravity]
+           android.graphics.Color
+           ))
 
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 
@@ -125,37 +125,37 @@
                             :orientation :horizontal
                             :layout-width :fill
                             :layout-height [50 :dp]}
-             [:text-view {:id ::id-tv
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 2
-                          :gravity :center_vertical}]
-             [:text-view {:id ::validity-tv
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 2
-                          :gravity :center_vertical}]
-             [:text-view {:id ::start-tv
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 2
-                          :gravity :center_vertical}]
-             [:text-view {:id ::stop-tv
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 2
-                          :gravity :center_vertical}]
-             [:text-view {:id ::lunch-tv
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 3
-                          :gravity :center_vertical}]
-             [:text-view {:id ::date-tv
-                          :layout-width [0 :dp]
-                          :layout-height :fill
-                          :layout-weight 3
-                          :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
-             ])
+            [:text-view {:id ::id-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 2
+                         :gravity :center_vertical}]
+            [:text-view {:id ::validity-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 2
+                         :gravity :center_vertical}]
+            [:text-view {:id ::start-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 2
+                         :gravity :center_vertical}]
+            [:text-view {:id ::stop-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 2
+                         :gravity :center_vertical}]
+            [:text-view {:id ::lunch-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 3
+                         :gravity :center_vertical}]
+            [:text-view {:id ::date-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 3
+                         :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
+            ])
     (fn [view _ data]
       (let [id-tv (find-view view ::id-tv)
             validity-tv (find-view view ::validity-tv)
