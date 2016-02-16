@@ -4,6 +4,7 @@
             [org.pipo.utils :as utils]
             [org.pipo.service :as service]))
 
+;; TODO: mock prefs/state to test while-in and while-out
 (deftest time-to-get-location
   ;; Saturday
   (is (= (service/time-to-get-location (utils/from-local-time-zone

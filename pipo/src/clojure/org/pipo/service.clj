@@ -54,12 +54,17 @@
        (= 0 (t/minute local-time))))
 
 (def intervals
-  [{:hour 0 :minute 0 :freq-func every-second-hour?}
-   {:hour 7 :minute 0 :freq-func every-minute?}
-   {:hour 9 :minute 30 :freq-func every-fifteen-minutes?}
-   {:hour 15 :minute 30 :freq-func every-five-minutes?}
-   {:hour 17 :minute 30 :freq-func every-hour?}
-   {:hour 22 :minute 0 :freq-func every-second-hour?}])
+  [{:hour 0 :minute 0 :while-out every-second-hour? :while-in every-second-hour?}
+   {:hour 7 :minute 0 :while-out every-minute? :while-in every-fifteen-minutes?}
+   {:hour 9 :minute 30 :while-out every-fifteen-minutes? :while-in every-hour?}
+   {:hour 15 :minute 30 :while-out every-five-minutes? :while-in every-fifteen-minutes?}
+   {:hour 17 :minute 30 :while-out every-hour? :while-in every-second-hour?}
+   {:hour 22 :minute 0 :while-out every-second-hour? :while-in every-second-hour?}])
+
+(defn get-freq-func [interval state]
+  (if (= state prefs/STATE_IN)
+    (:while-in interval)
+    (:while-out interval)))
 
 (defn get-intervals [coll]
   (let [rotated (take (count coll) (drop 1 (cycle coll)))]
@@ -131,7 +136,8 @@
     (cond (or (pred/saturday? date-time) (pred/sunday? date-time))
           false
           (some #(and (t/within? (begin-time (:begin %)) (end-time (:end %)) now)
-                      ((-> % :begin :freq-func) now)) (get-intervals intervals))
+                      ((-> % :begin (get-freq-func (prefs/pref-get prefs/PREF_STATE))) now))
+                (get-intervals intervals))
           true
           :else false
           )))
