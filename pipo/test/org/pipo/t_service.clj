@@ -16,6 +16,9 @@
          false))
   (is (= (service/time-to-get-location (utils/from-local-time-zone
                                          (t/date-time 1998 1 2 7 33 24 123)))
+         false))
+  (is (= (service/time-to-get-location (utils/from-local-time-zone
+                                         (t/date-time 1998 1 2 7 35 24 123)))
          true))
   (is (= (service/time-to-get-location (utils/from-local-time-zone
                                          (t/date-time 1998 1 2 7 35 24 123)))

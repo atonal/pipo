@@ -56,7 +56,8 @@
 (def intervals
   ;; TODO: Define in "HH:mm" format?
   [{:hour 0 :minute 0 :while-out every-second-hour? :while-in every-second-hour?}
-   {:hour 7 :minute 0 :while-out every-minute? :while-in every-fifteen-minutes?}
+   {:hour 7 :minute 0 :while-out every-five-minutes? :while-in every-fifteen-minutes?}
+   {:hour 7 :minute 50 :while-out every-minute? :while-in every-fifteen-minutes?}
    {:hour 9 :minute 30 :while-out every-fifteen-minutes? :while-in every-hour?}
    {:hour 15 :minute 30 :while-out every-five-minutes? :while-in every-fifteen-minutes?}
    {:hour 17 :minute 30 :while-out every-hour? :while-in every-second-hour?}
