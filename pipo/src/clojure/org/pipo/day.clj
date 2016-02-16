@@ -39,13 +39,25 @@
 (defn get-work-cursor [date]
   (db/get-work-by-date-cursor date))
 
+(defn toggle-validity-and-update [id]
+  (on-ui (toast (str "punch " id " clicked!")))
+  (db/punch-toggle-validity id)
+  ;; update cursor
+  )
+
 (defn make-punch-adapter [ctx date cursor]
   (cursor-adapter
     ctx
     (fn [] [:linear-layout {:id-holder true
                             :orientation :horizontal
                             :layout-width :fill
-                            :layout-height [50 :dp] }
+                            :layout-height [50 :dp]
+                            }
+            [:linear-layout {:id ::punch-view
+                             :orientation :horizontal
+                             :layout-width :fill
+                             :layout-height :fill
+                             }
              [:text-view {:id ::id-tv
                           :layout-width [0 :dp]
                           :layout-height :fill
@@ -72,13 +84,16 @@
                           :layout-weight 6
                           :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
              ]
-    )
+            ]
+      )
     (fn [view _ data]
-      (let [id-tv (find-view view ::id-tv)
+      (let [punch-view (find-view view ::punch-view)
+            id-tv (find-view view ::id-tv)
             type-tv (find-view view ::type-tv)
             method-tv (find-view view ::method-tv)
             validity-tv (find-view view ::validity-tv)
             time-tv (find-view view ::time-tv)]
+        (config punch-view :on-click (fn [_] (toggle-validity-and-update (db/get-id data))))
         (config id-tv :text (str "id:" (db/get-id data)))
         (config type-tv :text (str (db/get-type data)))
         (config method-tv :text (str (db/get-punch-method data)))
