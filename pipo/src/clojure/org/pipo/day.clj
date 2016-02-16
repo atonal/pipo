@@ -20,9 +20,27 @@
 
 (def cursors (atom {:punch nil :work nil}))
 
-; (defn update-punch-list [ctx]
-;   (let [^android.widget.ListView lv (find-view ctx ::punch-list)]
-;     (update-cursor (.getAdapter lv) new-cursor)))
+(defn get-punch-cursor [date]
+  (db/get-punches-by-date-cursor date))
+
+(defn get-work-cursor [date]
+  (db/get-work-by-date-cursor date))
+
+(defn close-cursor [cursor-kw]
+  (let [cursor (cursor-kw @cursors)]
+    (if (not (nil? cursor))
+      (do
+        (log/d (str "closing " cursor-kw " cursor"))
+        (.close cursor)
+        (swap! cursors assoc cursor-kw nil)))))
+
+(defn update-punch-list [ctx date]
+  (let [^android.widget.ListView lv (find-view ctx ::punch-list)
+        new-cursor (get-punch-cursor date)]
+    (update-cursor (.getAdapter lv) new-cursor)
+    (close-cursor :punch)
+    (swap! cursors assoc :punch new-cursor)
+    ))
 
 ; (defn update-work-list [ctx]
 ;   (let [^android.widget.ListView lv (find-view ctx ::work-list)]
@@ -33,16 +51,10 @@
 ;   (update-punch-list ctx)
 ;   (update-work-list ctx))
 
-(defn get-punch-cursor [date]
-  (db/get-punches-by-date-cursor date))
-
-(defn get-work-cursor [date]
-  (db/get-work-by-date-cursor date))
-
-(defn toggle-validity-and-update [id]
-  (on-ui (toast (str "punch " id " clicked!")))
+(defn toggle-validity-and-update [ctx id date]
   (db/punch-toggle-validity id)
   ;; update cursor
+  (update-punch-list ctx date)
   )
 
 (defn make-punch-adapter [ctx date cursor]
@@ -93,7 +105,7 @@
             method-tv (find-view view ::method-tv)
             validity-tv (find-view view ::validity-tv)
             time-tv (find-view view ::time-tv)]
-        (config punch-view :on-click (fn [_] (toggle-validity-and-update (db/get-id data))))
+        (config punch-view :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date)))
         (config id-tv :text (str "id:" (db/get-id data)))
         (config type-tv :text (str (db/get-type data)))
         (config method-tv :text (str (db/get-punch-method data)))
@@ -206,7 +218,7 @@
     (let [intent (.getIntent this)
           date (utils/to-local-time-zone (c/from-long (.getLongExtra intent EXTRA_DATE 0)))]
       (.superOnCreate this bundle)
-      (swap! cursors assoc :punch (get-punch-cursor date ))
+      (swap! cursors assoc :punch (get-punch-cursor date))
       (swap! cursors assoc :work (get-work-cursor date))
       (on-ui
         (set-content-view!
@@ -214,7 +226,7 @@
           (main-layout this date @cursors)))
       ; (update-cursors this)
       )
-      (log/d "day thread id " (Thread/currentThread))
+    (log/d "day thread id " (Thread/currentThread))
     )
   (onStart
     [this]
@@ -234,21 +246,8 @@
     )
   (onDestroy
     [this]
-    (let [punch-cursor (:punch @cursors)
-          work-cursor (:work @cursors)]
-      (.superOnDestroy this)
-      (if (not (nil? punch-cursor))
-        (do
-          (log/d "closing punch cursor")
-          (.close punch-cursor)
-          (swap! cursors assoc :punch nil)
-          ))
-      (if (not (nil? work-cursor))
-        (do
-          (log/d "closing work cursor")
-          (.close work-cursor)
-          (swap! cursors assoc :work nil)
-          ))
-      )
+    (.superOnDestroy this)
+    (close-cursor :punch)
+    (close-cursor :work)
     )
   )
