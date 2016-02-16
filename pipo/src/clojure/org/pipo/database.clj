@@ -207,8 +207,13 @@
 
 (defn punch-toggle-validity [id]
   (if (= (get-validity (get-punch-with-id id)) VALID)
-    (update-punch id :validity INVALID)
-    (update-punch id :validity VALID)))
+    (do
+      (log/d (str "punch id " id " valid -> invalid"))
+      (update-punch id :validity INVALID))
+    (do
+      (log/d (str "punch id " id " invalid -> valid"))
+      (update-punch id :validity VALID))
+    ))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})

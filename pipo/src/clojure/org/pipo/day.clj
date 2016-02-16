@@ -30,7 +30,6 @@
   (let [cursor (cursor-kw @cursors)]
     (if (not (nil? cursor))
       (do
-        (log/d (str "closing " cursor-kw " cursor"))
         (.close cursor)
         (swap! cursors assoc cursor-kw nil)))))
 
