@@ -59,12 +59,17 @@
              [:text-view {:id ::method-tv
                           :layout-width [0 :dp]
                           :layout-height :fill
-                          :layout-weight 1
+                          :layout-weight 2
+                          :gravity :center_vertical}]
+             [:text-view {:id ::validity-tv
+                          :layout-width [0 :dp]
+                          :layout-height :fill
+                          :layout-weight 2
                           :gravity :center_vertical}]
              [:text-view {:id ::time-tv
                           :layout-width [0 :dp]
                           :layout-height :fill
-                          :layout-weight 4
+                          :layout-weight 6
                           :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
              ]
     )
@@ -72,10 +77,12 @@
       (let [id-tv (find-view view ::id-tv)
             type-tv (find-view view ::type-tv)
             method-tv (find-view view ::method-tv)
+            validity-tv (find-view view ::validity-tv)
             time-tv (find-view view ::time-tv)]
         (config id-tv :text (str "id:" (db/get-id data)))
         (config type-tv :text (str (db/get-type data)))
         (config method-tv :text (str (db/get-punch-method data)))
+        (config validity-tv :text (str (db/get-validity data)))
         (config time-tv :text (str (utils/date-to-str-full
                                      (utils/to-local-time-zone
                                        (c/from-long
