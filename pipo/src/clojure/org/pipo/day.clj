@@ -12,6 +12,8 @@
               [org.pipo.log :as log]
               )
     (:import [android.widget AbsListView]
+             [android.view Gravity]
+             android.graphics.Color
              ))
 
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
@@ -43,20 +45,27 @@
     (fn [] [:linear-layout {:id-holder true
                             :orientation :horizontal
                             :layout-width :fill
-                            :layout-height :wrap}
+                            :layout-height [50 :dp] }
              [:text-view {:id ::id-tv
                           :layout-width [0 :dp]
-                          :layout-weight 1}]
+                          :layout-height :fill
+                          :layout-weight 1
+                          :gravity :center_vertical}]
              [:text-view {:id ::type-tv
                           :layout-width [0 :dp]
-                          :layout-weight 1}]
+                          :layout-height :fill
+                          :layout-weight 1
+                          :gravity :center_vertical}]
              [:text-view {:id ::method-tv
                           :layout-width [0 :dp]
-                          :layout-weight 1}]
+                          :layout-height :fill
+                          :layout-weight 1
+                          :gravity :center_vertical}]
              [:text-view {:id ::time-tv
                           :layout-width [0 :dp]
+                          :layout-height :fill
                           :layout-weight 4
-                          :gravity :right}]
+                          :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
              ]
     )
     (fn [view _ data]
@@ -81,26 +90,37 @@
     (fn [] [:linear-layout {:id-holder true
                             :orientation :horizontal
                             :layout-width :fill
-                            :layout-height :wrap}
+                            :layout-height [50 :dp]}
              [:text-view {:id ::id-tv
                           :layout-width [0 :dp]
-                          :layout-weight 2}]
+                          :layout-height :fill
+                          :layout-weight 2
+                          :gravity :center_vertical}]
              [:text-view {:id ::validity-tv
                           :layout-width [0 :dp]
-                          :layout-weight 2}]
+                          :layout-height :fill
+                          :layout-weight 2
+                          :gravity :center_vertical}]
              [:text-view {:id ::start-tv
                           :layout-width [0 :dp]
-                          :layout-weight 2}]
+                          :layout-height :fill
+                          :layout-weight 2
+                          :gravity :center_vertical}]
              [:text-view {:id ::stop-tv
                           :layout-width [0 :dp]
-                          :layout-weight 2}]
+                          :layout-height :fill
+                          :layout-weight 2
+                          :gravity :center_vertical}]
              [:text-view {:id ::lunch-tv
                           :layout-width [0 :dp]
-                          :layout-weight 3}]
+                          :layout-height :fill
+                          :layout-weight 3
+                          :gravity :center_vertical}]
              [:text-view {:id ::date-tv
                           :layout-width [0 :dp]
+                          :layout-height :fill
                           :layout-weight 3
-                          :gravity :right}]
+                          :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
              ])
     (fn [view _ data]
       (let [id-tv (find-view view ::id-tv)
@@ -128,18 +148,32 @@
                      :padding-right [10 :px]}
      [:text-view {:text (str "Work hours on " (utils/date-to-str-date date))
                   }]
-     [:list-view {:id ::punch-list
-                  :adapter (make-punch-adapter ctx date punch-cursor)
-                  :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
-                  :layout-width :fill
-                  :layout-height [0 :dp]
-                  :layout-weight 1}]
-     [:list-view {:id ::work-list
-                  :adapter (make-work-adapter ctx date work-cursor)
-                  :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
-                  :layout-width :fill
-                  :layout-height [0 :dp]
-                  :layout-weight 1}]
+     [:linear-layout {:orientation :vertical
+                      :layout-width :fill
+                      :layout-height [0 :dp]
+                      :layout-weight 1
+                      :padding-bottom [4 :px]}
+      [:list-view {:id ::punch-list
+                   :adapter (make-punch-adapter ctx date punch-cursor)
+                   :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                   :layout-width :fill
+                   :layout-height :match-parent
+                   }]]
+     [:linear-layout {:orientation :vertical
+                      :layout-width :fill
+                      :layout-height [2 :dp]
+                      :background-color Color/GRAY}]
+     [:linear-layout {:orientation :vertical
+                      :layout-width :fill
+                      :layout-height [0 :dp]
+                      :layout-weight 1
+                      :padding-top [4 :px]
+                      :padding-bottom [10 :px]}
+      [:list-view {:id ::work-list
+                   :adapter (make-work-adapter ctx date work-cursor)
+                   :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
+                   :layout-width :fill
+                   :layout-height :match-parent }]]
      ]))
 
 
