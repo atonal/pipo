@@ -27,6 +27,7 @@
              {:_id "integer primary key"
               :type (str "text check(type in ('" IN "','" OUT "')) not null default '" IN "'")
               :method (str "text check(method in ('" MANUAL "','" GPS "')) not null default '" MANUAL "'")
+              :validity (str "text check(validity in ('" VALID "','" INVALID "')) not null default '" VALID "'")
               :time "long not null default '0'"}}
             :work
             {:columns
@@ -78,6 +79,7 @@
   (log/d "add-punch:" type-str (utils/date-to-str-full punch-time))
   (db/insert (pipo-db) :punches {:type type-str
                                  :method method-str
+                                 :validity VALID
                                  :time (c/to-long punch-time)}))
 
 (defn get-punch-with-id [id]
@@ -199,6 +201,14 @@
 
 (defn punch-out-gps [unix-time]
   (punch-out unix-time GPS))
+
+(defn update-punch [id keyw value]
+  (db/update (pipo-db) :punches {keyw value} {:_id id}))
+
+(defn punch-toggle-validity [id]
+  (if (= (get-validity (get-punch-with-id id)) VALID)
+    (update-punch id :validity INVALID)
+    (update-punch id :validity VALID)))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
