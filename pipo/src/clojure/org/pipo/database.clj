@@ -167,7 +167,7 @@
     (db/query-seq
       (pipo-db)
       :punches
-      (str "time in (select max(time) from punches where type = '" type-str "')"))))
+      (str "time in (select max(time) from punches where type = '" type-str "' and validity = '" VALID "')"))))
 
 (defn get-latest-punch-in []
   (get-latest-punch-type IN))
