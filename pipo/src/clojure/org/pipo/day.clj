@@ -56,6 +56,12 @@
   (update-punch-list ctx date)
   )
 
+(defn work-id-that-starts-at [date id]
+  (first (filter #(= id (:start_id %)) (db/get-work-by-date date))))
+
+(defn work-id-that-stops-at [date id]
+  (first (filter #(= id (:stop_id %)) (db/get-work-by-date date))))
+
 (defn make-punch-adapter [ctx date cursor]
   (cursor-adapter
     ctx
@@ -69,6 +75,11 @@
                              :layout-width :fill
                              :layout-height :fill
                              }
+             [:text-view {:id ::work-tv
+                          :layout-width [0 :dp]
+                          :layout-height :fill
+                          :layout-weight 1
+                          :gravity :center_vertical}]
              [:text-view {:id ::id-tv
                           :layout-width [0 :dp]
                           :layout-height :fill
@@ -89,27 +100,39 @@
                           :layout-height :fill
                           :layout-weight 2
                           :gravity :center_vertical}]
+            [:text-view {:id ::lunch-tv
+                         :layout-width [0 :dp]
+                         :layout-height :fill
+                         :layout-weight 2
+                         :gravity :center_vertical}]
              [:text-view {:id ::time-tv
                           :layout-width [0 :dp]
                           :layout-height :fill
-                          :layout-weight 6
+                          :layout-weight 4
                           :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
              ]
             ]
       )
     (fn [view _ data]
       (let [punch-view (find-view view ::punch-view)
+            work-tv (find-view view ::work-tv)
             id-tv (find-view view ::id-tv)
             type-tv (find-view view ::type-tv)
             method-tv (find-view view ::method-tv)
             validity-tv (find-view view ::validity-tv)
-            time-tv (find-view view ::time-tv)]
+            lunch-tv (find-view view ::lunch-tv)
+            time-tv (find-view view ::time-tv)
+            work-start (work-id-that-starts-at date (db/get-id data))
+            work-stop (work-id-that-stops-at date (db/get-id data))]
+        (log/d (str "start-id " (db/get-id work-start) ", stop-id " (db/get-id work-stop)))
         (config punch-view :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date)))
+        (config work-tv :text (if (not (nil? work-start)) "WORK" "-"))
         (config id-tv :text (str "id:" (db/get-id data)))
         (config type-tv :text (str (db/get-type data)))
         (config method-tv :text (str (db/get-punch-method data)))
         (config validity-tv :text (str (db/get-validity data)))
-        (config time-tv :text (str (utils/date-to-str-full
+        (config lunch-tv :text (if (not (nil? work-start)) (str (db/get-lunch work-start)) ""))
+        (config time-tv :text (str (utils/date-to-str
                                      (utils/to-local-time-zone
                                        (c/from-long
                                          (db/get-time data))))))
