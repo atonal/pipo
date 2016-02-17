@@ -215,6 +215,12 @@
       (update-punch id :validity VALID))
     ))
 
+(defn wipe-work-by-date [^org.joda.time.DateTime date]
+  (.delete
+    ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db))
+    "work"
+    (str "date = '" (utils/date-to-str-date (utils/to-local-time-zone date)) "'") nil))
+
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
 ; (c/to-epoch (t/date-time 1998 4 25 12 12 12))
