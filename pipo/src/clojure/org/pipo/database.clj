@@ -104,10 +104,14 @@
       (log/w "get-punches-cursor - input not a string: " where-clause-str)
       nil)))
 
+;; TODO order by date too
 (defn get-punches-by-date-cursor [^org.joda.time.DateTime date]
   (get-punches-cursor
     (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
          (c/to-long (t/floor (t/plus date (t/days 1)) t/day)))))
+
+(defn get-punches-by-date [^org.joda.time.DateTime date]
+  (db/seq-cursor (get-punches-by-date-cursor date)))
 
 ;; includes lunch break!
 (defn get-work-hours [work-seq]
@@ -220,6 +224,12 @@
     ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db))
     "work"
     (str "date = '" (utils/date-to-str-date (utils/to-local-time-zone date)) "'") nil))
+
+(defn construct-work-for-date [^org.joda.time.DateTime date]
+  (let [work (get-work-by-date date)]
+    ;; TODO
+    (map println (get-punches-by-date (t/now)))
+    ))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
