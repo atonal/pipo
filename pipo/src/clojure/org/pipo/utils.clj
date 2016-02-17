@@ -19,8 +19,11 @@
       (catch IllegalArgumentException e
         (log/w "Could not recognize timezone id \"" + tzId + "\"" e)))))
 
-(defn datetime-formatter []
+(defn datetime-full-formatter []
   (f/with-zone (f/formatter "yyyy-MM-dd HH:mm:ss.SSS") (t/default-time-zone)))
+
+(defn datetime-formatter []
+  (f/formatters :mysql))
 
 (defn date-formatter []
   (f/with-zone (f/formatters :date) (t/default-time-zone)))
@@ -52,6 +55,9 @@
                 (t/milli date-time)))
 
 (defn date-to-str-full [^org.joda.time.DateTime date-time]
+  (f/unparse (datetime-full-formatter) date-time))
+
+(defn date-to-str [^org.joda.time.DateTime date-time]
   (f/unparse (datetime-formatter) date-time))
 
 (defn date-to-str-date [^org.joda.time.DateTime date-time]
