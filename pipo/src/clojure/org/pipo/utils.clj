@@ -23,7 +23,7 @@
   (f/with-zone (f/formatter "yyyy-MM-dd HH:mm:ss.SSS") (t/default-time-zone)))
 
 (defn datetime-formatter []
-  (f/formatters :mysql))
+  (f/with-zone (f/formatters :mysql) (t/default-time-zone)))
 
 (defn date-formatter []
   (f/with-zone (f/formatters :date) (t/default-time-zone)))
