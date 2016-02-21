@@ -126,7 +126,9 @@
             work-stop (work-id-that-stops-at date (db/get-id data))]
         (log/d (str "start-id " (db/get-id work-start) ", stop-id " (db/get-id work-stop)))
         (config punch-view :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date)))
-        (config work-tv :text (if (not (nil? work-start)) "WORK" "-"))
+        (config work-tv :text (cond (not (nil? work-start)) "START"
+                                    (not (nil? work-stop)) "END"
+                                    :else ""))
         (config id-tv :text (str "id:" (db/get-id data)))
         (config type-tv :text (str (db/get-type data)))
         (config method-tv :text (str (db/get-punch-method data)))

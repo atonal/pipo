@@ -226,28 +226,40 @@
     (str "date = '" (utils/date-to-str-date (utils/to-local-time-zone date)) "'") nil))
 
 (defn construct-func []
-  (let [state (atom "out")]
+  (let [state (atom "out")
+        in-id (atom nil)]
     (fn [data]
-      (let [punch (get-type data)]
+      (let [punch-type (get-type data)
+            punch-validity (get-validity data)
+            punch-id (get-id data)]
         (log/d (str "data: " data))
         (log/d (str "state: " @state))
-        (log/d (str "punch: " punch))
-        (cond (and (= @state "out")
-                   (= punch IN))
-              (do
-                (reset! state "in")
-                (log/d "punch in!"))
-              (and (= @state "in")
-                   (= punch OUT))
-              (do
-                (reset! state "out")
-                (log/d "punch out!")))))))
+        (log/d (str "punch type: " punch-type))
+        (log/d (str "punch validity " punch-validity))
+        (if (= punch-validity VALID)
+          (cond (and (= @state "out")
+                     (= punch-type IN))
+                (do
+                  (reset! state "in")
+                  (reset! in-id punch-id)
+                  (log/d "work start"))
+                (and (= @state "in")
+                     (= punch-type OUT))
+                (do
+                  (reset! state "out")
+                  (log/d "work stop")
+                  (add-work @in-id punch-id)))
+          (do
+            (log/d "punch not valid")
+            ))))))
 
 (defn construct-work [punch-data]
   (map (construct-func) punch-data))
 
 (defn construct-work-for-date [^org.joda.time.DateTime date]
   (construct-work (get-punches-by-date (t/now))))
+
+; (wipe-work-by-date (t/now))
 
 ; (get-punches 2)
 ; (db/query-seq (pipo-db) :punches {:start [:or 555 (c/to-epoch(t/date-time 2012 3 4))]})
