@@ -61,6 +61,11 @@
 (defn work-id-that-stops-at [date id]
   (first (filter #(= id (:stop_id %)) (db/get-work-by-date date))))
 
+(defn get-punch-color [pred]
+  (if pred
+    Color/GRAY
+    Color/DKGRAY))
+
 (defn make-punch-adapter [ctx date cursor]
   (cursor-adapter
     ctx
@@ -124,7 +129,10 @@
             work-start (work-id-that-starts-at date (db/get-id data))
             work-stop (work-id-that-stops-at date (db/get-id data))]
         (log/d (str "start-id " (db/get-id work-start) ", stop-id " (db/get-id work-stop)))
-        (config punch-view :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date)))
+        (config punch-view
+                :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date))
+                :background-color (get-punch-color (or (not (nil? work-stop))
+                                                       (not (nil? work-start)))))
         (config work-tv :text (cond (not (nil? work-start)) "START"
                                     (not (nil? work-stop)) "END"
                                     :else ""))

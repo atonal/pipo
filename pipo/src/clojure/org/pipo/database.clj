@@ -166,6 +166,9 @@
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
 
+(defn get-latest-valid-punch []
+  (first (db/query-seq (pipo-db) :punches (str "time in (select max(time) from punches where validity = '" VALID "')"))))
+
 (defn get-latest-punch-type [type-str]
   (first
     (db/query-seq
@@ -180,7 +183,7 @@
   (get-latest-punch-type OUT))
 
 (defn get-time-since-latest-punch-in [^org.joda.time.DateTime date]
-  (let [latest-punch (get-latest-punch)]
+  (let [latest-punch (get-latest-valid-punch)]
     (if (= (get-type latest-punch) IN)
       (let [diff (- (c/to-long date)
                     (get-time latest-punch))]
