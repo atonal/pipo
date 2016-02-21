@@ -52,7 +52,7 @@
 
 (defn toggle-validity-and-update [ctx id date]
   (db/punch-toggle-validity id)
-  (db/update-days-work date)
+  (log/d "updated work: " (db/update-days-work date))
   (update-punch-list ctx date))
 
 (defn work-id-that-starts-at [date id]

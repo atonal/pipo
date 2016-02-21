@@ -244,22 +244,28 @@
           (cond (and (= @state "out")
                      (= punch-type IN))
                 (do
+                  (log/d "work start")
                   (reset! state "in")
                   (reset! in-id punch-id)
-                  (log/d "work start"))
+                  (assoc data :action "work-start")
+                  )
                 (and (= @state "in")
                      (= punch-type OUT))
                 (do
-                  (reset! state "out")
                   (log/d "work stop")
-                  (add-work @in-id punch-id)))
+                  (reset! state "out")
+                  (add-work @in-id punch-id)
+                  (assoc data :action "work-stop")
+                  )
+                :else data)
           (do
             (log/d "punch not valid")
+            data
             ))))))
 
 (defn construct-work [punch-data]
   (log/d "construct-work" punch-data)
-  (dorun (map (construct-func) punch-data)))
+  (doall (map (construct-func) punch-data)))
 
 (defn construct-work-for-date [^org.joda.time.DateTime date]
   (log/d "construct-work-for-date" date)
