@@ -220,6 +220,7 @@
     ))
 
 (defn wipe-work-by-date [^org.joda.time.DateTime date]
+  (log/d "wipe-work-by-date" date)
   (.delete
     ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db))
     "work"
@@ -254,10 +255,17 @@
             ))))))
 
 (defn construct-work [punch-data]
-  (map (construct-func) punch-data))
+  (log/d "construct-work" punch-data)
+  (dorun (map (construct-func) punch-data)))
 
 (defn construct-work-for-date [^org.joda.time.DateTime date]
-  (construct-work (get-punches-by-date (t/now))))
+  (log/d "construct-work-for-date" date)
+  (construct-work (get-punches-by-date date)))
+
+(defn update-days-work [^org.joda.time.DateTime date]
+  (log/d "update-days-work")
+  (wipe-work-by-date date)
+  (construct-work-for-date date))
 
 ; (wipe-work-by-date (t/now))
 

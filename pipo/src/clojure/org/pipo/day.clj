@@ -52,9 +52,8 @@
 
 (defn toggle-validity-and-update [ctx id date]
   (db/punch-toggle-validity id)
-  ;; update cursor
-  (update-punch-list ctx date)
-  )
+  (db/update-days-work date)
+  (update-punch-list ctx date))
 
 (defn work-id-that-starts-at [date id]
   (first (filter #(= id (:start_id %)) (db/get-work-by-date date))))
