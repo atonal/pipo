@@ -97,18 +97,18 @@
 (defn punch-in-gps [unix-time]
   (punch-in unix-time GPS))
 
-(defn get-punches-cursor [where-clause-str]
-  (if (instance? String where-clause-str)
-    (db/query (pipo-db) :punches where-clause-str)
+(defn get-punches-cursor [clause-str]
+  (if (instance? String clause-str)
+    (db/query (pipo-db) :punches clause-str)
     (do
-      (log/w "get-punches-cursor - input not a string: " where-clause-str)
+      (log/w "get-punches-cursor - input not a string: " clause-str)
       nil)))
 
-;; TODO order by date too
 (defn get-punches-by-date-cursor [^org.joda.time.DateTime date]
   (get-punches-cursor
     (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
-         (c/to-long (t/floor (t/plus date (t/days 1)) t/day)))))
+         (c/to-long (t/floor (t/plus date (t/days 1)) t/day))
+         " ORDER BY time ASC" )))
 
 (defn get-punches-by-date [^org.joda.time.DateTime date]
   (db/seq-cursor (get-punches-by-date-cursor date)))
