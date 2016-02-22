@@ -166,8 +166,12 @@
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
 
-(defn get-latest-valid-punch []
-  (first (db/query-seq (pipo-db) :punches (str "time in (select max(time) from punches where validity = '" VALID "')"))))
+(defn get-latest-valid-punch
+  [] (first
+       (db/query-seq
+         (pipo-db)
+         :punches
+         (str "time in (select max(time) from punches where validity = '" VALID "')"))))
 
 (defn get-latest-punch-type [type-str]
   (first
