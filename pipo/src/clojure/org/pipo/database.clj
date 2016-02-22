@@ -106,8 +106,8 @@
 
 (defn get-punches-by-date-cursor [^org.joda.time.DateTime date]
   (get-punches-cursor
-    (str "time BETWEEN " (c/to-long (t/floor date t/day)) " AND "
-         (c/to-long (t/floor (t/plus date (t/days 1)) t/day))
+    (str "time BETWEEN " (c/to-long (utils/day-begin date)) " AND "
+         (c/to-long (utils/day-end date))
          " ORDER BY time ASC" )))
 
 (defn get-punches-by-date [^org.joda.time.DateTime date]
@@ -166,12 +166,14 @@
 (defn get-latest-punch []
   (first (db/query-seq (pipo-db) :punches "time in (select max(time) from punches)")))
 
-(defn get-latest-valid-punch
-  [] (first
-       (db/query-seq
-         (pipo-db)
-         :punches
-         (str "time in (select max(time) from punches where validity = '" VALID "')"))))
+(defn get-latest-valid-punch [^org.joda.time.DateTime date]
+  (first
+    (db/query-seq
+      (pipo-db)
+      :punches
+      (str "time in (select max(time) from punches where validity = '" VALID
+           "' and time between " (c/to-long (utils/day-begin date)) " and "
+           (c/to-long (utils/day-end date)) ")"))))
 
 (defn get-latest-punch-type [type-str]
   (first
@@ -187,7 +189,7 @@
   (get-latest-punch-type OUT))
 
 (defn get-time-since-latest-punch-in [^org.joda.time.DateTime date]
-  (let [latest-punch (get-latest-valid-punch)]
+  (let [latest-punch (get-latest-valid-punch date)]
     (if (= (get-type latest-punch) IN)
       (let [diff (- (c/to-long date)
                     (get-time latest-punch))]

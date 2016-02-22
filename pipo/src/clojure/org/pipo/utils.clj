@@ -142,3 +142,9 @@
   (and (= (t/year dt1) (t/year dt2))
        (= (t/month dt1) (t/month dt2))
        (= (t/day dt1) (t/day dt2))))
+
+(defn day-begin [^org.joda.time.DateTime date]
+  (t/floor date t/day))
+
+(defn day-end [^org.joda.time.DateTime date]
+  (t/minus (t/floor (t/plus date (t/days 1)) t/day) (t/millis 1)))

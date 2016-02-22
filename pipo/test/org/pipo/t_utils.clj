@@ -115,3 +115,11 @@
                 (t/local-time 7)))
   (is (t/equal? (utils/get-local-time (t/date-time 5 5 5 23 55))
                 (t/local-time 23 55))))
+
+(deftest day-begin
+  (is (t/equal? (utils/day-begin (t/date-time 2015 2 3 12 22 32 234))
+                (t/date-time 2015 2 3 0 0 0 0))))
+
+(deftest day-end
+  (is (t/equal? (utils/day-end (t/date-time 2015 2 3 12 22 32 234))
+                (t/date-time 2015 2 3 23 59 59 999))))
