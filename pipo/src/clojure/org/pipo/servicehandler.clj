@@ -18,5 +18,4 @@
 ;; TODO: is this class needed?
 (defn handler-handleMessage [this msg]
   (log/d "handle message thread id " (Thread/currentThread))
-  (log/d (str "handler started with " (.-arg1 msg)))
   )

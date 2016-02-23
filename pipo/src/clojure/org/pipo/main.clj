@@ -404,7 +404,7 @@
     :else true))
 
 (defn create-week-dialog [ctx]
-  (let [dialog-layout (make-week-dialog-layout ctx)]
+  (let [^android.view.ViewGroup dialog-layout (make-week-dialog-layout ctx)]
     (-> ctx
         (alert-dialog-builder
           {:message "Week to display"
@@ -425,7 +425,7 @@
         .create)))
 
 (defn create-gps-dialog [ctx]
-  (let [dialog-layout (make-gps-dialog-layout ctx)]
+  (let [^android.view.ViewGroup dialog-layout (make-gps-dialog-layout ctx)]
     (-> ctx
         (alert-dialog-builder
           {:message "GPS"

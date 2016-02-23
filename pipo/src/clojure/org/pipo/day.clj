@@ -13,6 +13,7 @@
             )
   (:import [android.widget AbsListView]
            [android.view Gravity]
+           neko.data.sqlite.TaggedCursor
            android.graphics.Color
            ))
 
@@ -27,7 +28,7 @@
   (db/get-work-by-date-cursor date))
 
 (defn close-cursor [cursor-kw]
-  (let [cursor (cursor-kw @cursors)]
+  (let [^TaggedCursor cursor (cursor-kw @cursors)]
     (if (not (nil? cursor))
       (do
         (.close cursor)

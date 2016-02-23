@@ -16,7 +16,7 @@
     [org.pipo.location :as location])
   (:import [android.app Service Notification]
            android.preference.PreferenceManager
-           [android.os  Message])
+           [android.os Message])
   (:gen-class
     :prefix "service-"
     :extends android.app.Service
@@ -162,11 +162,11 @@
 
 ;; little functions to safely set the fields.
 (defn- setfield
-  [this key value]
+  [^org.pipo.service this key value]
   (swap! (.state this) into {key value}))
 
 (defn- getfield
-  [this key]
+  [^org.pipo.service this key]
   (@(.state this) key))
 
 (defn- create-notification []
@@ -195,12 +195,9 @@
 
 (defn service-onStartCommand [^org.pipo.service this intent flags start-id]
   (let [state (.state this)
-        service-handler (getfield this :service-handler)
-        msg (.obtainMessage service-handler) ]
+        ^org.pipo.servicehandler service-handler (getfield this :service-handler)]
     (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
     (log/i (str "Service id: " start-id " started"))
-    ; (set! (.-arg1 msg) start-id)
-    ; (.sendMessage service-handler msg)
 
     (location/start-location-updates my-on-location-fn (.getLooper service-handler))
 

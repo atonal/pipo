@@ -3,7 +3,8 @@
             [neko.threading :refer [on-ui]]
             [neko.notify :refer [toast]]
             [org.pipo.log :as log]
-            ))
+            )
+  (:import android.os.Looper))
 
 (def ^:const UPDATE_INTERVAL_MS 5000)
 (def ^:const UPDATE_DISTANCE_M 0)
@@ -63,7 +64,7 @@
        (not (nil? (get-location-state :listener)))))
 
 (defn start-location-updates [on-location-fn & looper]
-  (let [looper-thread (first looper)] ;; looper or nil
+  (let [^Looper looper-thread (first looper)] ;; looper or nil
     (init-location-manager)
     (init-location-listener on-location-fn)
     (.requestLocationUpdates

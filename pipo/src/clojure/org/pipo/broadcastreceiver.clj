@@ -11,22 +11,22 @@
     :constructors {[clojure.lang.IFn] []}
     ))
 
-(defn register-receiver [ctx func handler]
+(defn register-receiver [^android.content.Context ctx func handler]
   (let [intent-filter (android.content.IntentFilter.)
         receiver (org.pipo.broadcastreceiver. func)]
     (-> intent-filter (.addAction android.content.Intent/ACTION_TIME_TICK))
     (-> ctx (.registerReceiver receiver intent-filter nil handler))
     receiver))
 
-(defn unregister-receiver [ctx receiver]
+(defn unregister-receiver [^android.content.Context ctx receiver]
   (-> ctx (.unregisterReceiver receiver)))
 
 (defn- setfield
-  [this key value]
+  [^org.pipo.broadcastreceiver this key value]
   (swap! (.state this) into {key value}))
 
 (defn- getfield
-  [this key]
+  [^org.pipo.broadcastreceiver this key]
   (@(.state this) key))
 
 (defn tick-init [func]
