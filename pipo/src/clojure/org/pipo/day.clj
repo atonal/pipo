@@ -240,6 +240,25 @@
                    :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
                    :layout-width :fill
                    :layout-height :match-parent }]]
+     [:linear-layout {:orientation :horizontal
+                      :layout-width :fill
+                      :layout-height :wrap
+                      }
+      [:button {:id ::add-punch-in-bt
+                :layout-width [0 :dp]
+                :layout-weight 1
+                :layout-height [50 :dp]
+                :text "Add punch in"
+                :on-click (fn [_] nil)
+                }]
+      [:button {:id ::add-punch-out-bt
+                :layout-width [0 :dp]
+                :layout-weight 1
+                :layout-height [50 :dp]
+                :text "Add punch out"
+                :on-click (fn [_] nil)
+                }]
+       ]
      ]))
 
 
