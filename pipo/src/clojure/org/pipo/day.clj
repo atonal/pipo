@@ -8,18 +8,23 @@
             [neko.notify :refer [toast]]
             [neko.dialog.alert :refer [alert-dialog-builder]]
             [clj-time.coerce :as c]
+            [clj-time.core :as t]
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
             [org.pipo.log :as log]
+            [org.pipo.ui-utils :as ui-utils]
             )
   (:import [android.widget AbsListView]
            [android.view Gravity]
            neko.data.sqlite.TaggedCursor
            android.graphics.Color
+           android.os.Bundle
            ))
 
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
-(def ^:const PUNCH_DIALOG_ID 0)
+(def ^:const PUNCH_IN_DIALOG_ID 0)
+(def ^:const PUNCH_OUT_DIALOG_ID 1)
+(def ^:const DATE_TAG "date")
 
 (def cursors (atom {:punch nil :work nil}))
 
@@ -232,16 +237,34 @@
                   }
       ]]))
 
-(defn create-punch-dialog [ctx]
+(defn create-punch-dialog [ctx date inout]
   (let [^android.view.ViewGroup dialog-layout (make-punch-dialog-layout ctx)]
     (-> ctx
         (alert-dialog-builder
-          {:message "PUNCH"
+          {:message (str "add punch " inout)
            :cancelable true
-           :positive-text "Set"
+           :positive-text "Add"
            :positive-callback (fn [dialog res]
-                                  ; (db/add-punch-in-manual)
-                                  )
+                                (let [hour (read-string
+                                             (ui-utils/get-text
+                                               dialog-layout
+                                               ::hour-et))
+                                      minute (read-string
+                                               (ui-utils/get-text
+                                                 dialog-layout
+                                                 ::minute-et))
+                                      punch-date-time (t/date-time
+                                                        (t/year date)
+                                                        (t/month date)
+                                                        (t/day date)
+                                                        hour
+                                                        minute)]
+                                  (cond
+                                    (= inout "in") (db/punch-in-manual
+                                                     punch-date-time)
+                                    (= inout "out") (db/punch-out-manual
+                                                      punch-date-time))
+                                  (update-punch-list ctx punch-date-time)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
@@ -292,20 +315,36 @@
                 :layout-weight 1
                 :layout-height [50 :dp]
                 :text "Add punch in"
-                :on-click (fn [_] (do
-                                    (on-ui
-                                      (.showDialog ctx PUNCH_DIALOG_ID))
-                                    true))
+                :on-click (fn [_] (let [date-bundle (Bundle.)]
+                                    (do
+                                      (.putString
+                                        date-bundle
+                                        DATE_TAG
+                                        (utils/date-to-str-date date))
+                                      (on-ui
+                                        (.showDialog
+                                          ctx
+                                          PUNCH_IN_DIALOG_ID
+                                          date-bundle))
+                                      true)))
                 }]
       [:button {:id ::add-punch-out-bt
                 :layout-width [0 :dp]
                 :layout-weight 1
                 :layout-height [50 :dp]
                 :text "Add punch out"
-                :on-click (fn [_] (do
-                                    (on-ui
-                                      (.showDialog ctx PUNCH_DIALOG_ID))
-                                    true))
+                :on-click (fn [_] (let [date-bundle (Bundle.)]
+                                    (do
+                                      (.putString
+                                        date-bundle
+                                        DATE_TAG
+                                        (utils/date-to-str-date date))
+                                      (on-ui
+                                        (.showDialog
+                                          ctx
+                                          PUNCH_OUT_DIALOG_ID
+                                          date-bundle))
+                                      true)))
                 }]
        ]
      ]))
@@ -316,7 +355,9 @@
   (onCreate
     [this bundle]
     (let [intent (.getIntent this)
-          date (utils/to-local-time-zone (c/from-long (.getLongExtra intent EXTRA_DATE 0)))]
+          date (utils/to-local-time-zone
+                 (c/from-long
+                   (.getLongExtra intent EXTRA_DATE 0)))]
       (.superOnCreate this bundle)
       (swap! cursors assoc :punch (get-punch-cursor date))
       (swap! cursors assoc :work (get-work-cursor date))
@@ -355,8 +396,20 @@
     (.removeDialog this id))
   (onCreateDialog
     [this id dialog-bundle]
+    ; (on-ui
+    ;   (toast (str "bundle: " (.getString dialog-bundle DATE_TAG)) :short))
     (cond
-      (= id PUNCH_DIALOG_ID)
-      (create-punch-dialog this)
+      (= id PUNCH_IN_DIALOG_ID)
+      (create-punch-dialog
+        this
+        (utils/str-to-date-date
+          (.getString dialog-bundle DATE_TAG))
+        "in")
+      (= id PUNCH_OUT_DIALOG_ID)
+      (create-punch-dialog
+        this
+        (utils/str-to-date-date
+          (.getString dialog-bundle DATE_TAG))
+        "out")
       :else (toast "Invalid ID" :short)))
   )

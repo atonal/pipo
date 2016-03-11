@@ -13,7 +13,8 @@
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
             [org.pipo.broadcastreceiver :as tick]
-            [org.pipo.location :as location])
+            [org.pipo.location :as location]
+            [org.pipo.ui-utils :as ui-utils])
   (:import [android.view ViewGroup Gravity]
            android.graphics.Color
            android.text.InputType
@@ -50,12 +51,6 @@
   (if (= :dec (get-hour-formatter-kw))
     (set-hour-formatter "hm")
     (set-hour-formatter "dec")))
-
-(defn set-text [ctx elmt s]
-  (on-ui (config (find-view ctx elmt) :text s)))
-
-(defn get-text [ctx elmt]
-  (str (.getText ^android.widget.TextView (find-view ctx elmt))))
 
 (defn get-day-color [date]
   (if (utils/date-equals? (l/local-now) date)
@@ -131,7 +126,7 @@
 (defn update-week-nr-view [ctx new-state]
   (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
         new-week (prefs/pref-get prefs/PREF_WEEK new-state)]
-    (set-text ctx ::year-tv (str new-year " / " new-week))
+    (ui-utils/set-text ctx ::year-tv (str new-year " / " new-week))
     (on-ui
       (config (find-view ctx ::year-tv)
               :background-color
@@ -160,14 +155,14 @@
   (let [state (prefs/pref-get prefs/PREF_STATE_SERVICE new-state)]
     (if (= state prefs/SERVICE_RUNNING)
       (do
-        (set-text ctx ::service-bt TEXT_SERVICE_STOP)
+        (ui-utils/set-text ctx ::service-bt TEXT_SERVICE_STOP)
         (on-ui
           (config
             (find-view ctx ::service-bt)
             :on-click
             (fn [_] (service-stop ctx service)))))
       (do
-        (set-text ctx ::service-bt TEXT_SERVICE_START)
+        (ui-utils/set-text ctx ::service-bt TEXT_SERVICE_START)
         (on-ui
           (config
             (find-view ctx ::service-bt)
@@ -188,8 +183,8 @@
                (update-uis ctx service new-state)))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
-               (set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
-               (set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
+               (ui-utils/set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
+               (ui-utils/set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
   )
 
 (defn punch-in []
@@ -412,9 +407,9 @@
            :positive-text "Set"
            :positive-callback (fn [dialog res]
                                 (let [year (read-string
-                                             (get-text dialog-layout ::year-et))
+                                             (ui-utils/get-text dialog-layout ::year-et))
                                       week (read-string
-                                             (get-text dialog-layout ::week-et))]
+                                             (ui-utils/get-text dialog-layout ::week-et))]
                                   (if (week-input-valid? year week)
                                     (do
                                       (prefs/pref-set prefs/PREF_YEAR year)
@@ -433,9 +428,9 @@
            :positive-text "Set"
            :positive-callback (fn [dialog res]
                                 (let [latitude (read-string
-                                                 (get-text dialog-layout ::lat-et))
+                                                 (ui-utils/get-text dialog-layout ::lat-et))
                                       longitude (read-string
-                                                  (get-text dialog-layout ::long-et))]
+                                                  (ui-utils/get-text dialog-layout ::long-et))]
                                   (prefs/pref-set prefs/PREF_DEST_LAT latitude)
                                   (prefs/pref-set prefs/PREF_DEST_LONG longitude)))
            :negative-text "Cancel"

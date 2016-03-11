@@ -63,6 +63,9 @@
 (defn date-to-str-date [^org.joda.time.DateTime date-time]
   (f/unparse (date-formatter) date-time))
 
+(defn str-to-date-date [date-str]
+  (f/parse (date-formatter) date-str))
+
 (defn date-to-str-hms [^org.joda.time.DateTime date-time]
   (f/unparse (hms-formatter) date-time))
 

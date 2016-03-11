@@ -12,6 +12,10 @@
   (is (= (utils/date-to-str-date (t/date-time 1998 1 3 12 33 24 123))
          "1998-01-03")))
 
+(deftest str-to-date-date
+  (is (= (utils/str-to-date-date "1998-01-03")
+         (t/date-time 1998 1 3))))
+
 (deftest date-to-str-hms
   (is (= (utils/date-to-str-hms (t/date-time 1998 1 3 12 33 24 123))
          "12:33:24")))
