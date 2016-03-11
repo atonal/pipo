@@ -3,9 +3,10 @@
             [neko.ui.adapters :refer [cursor-adapter update-cursor]]
             [neko.debug :refer [*a]]
             [neko.find-view :refer [find-view]]
-            [neko.ui :refer [config]]
+            [neko.ui :refer [config make-ui]]
             [neko.threading :refer [on-ui]]
             [neko.notify :refer [toast]]
+            [neko.dialog.alert :refer [alert-dialog-builder]]
             [clj-time.coerce :as c]
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
@@ -18,6 +19,7 @@
            ))
 
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
+(def ^:const PUNCH_DIALOG_ID 0)
 
 (def cursors (atom {:punch nil :work nil}))
 
@@ -204,6 +206,47 @@
         ))
     cursor))
 
+(defn make-punch-dialog-layout [ctx]
+  (make-ui
+    ctx
+    [:linear-layout {:id-holder true
+                     :layout-width :fill
+                     :layout-height :wrap
+                     :padding-left [40 :px]
+                     :padding-right [60 :px]
+                     :orientation :vertical}
+     [:edit-text {:id ::hour-et
+                  :layout-width :fill
+                  :layout-height :wrap
+                  :layout-gravity :right
+                  :input-type :number
+                  :hint "Hour"
+                  }
+      ]
+     [:edit-text {:id ::minute-et
+                  :layout-width :fill
+                  :layout-height :wrap
+                  :layout-gravity :right
+                  :input-type :number
+                  :hint "Minute"
+                  }
+      ]]))
+
+(defn create-punch-dialog [ctx]
+  (let [^android.view.ViewGroup dialog-layout (make-punch-dialog-layout ctx)]
+    (-> ctx
+        (alert-dialog-builder
+          {:message "PUNCH"
+           :cancelable true
+           :positive-text "Set"
+           :positive-callback (fn [dialog res]
+                                  ; (db/add-punch-in-manual)
+                                  )
+           :negative-text "Cancel"
+           :negative-callback (fn [_ _] ())})
+        (.setView dialog-layout)
+        .create)))
+
 (defn main-layout [ctx date cursors]
   (let [punch-cursor (:punch cursors)
         work-cursor (:work cursors)]
@@ -249,14 +292,20 @@
                 :layout-weight 1
                 :layout-height [50 :dp]
                 :text "Add punch in"
-                :on-click (fn [_] nil)
+                :on-click (fn [_] (do
+                                    (on-ui
+                                      (.showDialog ctx PUNCH_DIALOG_ID))
+                                    true))
                 }]
       [:button {:id ::add-punch-out-bt
                 :layout-width [0 :dp]
                 :layout-weight 1
                 :layout-height [50 :dp]
                 :text "Add punch out"
-                :on-click (fn [_] nil)
+                :on-click (fn [_] (do
+                                    (on-ui
+                                      (.showDialog ctx PUNCH_DIALOG_ID))
+                                    true))
                 }]
        ]
      ]))
@@ -301,4 +350,13 @@
     (close-cursor :punch)
     (close-cursor :work)
     )
+  (onPrepareDialog
+    [this id dialog dialog-bundle]
+    (.removeDialog this id))
+  (onCreateDialog
+    [this id dialog-bundle]
+    (cond
+      (= id PUNCH_DIALOG_ID)
+      (create-punch-dialog this)
+      :else (toast "Invalid ID" :short)))
   )
