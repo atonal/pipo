@@ -85,17 +85,17 @@
 (defn get-punch-with-id [id]
   (first (db/query-seq (pipo-db) :punches {:_id id})))
 
-(defn- punch-in [unix-time method]
-  (let [id (add-punch IN method unix-time)]
+(defn- punch-in [date-time method]
+  (let [id (add-punch IN method date-time)]
     (if (< id 0)
       (log/e "punch-in failed"))
     (>= id 0)))
 
-(defn punch-in-manual [unix-time]
-  (punch-in unix-time MANUAL))
+(defn punch-in-manual [date-time]
+  (punch-in date-time MANUAL))
 
-(defn punch-in-gps [unix-time]
-  (punch-in unix-time GPS))
+(defn punch-in-gps [date-time]
+  (punch-in date-time GPS))
 
 (defn get-punches-cursor [clause-str]
   (if (instance? String clause-str)
@@ -203,17 +203,17 @@
   (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "punches" "1" nil)
   (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "work" "1" nil))
 
-(defn punch-out [unix-time method]
-  (let [out-id (add-punch OUT method unix-time)]
+(defn punch-out [date-time method]
+  (let [out-id (add-punch OUT method date-time)]
     (if (< out-id 0)
       (log/e "punch-out failed")
       (add-work (get-id (get-latest-punch-in)) out-id))))
 
-(defn punch-out-manual [unix-time]
-  (punch-out unix-time MANUAL))
+(defn punch-out-manual [date-time]
+  (punch-out date-time MANUAL))
 
-(defn punch-out-gps [unix-time]
-  (punch-out unix-time GPS))
+(defn punch-out-gps [date-time]
+  (punch-out date-time GPS))
 
 (defn update-punch [id keyw value]
   (db/update (pipo-db) :punches {keyw value} {:_id id}))
