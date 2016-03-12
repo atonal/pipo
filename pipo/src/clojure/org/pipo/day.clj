@@ -253,12 +253,13 @@
                                                (ui-utils/get-text
                                                  dialog-layout
                                                  ::minute-et))
-                                      punch-date-time (t/date-time
-                                                        (t/year date)
-                                                        (t/month date)
-                                                        (t/day date)
-                                                        hour
-                                                        minute)]
+                                      punch-date-time (utils/from-local-time-zone
+                                                        (t/date-time
+                                                          (t/year date)
+                                                          (t/month date)
+                                                          (t/day date)
+                                                          hour
+                                                          minute))]
                                   (cond
                                     (= inout "in") (db/punch-in-manual
                                                      punch-date-time)
