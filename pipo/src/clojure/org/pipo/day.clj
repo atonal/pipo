@@ -266,12 +266,10 @@
                                                           hour
                                                           minute))]
                                   (cond
-                                    (= inout "in") (if
-                                                     (db/punch-in-manual
-                                                       punch-date-time))
-                                    (= inout "out") (if
-                                                      (db/punch-out-manual
-                                                        punch-date-time)))
+                                    (= inout "in") (db/punch-in-manual
+                                                     punch-date-time)
+                                    (= inout "out") (db/punch-out-manual
+                                                      punch-date-time))
                                   (update-work ctx punch-date-time)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
