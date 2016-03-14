@@ -61,7 +61,8 @@
 
 (defn update-work [ctx date]
   (db/update-days-work date)
-  (update-punch-list ctx date))
+  (update-punch-list ctx date)
+  (prefs/update-state))
 
 (defn toggle-validity-and-update [ctx id date]
   (db/punch-toggle-validity id)
@@ -267,12 +268,10 @@
                                   (cond
                                     (= inout "in") (if
                                                      (db/punch-in-manual
-                                                       punch-date-time)
-                                                     (prefs/update-state))
+                                                       punch-date-time))
                                     (= inout "out") (if
                                                       (db/punch-out-manual
-                                                        punch-date-time)
-                                                      (prefs/update-state)))
+                                                        punch-date-time)))
                                   (update-work ctx punch-date-time)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
