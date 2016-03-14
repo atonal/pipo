@@ -58,10 +58,13 @@
 ;   (update-punch-list ctx)
 ;   (update-work-list ctx))
 
+(defn update-work [ctx date]
+  (db/update-days-work date)
+  (update-punch-list ctx date))
+
 (defn toggle-validity-and-update [ctx id date]
   (db/punch-toggle-validity id)
-  (log/d "updated work: " (db/update-days-work date))
-  (update-punch-list ctx date))
+  (update-work ctx date))
 
 (defn work-id-that-starts-at [date id]
   (first (filter #(= id (:start_id %)) (db/get-work-by-date date))))
@@ -265,7 +268,7 @@
                                                      punch-date-time)
                                     (= inout "out") (db/punch-out-manual
                                                       punch-date-time))
-                                  (update-punch-list ctx punch-date-time)))
+                                  (update-work ctx punch-date-time)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
