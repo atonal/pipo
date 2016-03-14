@@ -13,6 +13,7 @@
             [org.pipo.utils :as utils]
             [org.pipo.log :as log]
             [org.pipo.ui-utils :as ui-utils]
+            [org.pipo.prefs :as prefs]
             )
   (:import [android.widget AbsListView]
            [android.view Gravity]
@@ -264,10 +265,14 @@
                                                           hour
                                                           minute))]
                                   (cond
-                                    (= inout "in") (db/punch-in-manual
-                                                     punch-date-time)
-                                    (= inout "out") (db/punch-out-manual
-                                                      punch-date-time))
+                                    (= inout "in") (if
+                                                     (db/punch-in-manual
+                                                       punch-date-time)
+                                                     (prefs/update-state))
+                                    (= inout "out") (if
+                                                      (db/punch-out-manual
+                                                        punch-date-time)
+                                                      (prefs/update-state)))
                                   (update-work ctx punch-date-time)))
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})

@@ -203,31 +203,6 @@
   (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "punches" "1" nil)
   (.delete ^SQLiteDatabase (.db ^TaggedDatabase (pipo-db)) "work" "1" nil))
 
-(defn punch-out [date-time method]
-  (let [out-id (add-punch OUT method date-time)]
-    (if (< out-id 0)
-      (log/e "punch-out failed")
-      (add-work (get-id (get-latest-punch-in)) out-id))))
-
-(defn punch-out-manual [date-time]
-  (punch-out date-time MANUAL))
-
-(defn punch-out-gps [date-time]
-  (punch-out date-time GPS))
-
-(defn update-punch [id keyw value]
-  (db/update (pipo-db) :punches {keyw value} {:_id id}))
-
-(defn punch-toggle-validity [id]
-  (if (= (get-validity (get-punch-with-id id)) VALID)
-    (do
-      (log/d (str "punch id " id " valid -> invalid"))
-      (update-punch id :validity INVALID))
-    (do
-      (log/d (str "punch id " id " invalid -> valid"))
-      (update-punch id :validity VALID))
-    ))
-
 (defn wipe-work-by-date [^org.joda.time.DateTime date]
   (log/d "wipe-work-by-date" date)
   (.delete
@@ -281,6 +256,32 @@
   (log/d "update-days-work")
   (wipe-work-by-date date)
   (construct-work-for-date date))
+
+(defn punch-out [date-time method]
+  (let [out-id (add-punch OUT method date-time)]
+    (if (< out-id 0)
+      (log/e "punch-out failed")
+      (update-days-work date-time))
+    (>= out-id 0)))
+
+(defn punch-out-manual [date-time]
+  (punch-out date-time MANUAL))
+
+(defn punch-out-gps [date-time]
+  (punch-out date-time GPS))
+
+(defn update-punch [id keyw value]
+  (db/update (pipo-db) :punches {keyw value} {:_id id}))
+
+(defn punch-toggle-validity [id]
+  (if (= (get-validity (get-punch-with-id id)) VALID)
+    (do
+      (log/d (str "punch id " id " valid -> invalid"))
+      (update-punch id :validity INVALID))
+    (do
+      (log/d (str "punch id " id " invalid -> valid"))
+      (update-punch id :validity VALID))
+    ))
 
 ; (wipe-work-by-date (t/now))
 
