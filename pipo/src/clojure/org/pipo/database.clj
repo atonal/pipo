@@ -134,18 +134,21 @@
 
 (defn add-work [start-id stop-id]
   (log/d "add-work:" start-id stop-id)
-  (db/insert (pipo-db) :work {:date (utils/date-to-str-date
-                                      (utils/to-local-time-zone
-                                        (c/from-long
-                                          (get-time
-                                            (get-punch-with-id start-id)))))
-                               :start_id start-id
-                               :stop_id stop-id
-                               :lunch (if (work-includes-lunch start-id stop-id)
-                                        LUNCH
-                                        NO_LUNCH)
-                               :validity VALID
-                               }))
+  (db/insert
+    (pipo-db)
+    :work
+    {:date (utils/date-to-str-date
+             (utils/to-local-time-zone
+               (c/from-long
+                 (get-time
+                   (get-punch-with-id start-id)))))
+     :start_id start-id
+     :stop_id stop-id
+     :lunch (if (work-includes-lunch start-id stop-id)
+              LUNCH
+              NO_LUNCH)
+     :validity VALID
+     }))
 
 (defn get-work-cursor [where-clause-str]
   (if (instance? String where-clause-str)
