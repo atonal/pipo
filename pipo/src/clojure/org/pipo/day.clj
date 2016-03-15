@@ -402,8 +402,6 @@
     (.removeDialog this id))
   (onCreateDialog
     [this id dialog-bundle]
-    ; (on-ui
-    ;   (toast (str "bundle: " (.getString dialog-bundle DATE_TAG)) :short))
     (cond
       (= id PUNCH_IN_DIALOG_ID)
       (create-punch-dialog
