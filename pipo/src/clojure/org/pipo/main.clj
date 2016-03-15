@@ -398,26 +398,34 @@
       false)
     :else true))
 
+(defn make-week-dialog-callback [dialog-layout]
+  (fn [dialog res]
+    (let [year (read-string (ui-utils/get-text dialog-layout ::year-et))
+          week (read-string (ui-utils/get-text dialog-layout ::week-et))]
+      (if (week-input-valid? year week)
+        (do
+          (prefs/pref-set prefs/PREF_YEAR year)
+          (prefs/pref-set prefs/PREF_WEEK week))))))
+
 (defn create-week-dialog [ctx]
   (let [^android.view.ViewGroup dialog-layout (make-week-dialog-layout ctx)]
     (-> ctx
         (alert-dialog-builder
           {:message "Week to display"
            :cancelable true
-           :positive-text "Set"
-           :positive-callback (fn [dialog res]
-                                (let [year (read-string
-                                             (ui-utils/get-text dialog-layout ::year-et))
-                                      week (read-string
-                                             (ui-utils/get-text dialog-layout ::week-et))]
-                                  (if (week-input-valid? year week)
-                                    (do
-                                      (prefs/pref-set prefs/PREF_YEAR year)
-                                      (prefs/pref-set prefs/PREF_WEEK week)))))
+           :positive-text "Display"
+           :positive-callback (make-week-dialog-callback dialog-layout)
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
         .create)))
+
+(defn make-gps-dialog-callback [dialog-layout]
+  (fn [dialog res]
+    (let [latitude (read-string (ui-utils/get-text dialog-layout ::lat-et))
+          longitude (read-string (ui-utils/get-text dialog-layout ::long-et))]
+      (prefs/pref-set prefs/PREF_DEST_LAT latitude)
+      (prefs/pref-set prefs/PREF_DEST_LONG longitude))))
 
 (defn create-gps-dialog [ctx]
   (let [^android.view.ViewGroup dialog-layout (make-gps-dialog-layout ctx)]
@@ -426,13 +434,7 @@
           {:message "GPS"
            :cancelable true
            :positive-text "Set"
-           :positive-callback (fn [dialog res]
-                                (let [latitude (read-string
-                                                 (ui-utils/get-text dialog-layout ::lat-et))
-                                      longitude (read-string
-                                                  (ui-utils/get-text dialog-layout ::long-et))]
-                                  (prefs/pref-set prefs/PREF_DEST_LAT latitude)
-                                  (prefs/pref-set prefs/PREF_DEST_LONG longitude)))
+           :positive-callback (make-gps-dialog-callback dialog-layout)
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
