@@ -270,6 +270,13 @@
         (.setView dialog-layout)
         .create)))
 
+(defn make-punch-bt-callback [ctx date dialog-id]
+  (fn [_] (let [date-bundle (Bundle.)]
+            (do
+              (.putString date-bundle DATE_TAG (utils/date-to-str-date date))
+              (on-ui (.showDialog ctx dialog-id date-bundle))
+              true))))
+
 (defn main-layout [ctx date cursors]
   (let [punch-cursor (:punch cursors)
         work-cursor (:work cursors)]
@@ -315,40 +322,17 @@
                 :layout-weight 1
                 :layout-height [50 :dp]
                 :text "Add punch in"
-                :on-click (fn [_] (let [date-bundle (Bundle.)]
-                                    (do
-                                      (.putString
-                                        date-bundle
-                                        DATE_TAG
-                                        (utils/date-to-str-date date))
-                                      (on-ui
-                                        (.showDialog
-                                          ctx
-                                          PUNCH_IN_DIALOG_ID
-                                          date-bundle))
-                                      true)))
+                :on-click (make-punch-bt-callback ctx date PUNCH_IN_DIALOG_ID)
                 }]
       [:button {:id ::add-punch-out-bt
                 :layout-width [0 :dp]
                 :layout-weight 1
                 :layout-height [50 :dp]
                 :text "Add punch out"
-                :on-click (fn [_] (let [date-bundle (Bundle.)]
-                                    (do
-                                      (.putString
-                                        date-bundle
-                                        DATE_TAG
-                                        (utils/date-to-str-date date))
-                                      (on-ui
-                                        (.showDialog
-                                          ctx
-                                          PUNCH_OUT_DIALOG_ID
-                                          date-bundle))
-                                      true)))
+                :on-click (make-punch-bt-callback ctx date PUNCH_OUT_DIALOG_ID)
                 }]
        ]
      ]))
-
 
 (defactivity org.pipo.DayActivity
   :key :day
