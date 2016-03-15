@@ -242,6 +242,21 @@
                   }
       ]]))
 
+(defn make-punch-dialog-callback [ctx date inout dialog-layout]
+  (fn [dialog res]
+    (let [hour (read-string (ui-utils/get-text dialog-layout ::hour-et))
+          minute (read-string (ui-utils/get-text dialog-layout ::minute-et))
+          punch-date-time (utils/from-local-time-zone
+                            (t/date-time
+                              (t/year date)
+                              (t/month date)
+                              (t/day date)
+                              hour
+                              minute))]
+      (cond (= inout "in") (db/punch-in-manual punch-date-time)
+            (= inout "out") (db/punch-out-manual punch-date-time))
+      (update-work ctx punch-date-time))))
+
 (defn create-punch-dialog [ctx date inout]
   (let [^android.view.ViewGroup dialog-layout (make-punch-dialog-layout ctx)]
     (-> ctx
@@ -249,28 +264,7 @@
           {:message (str "add punch " inout)
            :cancelable true
            :positive-text "Add"
-           :positive-callback (fn [dialog res]
-                                (let [hour (read-string
-                                             (ui-utils/get-text
-                                               dialog-layout
-                                               ::hour-et))
-                                      minute (read-string
-                                               (ui-utils/get-text
-                                                 dialog-layout
-                                                 ::minute-et))
-                                      punch-date-time (utils/from-local-time-zone
-                                                        (t/date-time
-                                                          (t/year date)
-                                                          (t/month date)
-                                                          (t/day date)
-                                                          hour
-                                                          minute))]
-                                  (cond
-                                    (= inout "in") (db/punch-in-manual
-                                                     punch-date-time)
-                                    (= inout "out") (db/punch-out-manual
-                                                      punch-date-time))
-                                  (update-work ctx punch-date-time)))
+           :positive-callback (make-punch-dialog-callback ctx date inout dialog-layout)
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
@@ -406,14 +400,12 @@
       (= id PUNCH_IN_DIALOG_ID)
       (create-punch-dialog
         this
-        (utils/str-to-date-date
-          (.getString dialog-bundle DATE_TAG))
+        (utils/str-to-date-date (.getString dialog-bundle DATE_TAG))
         "in")
       (= id PUNCH_OUT_DIALOG_ID)
       (create-punch-dialog
         this
-        (utils/str-to-date-date
-          (.getString dialog-bundle DATE_TAG))
+        (utils/str-to-date-date (.getString dialog-bundle DATE_TAG))
         "out")
       :else (toast "Invalid ID" :short)))
   )
