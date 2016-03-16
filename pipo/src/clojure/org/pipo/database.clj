@@ -2,6 +2,7 @@
   (:require [neko.data.sqlite :as db]
             [org.pipo.log :as log]
             [clj-time.core :as t]
+            [clj-time.local :as l]
             [clj-time.coerce :as c]
             [org.pipo.utils :as utils])
   (:import android.database.sqlite.SQLiteDatabase
@@ -166,12 +167,17 @@
 (defn get-work-by-date [^org.joda.time.DateTime date]
   (db/seq-cursor (get-work-by-date-cursor date)))
 
-(defn get-latest-punch []
-  (first
-    (db/query-seq
-      (pipo-db)
-      :punches
-      (str "time in (select max(time) from punches where validity = '" VALID "')"))))
+(defn get-latest-punch
+  ([]
+   (get-latest-punch (l/local-now)))
+  ([date-time]
+   (first
+     (db/query-seq
+       (pipo-db)
+       :punches
+       (str "time in (select max(time) from punches where validity = '" VALID "'"
+            "and time <= " (c/to-long date-time) ")")))))
+
 
 (defn get-latest-valid-punch [^org.joda.time.DateTime date]
   (first
