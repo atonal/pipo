@@ -132,15 +132,65 @@
               :background-color
               (get-week-color new-year new-week)))))
 
+(defn punch-in []
+  (if (db/punch-in-manual (l/local-now))
+    (prefs/update-state)))
+
+(defn punch-out []
+  (if (db/punch-out-manual (l/local-now))
+    (prefs/update-state)))
+
 (defn update-state-ui [ctx new-state]
   (let [state (prefs/pref-get prefs/PREF_STATE new-state)]
     (if (= state prefs/STATE_IN)
       (do
-        (on-ui (config (find-view ctx ::punch-in-bt) :enabled false))
-        (on-ui (config (find-view ctx ::punch-out-bt) :enabled true)))
+        (on-ui (config (find-view ctx ::punch-out-bt) :text-color Color/WHITE))
+        (on-ui (config (find-view ctx ::punch-out-bt) :on-click (fn [_] (punch-out))))
+        (on-ui (config (find-view ctx ::punch-out-bt) :on-long-click (fn [_] ())))
+
+        (on-ui (config (find-view ctx ::punch-in-bt) :text-color Color/GRAY))
+        (on-ui
+          (config
+            (find-view ctx ::punch-in-bt)
+            :on-click
+            (fn [_]
+              (do
+                (on-ui (toast (str "Long click to override!") :short))
+                true))))
+        (on-ui
+          (config
+            (find-view ctx ::punch-in-bt)
+            :on-long-click
+            (fn [_]
+              (do
+                (punch-in)  ;; TODO: invalidate previous punch in
+                (on-ui
+                  (toast (str "Previous punch in overridden!") :short))
+                true)))))
       (do
-        (on-ui (config (find-view ctx ::punch-in-bt) :enabled true))
-        (on-ui (config (find-view ctx ::punch-out-bt) :enabled false))))))
+        (on-ui (config (find-view ctx ::punch-in-bt) :text-color Color/WHITE))
+        (on-ui (config (find-view ctx ::punch-in-bt) :on-click (fn [_] (punch-in))))
+        (on-ui (config (find-view ctx ::punch-in-bt) :on-long-click (fn [_] ())))
+
+        (on-ui (config (find-view ctx ::punch-out-bt) :text-color Color/GRAY))
+        (on-ui
+          (config
+            (find-view ctx ::punch-out-bt)
+            :on-click
+            (fn [_]
+              (do
+                (on-ui (toast (str "Long click to override!") :short))
+                true))))
+        (on-ui
+          (config
+            (find-view ctx ::punch-out-bt)
+            :on-long-click
+            (fn [_]
+              (do
+                (punch-out)  ;; TODO: invalidate previous punch out
+                (on-ui
+                  (toast (str "Previous punch out overridden!") :short))
+                true))))))))
 
 (declare service-start)
 (defn service-stop [^Activity ctx service]
@@ -186,14 +236,6 @@
                (ui-utils/set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
                (ui-utils/set-text ctx ::location-long-tv (str "long: " (:long new-state)))))
   )
-
-(defn punch-in []
-  (if (db/punch-in-manual (l/local-now))
-    (prefs/update-state)))
-
-(defn punch-out []
-  (if (db/punch-out-manual (l/local-now))
-    (prefs/update-state)))
 
 (defn wipe-db []
   (db/wipe)
