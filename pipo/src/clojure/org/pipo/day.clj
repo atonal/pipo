@@ -68,6 +68,10 @@
   (db/punch-toggle-validity id)
   (update-work ctx date))
 
+(defn toggle-lunch-and-update [ctx work-seq date]
+  (db/work-toggle-lunch work-seq)
+  (update-work ctx date))
+
 (defn work-id-that-starts-at [date id]
   (first (filter #(= id (:start_id %)) (db/get-work-by-date date))))
 
@@ -153,7 +157,11 @@
         (config method-tv :text (str (db/get-punch-method data)))
         (config validity-tv :text (str (db/get-validity data))
                 :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date)))
-        (config lunch-tv :text (if (not (nil? work-start)) (str (db/get-lunch work-start)) ""))
+        (config lunch-tv :text (if (not (nil? work-start))
+                                 (str (db/get-lunch work-start)) "")
+                :on-click (if (not (nil? work-start))
+                            (fn [_] (toggle-lunch-and-update ctx work-start date))
+                            (fn [_] ())))
         (config time-tv :text (str (utils/date-to-str
                                      (utils/to-local-time-zone
                                        (c/from-long

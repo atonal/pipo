@@ -290,15 +290,27 @@
 (defn update-punch [id keyw value]
   (db/update (pipo-db) :punches {keyw value} {:_id id}))
 
+(defn update-work [id keyw value]
+  (db/update (pipo-db) :work {keyw value} {:_id id}))
+
 (defn punch-toggle-validity [id]
   (if (= (get-validity (get-punch-with-id id)) VALID)
     (do
-      (log/d (str "punch id " id " valid -> invalid"))
+      (log/d (str "punch id " id " " VALID " -> " INVALID))
       (update-punch id :validity INVALID))
     (do
-      (log/d (str "punch id " id " invalid -> valid"))
+      (log/d (str "punch id " id " " INVALID " -> " VALID))
       (update-punch id :validity VALID))
     ))
+
+(defn work-toggle-lunch [work-seq]
+  (if (= (get-lunch work-seq) LUNCH)
+    (do
+      (log/d (str "work id " (get-id work-seq) " " LUNCH " -> " NO_LUNCH))
+      (update-work (get-id work-seq) :lunch NO_LUNCH))
+    (do
+      (log/d (str "work id " (get-id work-seq) " " NO_LUNCH " -> " LUNCH))
+      (update-work (get-id work-seq) :lunch LUNCH))))
 
 ; (wipe-work-by-date (t/now))
 
