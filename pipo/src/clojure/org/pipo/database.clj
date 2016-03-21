@@ -176,7 +176,7 @@
        (pipo-db)
        :punches
        (str "time in (select max(time) from punches where validity = '" VALID "'"
-            "and time <= " (c/to-long date-time) ")")))))
+            " and time <= " (c/to-long date-time) ")")))))
 
 
 (defn get-latest-valid-punch [^org.joda.time.DateTime date]
@@ -184,16 +184,20 @@
     (db/query-seq
       (pipo-db)
       :punches
-      (str "time in (select max(time) from punches where validity = '" VALID
-           "' and time between " (c/to-long (utils/day-begin date)) " and "
+      (str "time in (select max(time) from punches where validity = '" VALID "'"
+           " and time between " (c/to-long (utils/day-begin date)) " and "
            (c/to-long (utils/day-end date)) ")"))))
 
-(defn get-latest-punch-type [type-str]
+(defn get-latest-punch-type
+  ([type-str]
+   (get-latest-punch-type type-str (l/local-now)))
+  ([type-str date-time]
   (first
     (db/query-seq
       (pipo-db)
       :punches
-      (str "time in (select max(time) from punches where type = '" type-str "' and validity = '" VALID "')"))))
+      (str "time in (select max(time) from punches where validity = '" VALID "'"
+           " and type = '" type-str "' and time <= " (c/to-long date-time) ")")))))
 
 (defn get-latest-punch-in []
   (get-latest-punch-type IN))

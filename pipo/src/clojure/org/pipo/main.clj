@@ -163,7 +163,8 @@
             :on-long-click
             (fn [_]
               (do
-                (punch-in)  ;; TODO: invalidate previous punch in
+                (db/punch-toggle-validity (db/get-id (db/get-latest-punch-in)))
+                (punch-in)
                 (on-ui
                   (toast (str "Previous punch in overridden!") :short))
                 true)))))
@@ -187,7 +188,8 @@
             :on-long-click
             (fn [_]
               (do
-                (punch-out)  ;; TODO: invalidate previous punch out
+                (db/punch-toggle-validity (db/get-id (db/get-latest-punch-out)))
+                (punch-out)
                 (on-ui
                   (toast (str "Previous punch out overridden!") :short))
                 true))))))))
