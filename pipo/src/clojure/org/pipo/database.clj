@@ -245,7 +245,6 @@
                   (log/d "work start")
                   (reset! state "in")
                   (reset! in-id punch-id)
-                  (assoc data :action "work-start")
                   )
                 (and (= @state "in")
                      (= punch-type OUT))
@@ -253,7 +252,6 @@
                   (log/d "work stop")
                   (reset! state "out")
                   (add-work @in-id punch-id)
-                  (assoc data :action "work-stop")
                   )
                 :else data)
           (do
