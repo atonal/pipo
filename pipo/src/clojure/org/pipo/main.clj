@@ -28,7 +28,7 @@
 (def ^:const TEXT_SERVICE_START "Start")
 (def ^:const TEXT_SERVICE_STOP "Stop")
 (def ^:const TEXT_WIPE "wipe")
-(def ^:const TEXT_SET_GPS "Set GPS")
+(def ^:const TEXT_SET_GPS "GPS")
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
