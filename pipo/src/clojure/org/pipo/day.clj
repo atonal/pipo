@@ -70,7 +70,7 @@
 
 (defn toggle-lunch-and-update [ctx work-seq date]
   (db/work-toggle-lunch work-seq)
-  (update-work ctx date))
+  (update-punch-list ctx date))
 
 (defn work-id-that-starts-at [date id]
   (first (filter #(= id (:start_id %)) (db/get-work-by-date date))))
