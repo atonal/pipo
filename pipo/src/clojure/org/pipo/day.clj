@@ -27,13 +27,10 @@
 (def ^:const PUNCH_OUT_DIALOG_ID 1)
 (def ^:const DATE_TAG "date")
 
-(def cursors (atom {:punch nil :work nil}))
+(def cursors (atom {:punch nil}))
 
 (defn get-punch-cursor [date]
   (db/get-punches-by-date-cursor date))
-
-(defn get-work-cursor [date]
-  (db/get-work-by-date-cursor date))
 
 (defn close-cursor [cursor-kw]
   (let [^TaggedCursor cursor (cursor-kw @cursors)]
@@ -49,15 +46,6 @@
     (close-cursor :punch)
     (swap! cursors assoc :punch new-cursor)
     ))
-
-; (defn update-work-list [ctx]
-;   (let [^android.widget.ListView lv (find-view ctx ::work-list)]
-;     (update-cursor (.getAdapter lv) new-cursor)))
-
-; (defn update-cursors [ctx]
-;   (log/d "update cursors")
-;   (update-punch-list ctx)
-;   (update-work-list ctx))
 
 (defn update-work [ctx date]
   (db/update-days-work date)
@@ -170,60 +158,6 @@
     cursor
     ))
 
-(defn make-work-adapter [ctx date cursor]
-  (cursor-adapter
-    ctx
-    (fn [] [:linear-layout {:id-holder true
-                            :orientation :horizontal
-                            :layout-width :fill
-                            :layout-height [50 :dp]}
-            [:text-view {:id ::id-tv
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 2
-                         :gravity :center_vertical}]
-            [:text-view {:id ::validity-tv
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 2
-                         :gravity :center_vertical}]
-            [:text-view {:id ::start-tv
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 2
-                         :gravity :center_vertical}]
-            [:text-view {:id ::stop-tv
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 2
-                         :gravity :center_vertical}]
-            [:text-view {:id ::lunch-tv
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 3
-                         :gravity :center_vertical}]
-            [:text-view {:id ::date-tv
-                         :layout-width [0 :dp]
-                         :layout-height :fill
-                         :layout-weight 3
-                         :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)}]
-            ])
-    (fn [view _ data]
-      (let [id-tv (find-view view ::id-tv)
-            validity-tv (find-view view ::validity-tv)
-            start-tv (find-view view ::start-tv)
-            stop-tv (find-view view ::stop-tv)
-            lunch-tv (find-view view ::lunch-tv)
-            date-tv (find-view view ::date-tv)]
-        (config id-tv :text (str "id:" (db/get-id data)))
-        (config validity-tv :text (str (db/get-validity data)))
-        (config start-tv :text (str "start:" (db/get-start-id data)))
-        (config stop-tv :text (str "stop:" (db/get-stop-id data)))
-        (config lunch-tv :text (str (db/get-lunch data)))
-        (config date-tv :text (str (db/get-date data)))
-        ))
-    cursor))
-
 (defn make-punch-dialog-layout [ctx]
   (make-ui
     ctx
@@ -286,8 +220,7 @@
               true))))
 
 (defn main-layout [ctx date cursors]
-  (let [punch-cursor (:punch cursors)
-        work-cursor (:work cursors)]
+  (let [punch-cursor (:punch cursors)]
     [:linear-layout {:orientation :vertical
                      :layout-width :match-parent
                      :layout-height :match-parent
@@ -306,21 +239,6 @@
                    :layout-width :fill
                    :layout-height :match-parent
                    }]]
-     [:linear-layout {:orientation :vertical
-                      :layout-width :fill
-                      :layout-height [2 :dp]
-                      :background-color Color/GRAY}]
-     [:linear-layout {:orientation :vertical
-                      :layout-width :fill
-                      :layout-height [0 :dp]
-                      :layout-weight 1
-                      :padding-top [4 :px]
-                      :padding-bottom [10 :px]}
-      [:list-view {:id ::work-list
-                   :adapter (make-work-adapter ctx date work-cursor)
-                   :transcript-mode AbsListView/TRANSCRIPT_MODE_ALWAYS_SCROLL
-                   :layout-width :fill
-                   :layout-height :match-parent }]]
      [:linear-layout {:orientation :horizontal
                       :layout-width :fill
                       :layout-height :wrap
@@ -352,7 +270,6 @@
                    (.getLongExtra intent EXTRA_DATE 0)))]
       (.superOnCreate this bundle)
       (swap! cursors assoc :punch (get-punch-cursor date))
-      (swap! cursors assoc :work (get-work-cursor date))
       (on-ui
         (set-content-view!
           this
@@ -381,7 +298,6 @@
     [this]
     (.superOnDestroy this)
     (close-cursor :punch)
-    (close-cursor :work)
     )
   (onPrepareDialog
     [this id dialog dialog-bundle]
