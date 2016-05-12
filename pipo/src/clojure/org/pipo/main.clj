@@ -4,6 +4,7 @@
             [neko.threading :refer [on-ui]]
             [neko.find-view :refer [find-view]]
             [neko.ui :refer [config make-ui]]
+            [neko.resource :as res]
             [org.pipo.log :as log]
             [neko.notify :refer [toast]]
             [neko.dialog.alert :refer [alert-dialog-builder]]
@@ -22,6 +23,8 @@
            android.content.Intent
            java.lang.Long
            org.joda.time.DateTime))
+
+(res/import-all)
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -101,6 +104,15 @@
                            :layout-height :fill
                            :layout-weight 1
                            :padding-left [20 :px]
+                           :background-color (get-day-color local-date)
+                           }]
+              [:image-view {
+                           :padding-right [20 :px]
+                           :padding-left [20 :px]
+                           :layout-width [40 :px]
+                           :layout-height :fill
+                           :scale-type :center
+                           :image-drawable (res/get-drawable ctx R$drawable/circle)
                            :background-color (get-day-color local-date)
                            }]
               [:text-view {:text ((get-hour-formatter)
