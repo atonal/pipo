@@ -81,6 +81,16 @@
     (db/get-time-since-latest-punch-in (l/local-now))
     0))
 
+(defn make-circle [ctx local-date]
+  [:image-view {:padding-left [3 :px]
+                :padding-right [3 :px]
+                :layout-width :wrap
+                :layout-height :fill
+                :scale-type :center
+                :image-drawable (res/get-drawable ctx R$drawable/circle)
+                :background-color (get-day-color local-date)
+                }])
+
 (defn make-week-list [ctx]
   (concat
     [:linear-layout {:id ::inner-week
@@ -106,23 +116,24 @@
                            :padding-left [20 :px]
                            :background-color (get-day-color local-date)
                            }]
-              [:image-view {
-                           :padding-right [20 :px]
-                           :padding-left [20 :px]
-                           :layout-width [40 :px]
-                           :layout-height :fill
-                           :scale-type :center
-                           :image-drawable (res/get-drawable ctx R$drawable/circle)
-                           :background-color (get-day-color local-date)
-                           }]
+              [:linear-layout {
+                               :orientation :horizontal
+                               :layout-width :wrap
+                               :layout-height :fill
+                               }
+               (make-circle ctx local-date)
+               (make-circle ctx local-date)
+               (make-circle ctx local-date)
+               ]
               [:text-view {:text ((get-hour-formatter)
                                   (+ (get-work-hours-for-date local-date)
                                      (add-current-work local-date)))
                            :padding-right [20 :px]
                            :padding-left [20 :px]
                            :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
-                           :layout-width :wrap
+                           :layout-width [0 :dp]
                            :layout-height :fill
+                           :layout-weight 1
                            :background-color (get-day-color local-date)
                            }]
               ]))
