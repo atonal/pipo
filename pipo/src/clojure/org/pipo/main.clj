@@ -82,22 +82,22 @@
     0))
 
 (defn make-circle [ctx local-date]
-  [:image-view {:padding-left [3 :px]
-                :padding-right [3 :px]
-                :layout-width :wrap
+  [:image-view {:padding-left [3 :dp]
+                :padding-right [3 :dp]
+                :layout-width [15 :dp] ;; 3dp + 9dp + 3dp
                 :layout-height :fill
                 :scale-type :center
-                :image-drawable (res/get-drawable ctx R$drawable/circle)
+                ; :image-drawable (res/get-drawable ctx R$drawable/circle)
                 :background-color (get-day-color local-date)
                 }])
 
 (defn make-plus [ctx local-date]
-  [:image-view {:padding-left [3 :px]
-                :padding-right [3 :px]
-                :layout-width :wrap
+  [:image-view {:padding-left [3 :dp]
+                :padding-right [3 :dp]
+                :layout-width [15 :dp] ;; 3dp + 9dp + 3dp
                 :layout-height :fill
                 :scale-type :center
-                :image-drawable (res/get-drawable ctx R$drawable/plus)
+                ; :image-drawable (res/get-drawable ctx R$drawable/plus)
                 :background-color (get-day-color local-date)
                 }])
 
@@ -143,7 +143,7 @@
                            :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
                            :layout-width [0 :dp]
                            :layout-height :fill
-                           :layout-weight 1
+                           :layout-weight 2
                            :background-color (get-day-color local-date)
                            }]
               ]))
