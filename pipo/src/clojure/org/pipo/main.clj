@@ -91,6 +91,16 @@
                 :background-color (get-day-color local-date)
                 }])
 
+(defn make-plus [ctx local-date]
+  [:image-view {:padding-left [3 :px]
+                :padding-right [3 :px]
+                :layout-width :wrap
+                :layout-height :fill
+                :scale-type :center
+                :image-drawable (res/get-drawable ctx R$drawable/plus)
+                :background-color (get-day-color local-date)
+                }])
+
 (defn make-week-list [ctx]
   (concat
     [:linear-layout {:id ::inner-week
@@ -123,7 +133,7 @@
                                }
                (make-circle ctx local-date)
                (make-circle ctx local-date)
-               (make-circle ctx local-date)
+               (make-plus ctx local-date)
                ]
               [:text-view {:text ((get-hour-formatter)
                                   (+ (get-work-hours-for-date local-date)
