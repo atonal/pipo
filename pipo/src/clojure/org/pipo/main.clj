@@ -36,6 +36,7 @@
 (def ^:const GPS_DIALOG_ID 1)
 (def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
 (def ^:const HOUR_FORMATTERS {:dec utils/long-to-decimal :hm utils/long-to-hm})
+(def ^:const MAX_DOTS 3)
 (def tick-receiver (atom nil))
 
 (defn get-hour-formatter-kw []
@@ -81,25 +82,24 @@
     (db/get-time-since-latest-punch-in (l/local-now))
     0))
 
-(defn make-circle [ctx local-date]
-  [:image-view {:padding-left [3 :dp]
-                :padding-right [3 :dp]
-                :layout-width [15 :dp] ;; 3dp + 9dp + 3dp
-                :layout-height :fill
-                :scale-type :center
-                ; :image-drawable (res/get-drawable ctx R$drawable/circle)
-                :background-color (get-day-color local-date)
-                }])
+(defn make-dot-drawable [ctx i work-count]
+  (if (<= i work-count)
+    (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
+      {:image-drawable (res/get-drawable ctx R$drawable/plus)}
+      {:image-drawable (res/get-drawable ctx R$drawable/circle)})
+    nil))
 
-(defn make-plus [ctx local-date]
-  [:image-view {:padding-left [3 :dp]
-                :padding-right [3 :dp]
-                :layout-width [15 :dp] ;; 3dp + 9dp + 3dp
-                :layout-height :fill
-                :scale-type :center
-                ; :image-drawable (res/get-drawable ctx R$drawable/plus)
-                :background-color (get-day-color local-date)
-                }])
+(defn make-dot [ctx local-date i work-count]
+  [:image-view (merge
+                 {:padding-left [3 :dp]
+                  :padding-right [3 :dp]
+                  :layout-width [15 :dp] ;; 3dp + 9dp + 3dp
+                  :layout-height :fill
+                  :scale-type :center
+                  :background-color (get-day-color local-date)
+                  }
+                 (make-dot-drawable ctx i work-count))
+   ])
 
 (defn make-week-list [ctx]
   (concat
@@ -131,9 +131,10 @@
                                :layout-width :wrap
                                :layout-height :fill
                                }
-               (make-circle ctx local-date)
-               (make-circle ctx local-date)
-               (make-plus ctx local-date)
+               ;; TODO: can this be macroed?
+               (make-dot ctx local-date 1 (count (db/get-work-by-date local-date)))
+               (make-dot ctx local-date 2 (count (db/get-work-by-date local-date)))
+               (make-dot ctx local-date 3 (count (db/get-work-by-date local-date)))
                ]
               [:text-view {:text ((get-hour-formatter)
                                   (+ (get-work-hours-for-date local-date)
