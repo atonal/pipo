@@ -11,12 +11,11 @@
     [org.pipo.prefs :as prefs]
     [org.pipo.utils :as utils]
     [org.pipo.broadcastreceiver :as tick]
-    [org.pipo.servicehandler :as handler]
     [org.pipo.database :as db]
     [org.pipo.location :as location])
   (:import [android.app Service Notification]
            android.preference.PreferenceManager
-           [android.os Message])
+           [android.os Handler HandlerThread])
   (:gen-class
     :prefix "service-"
     :extends android.app.Service
@@ -188,13 +187,13 @@
     (log/d "service create thread id " (Thread/currentThread))
     (utils/init-time-zone this)
     (.start thread)
-    (setfield this :service-handler (org.pipo.servicehandler. (.getLooper thread)))
+    (setfield this :service-handler (android.os.Handler. (.getLooper thread)))
     (create-notification)
     (log/i "Service created")))
 
 (defn service-onStartCommand [^org.pipo.service this intent flags start-id]
   (let [state (.state this)
-        ^org.pipo.servicehandler service-handler (getfield this :service-handler)]
+        ^android.os.Handler service-handler (getfield this :service-handler)]
     (prefs/pref-set prefs/PREF_STATE_SERVICE prefs/SERVICE_RUNNING)
     (log/i (str "Service id: " start-id " started"))
 
