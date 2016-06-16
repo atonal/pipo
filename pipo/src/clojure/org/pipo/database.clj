@@ -129,7 +129,7 @@
       (get-time (get-punch-with-id start-id)))))
 
 (defn work-includes-lunch [start-id stop-id]
-  (if (> (get-work-duration start-id stop-id) HOURS_FOR_LUNCH_MILLIS)
+  (if (>= (get-work-duration start-id stop-id) HOURS_FOR_LUNCH_MILLIS)
     true
     false))
 
