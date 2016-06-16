@@ -17,20 +17,38 @@
                  [net.danlew/android.joda "2.9.2" :extension "aar"]
                  [clj-time "0.11.0"]
                  [org.clojure/java.jdbc "0.4.2"]
-                 [org.robolectric/robolectric "3.0"]
-                 [org.clojure-android/droid-test "0.1.1-SNAPSHOT"]
                  ]
   :profiles {:default [:dev]
 
+             :local-testing
+             [
+              {
+               :android {
+                         :aot :all-with-unused
+                         ; :aot-exclude-ns []
+                         }
+               :target-path "target/local-testing"
+               :dependencies [[org.robolectric/robolectric "3.0"]
+                              [org.clojure/tools.nrepl "0.2.10"]
+                              [org.clojure-android/droid-test "0.1.1-SNAPSHOT"]]
+               }]
+
              :dev
-             [:android-common :android-user
-              {:dependencies [[org.clojure/tools.nrepl "0.2.10"]]
+             [
+              :local-testing
+              ; :android-common
+              ; :android-user
+              {
+               :dependencies [[org.clojure/tools.nrepl "0.2.10"]]
                :target-path "target/debug"
                :android {:aot :all-with-unused
+                         :aot-exclude-ns [#"org\.pipo\.t-.+"]
                          :rename-manifest-package "org.pipo.debug"
                          :manifest-options {:app-name "pipo - debug"}}}]
+
              :release
-             [:android-common
+             [
+              ; :android-common
               {:target-path "target/release"
                :android
                { ;; Specify the path to your private keystore
