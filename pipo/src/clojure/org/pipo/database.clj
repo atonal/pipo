@@ -136,6 +136,7 @@
     true
     false))
 
+; private function, only used in this namespace
 (defn add-work [start-id stop-id]
   {:pre [(= IN (get-type (get-punch-with-id start-id)))
          (= OUT (get-type (get-punch-with-id stop-id)))]}
@@ -162,9 +163,6 @@
     (do
       (log/w "get-work - input not a string: " where-clause-str)
       nil)))
-
-(defn get-work [where-clause-str]
-  (db/seq-cursor (get-work-cursor where-clause-str)))
 
 (defn get-work-by-date-cursor [^org.joda.time.DateTime date]
   (get-work-cursor (str "date = '" (utils/date-to-str-date date) "'")))

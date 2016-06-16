@@ -146,6 +146,29 @@
                   :lunch pipo/LUNCH
                   :validity pipo/VALID})))))
 
+(deftest get-work-by-date
+  (let [punch1 (t/date-time 2000 1 1 8 00 00)
+        punch2 (t/date-time 2000 1 1 13 00 00)
+        punch3 (t/date-time 2000 1 1 14 00 00)
+        punch4 (t/date-time 2000 1 1 20 00 00)]
+    (pipo/punch-in-manual punch1)
+    (pipo/punch-out-manual punch2)
+    (pipo/punch-in-manual punch3)
+    (pipo/punch-out-manual punch3)
+    (is (= (pipo/get-work-by-date (t/date-time 2000 1 1))
+           (list {:_id 1
+                  :date "2000-01-01"
+                  :start_id 1
+                  :stop_id 2
+                  :lunch pipo/NO_LUNCH
+                  :validity pipo/VALID}
+                 {:_id 2
+                  :date "2000-01-01"
+                  :start_id 3
+                  :stop_id 4
+                  :lunch pipo/NO_LUNCH
+                  :validity pipo/VALID})))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))
