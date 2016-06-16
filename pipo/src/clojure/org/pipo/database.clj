@@ -182,7 +182,7 @@
             " and time <= " (c/to-long date-time) ")")))))
 
 
-(defn get-latest-valid-punch [^org.joda.time.DateTime date]
+(defn get-latest-punch-for-date [^org.joda.time.DateTime date]
   (first
     (db/query-seq
       (pipo-db)
@@ -209,7 +209,7 @@
   (get-latest-punch-type OUT))
 
 (defn get-time-since-latest-punch-in [^org.joda.time.DateTime date]
-  (let [latest-punch (get-latest-valid-punch date)]
+  (let [latest-punch (get-latest-punch-for-date date)]
     (if (= (get-type latest-punch) IN)
       (let [diff (- (c/to-long date)
                     (get-time latest-punch))]
