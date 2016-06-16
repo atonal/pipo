@@ -169,7 +169,7 @@
 
 (defn- create-notification []
   (let [mynotification
-        ^Notification (notification {:icon R$drawable/ic_launcher
+        ^Notification (notification {:icon R$drawable/pipo_icon.png
                                      :ticker-text "Activate location updates"
                                      :content-title "PiPo"
                                      :content-text "Location updates are being sent"
