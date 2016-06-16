@@ -39,6 +39,26 @@
             :validity "valid"
             :time (c/to-long punch-time)}))))
 
+(deftest punch-in-manual
+  (let [punch-time (t/date-time 2002 1 1 1 12 00 00)]
+    (pipo/punch-in-manual punch-time)
+    (is (= (pipo/get-punch-with-id 1)
+           {:_id 1
+            :type "in"
+            :method "manual"
+            :validity "valid"
+            :time (c/to-long punch-time)}))))
+
+(deftest punch-in-gps
+  (let [punch-time (t/date-time 2003 1 1 1 12 00 00)]
+    (pipo/punch-in-gps punch-time)
+    (is (= (pipo/get-punch-with-id 1)
+           {:_id 1
+            :type "in"
+            :method "gps"
+            :validity "valid"
+            :time (c/to-long punch-time)}))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))
