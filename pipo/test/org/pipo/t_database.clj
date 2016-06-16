@@ -10,6 +10,15 @@
     org.robolectric.RuntimeEnvironment
     neko.App))
 
+(defn db-fixture [f]
+  (do
+    (assert (= () (db/query-seq (pipo/pipo-db) :punches {})))
+    (assert (= () (db/query-seq (pipo/pipo-db) :work {}))))
+  (f)
+  (pipo/wipe))
+
+(use-fixtures :each db-fixture)
+
 (deftest add-punch
   (let [punch-time (t/date-time 2000 1 1 1 12 00 00)]
     (pipo/add-punch pipo/IN pipo/MANUAL punch-time)
@@ -19,6 +28,16 @@
                   :method "manual"
                   :validity "valid"
                   :time (c/to-long punch-time)})))))
+
+(deftest get-punch-with-id
+  (let [punch-time (t/date-time 2001 1 1 1 12 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch-time)
+    (is (= (pipo/get-punch-with-id 1)
+           {:_id 1
+            :type "in"
+            :method "manual"
+            :validity "valid"
+            :time (c/to-long punch-time)}))))
 
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
