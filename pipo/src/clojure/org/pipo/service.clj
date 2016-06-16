@@ -170,9 +170,9 @@
 (defn- create-notification []
   (let [mynotification
         ^Notification (notification {:icon R$drawable/pipo_icon
-                                     :ticker-text "Activate location updates"
-                                     :content-title "PiPo"
-                                     :content-text "Location updates are being sent"
+                                     :ticker-text "Location service started"
+                                     :content-title "Pipo"
+                                     :content-text "Location service running"
                                      :action [:activity "org.pipo.MAIN"]})]
     ; Set the notification persistent
     (set! (. mynotification flags) android.app.Notification/FLAG_ONGOING_EVENT)
