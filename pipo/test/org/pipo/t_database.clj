@@ -81,6 +81,28 @@
               :validity pipo/VALID
               :time (c/to-long punch2)})))))
 
+(deftest get-work-hours
+  (let [punch1 (t/date-time 2000 1 1 12 00 00)
+        punch2 (t/date-time 2000 1 1 13 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch1)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
+    (is (= (pipo/get-work-hours {:_id 1
+                                 :date "2000-01-01"
+                                 :start_id 1
+                                 :stop_id 2
+                                 :lunch pipo/NO_LUNCH
+                                 :validity pipo/VALID
+                                 })
+           (* 1000 60 60)))
+    (is (= (pipo/get-work-hours {:_id 1
+                                 :date "2000-01-01"
+                                 :start_id 1
+                                 :stop_id 2
+                                 :lunch pipo/LUNCH
+                                 :validity pipo/VALID
+                                 })
+           (- (* 1000 60 60) pipo/LUNCH_BREAK_MILLIS)))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))
