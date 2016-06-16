@@ -191,9 +191,9 @@
            " and time between " (c/to-long (utils/day-begin date)) " and "
            (c/to-long (utils/day-end date)) ")"))))
 
-(defn get-latest-punch-type
+(defn get-latest-punch-with-type
   ([type-str]
-   (get-latest-punch-type type-str (l/local-now)))
+   (get-latest-punch-with-type type-str (l/local-now)))
   ([type-str date-time]
   (first
     (db/query-seq
@@ -203,10 +203,10 @@
            " and type = '" type-str "' and time <= " (c/to-long date-time) ")")))))
 
 (defn get-latest-punch-in []
-  (get-latest-punch-type IN))
+  (get-latest-punch-with-type IN))
 
 (defn get-latest-punch-out []
-  (get-latest-punch-type OUT))
+  (get-latest-punch-with-type OUT))
 
 (defn get-time-since-latest-punch-in-for-date [^org.joda.time.DateTime date]
   (let [latest-punch (get-latest-punch-for-date date)]
