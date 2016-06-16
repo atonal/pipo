@@ -39,9 +39,9 @@ public class SplashActivity extends Activity {
         TextView appNameView = (TextView)findViewById(R.id.splash_app_name);
         appNameView.setText(R.string.app_name);
 
-        Animation rotation = AnimationUtils.loadAnimation(this, R.anim.splash_rotation);
-        ImageView circleView = (ImageView)findViewById(R.id.splash_circles);
-        circleView.startAnimation(rotation);
+        // Animation rotation = AnimationUtils.loadAnimation(this, R.anim.splash_rotation);
+        // ImageView circleView = (ImageView)findViewById(R.id.splash_circles);
+        // circleView.startAnimation(rotation);
     }
 
     public void proceed() {

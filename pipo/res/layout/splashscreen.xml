@@ -4,40 +4,18 @@
                 android:layout_height="fill_parent">
 
   <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_centerInParent="true"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
       android:orientation="vertical"
-      android:layout_margin="10dp"
+      android:gravity="center"
       android:background="@drawable/splash_background" >
 
-    <RelativeLayout
+    <ImageView
+        android:id="@+id/pipo_large"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center" >
-
-      <ImageView
-          android:id="@+id/splash_droid"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/splash_droid" >
-      </ImageView>
-
-      <ImageView
-          android:id="@+id/splash_circles"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/splash_circle" >
-      </ImageView>
-
-      <ImageView
-          android:id="@+id/splash_droid_hands"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/splash_hands" >
-      </ImageView>
-    </RelativeLayout>
+        android:layout_height="120dp"
+        android:src="@drawable/pipo_large" >
+    </ImageView>
 
     <TextView
         android:id="@+id/splash_app_name"
