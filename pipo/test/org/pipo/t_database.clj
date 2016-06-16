@@ -127,6 +127,25 @@
     (is (= (pipo/work-includes-lunch 1 3)
            true))))
 
+(deftest add-work
+  (let [punch1 (t/date-time 2000 1 1 8 00 00)
+        punch2 (t/date-time 2000 1 1 16 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch1)
+    (pipo/add-punch pipo/OUT pipo/MANUAL punch2)
+
+    (is (= (db/query-seq (pipo/pipo-db) :work {:_id 1})
+           '()))
+
+    (pipo/add-work 1 2)
+
+    (is (= (db/query-seq (pipo/pipo-db) :work {:_id 1})
+           (list {:_id 1
+                  :date "2000-01-01"
+                  :start_id 1
+                  :stop_id 2
+                  :lunch pipo/LUNCH
+                  :validity pipo/VALID})))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))

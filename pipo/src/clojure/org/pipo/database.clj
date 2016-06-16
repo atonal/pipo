@@ -137,6 +137,8 @@
     false))
 
 (defn add-work [start-id stop-id]
+  {:pre [(= IN (get-type (get-punch-with-id start-id)))
+         (= OUT (get-type (get-punch-with-id stop-id)))]}
   (log/d "add-work:" start-id stop-id)
   (db/insert
     (pipo-db)
