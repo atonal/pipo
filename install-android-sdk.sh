@@ -26,4 +26,4 @@ echo "Installing SDK tools"
 (while true; do sleep 2; echo y; done) | \
     "$SDK_DIR/android-sdk-linux/tools/android" update sdk \
         --no-ui --all \
-        --filter platform-tool,android-19,android-21,android-22,build-tools-22.0.1,extra-android-support,extra-android-m2repository,extra-google-m2repository
+        --filter platform-tools,android-19,android-21,android-22,build-tools-22.0.1,extra-android-support,extra-android-m2repository,extra-google-m2repository
