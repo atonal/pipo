@@ -86,15 +86,40 @@
     0))
 
 (defn make-dot-drawable [ctx i work-count]
-  (if (<= i work-count)
-    (let [plus (res/get-drawable ctx R$drawable/plus)
-          circle (res/get-drawable ctx R$drawable/circle)]
-      ;; TODO:
-      ; if 0 < (db/get-time-in-for-date (l/local-now))
-      (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
-        plus
-        circle))
-    (ColorDrawable. Color/TRANSPARENT)))
+  (let [plus (res/get-drawable ctx R$drawable/plus)
+        circle (res/get-drawable ctx R$drawable/circle)]
+    (cond (<= i work-count)
+          ;; TODO:
+          ; if 0 < (db/get-time-since-latest-punch-in (l/local-now))
+          ; if 0 < (db/get-latest-punch-type == db/IN (l/local-now))
+          (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
+            plus
+            circle)
+          :else
+          (ColorDrawable. Color/TRANSPARENT))))
+
+
+          ; (= i (+ work-count 1))
+          ; (if (= (db/get-latest-punch-type (l/local-now)) db/IN)
+          ;   (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
+          ;     plus
+          ;     circle)
+          ;   (ColorDrawable. Color/TRANSPARENT))
+
+;; blink image-view:
+; (on-ui
+; ; (let [dot-view (.getChildAt (.getChildAt (.getChildAt (find-view (*a) ::inner-week) 0) 1) 0)
+;     animation (AnimationUtils/loadAnimation (*a) R$anim/tween)]
+;     (.startAnimation dot-view animation)
+;   )
+; )
+
+; (on-ui
+; (let [blink-view (find-view (*a) ::inner-week)
+;       animation (AnimationUtils/loadAnimation (*a) R$anim/tween)]
+;   (.startAnimation blink-view animation)
+;   )
+; )
 
 (defn make-dot-id [i]
   (keyword (str "dot-" i)) ;; TODO: with namespace, aka ::dot-1
@@ -183,6 +208,31 @@
     )
   )
 
+(defn update-animation [ctx day-view local-date]
+  (let [end-of-day (utils/day-end local-date)
+        work-count (count (db/get-work-by-date local-date))
+        current-time-in (db/get-time-in-for-date end-of-day)]
+    (log/d "update-animation, time since punch:" current-time-in)
+    (on-ui
+      (doseq [i (range 1 (+ MAX_DOTS 1))]
+        (log/d "update "(make-dot-id i))
+        (let [dot-view (find-view day-view (make-dot-id i))]
+          (if (> current-time-in 0) ;; Work ongoing
+            (do
+              (config dot-view :image-drawable (make-dot-drawable ctx i (+ work-count 1)))
+              (log/d "i: " i ", work-count: " work-count)
+              (if (or (= i (+ work-count 1)) (= i MAX_DOTS))
+                (let [animation (AnimationUtils/loadAnimation ctx R$anim/tween)]
+                  (log/d "start animation")
+                  (.startAnimation dot-view animation)
+                  )
+                )
+              )
+            (do
+              (log/d "stop animation")
+              (.clearAnimation dot-view)
+              )))))))
+
 (defn make-week-list [^android.content.Context ctx]
   `[:linear-layout {:id ::inner-week
                     :orientation :vertical
@@ -206,8 +256,8 @@
                  date-index (- (t/day-of-week date) 1)
                  layout (.getChildAt (find-view ctx ::inner-week) date-index)
                  ]
-             (log/d "update " local-date)
              (update-day-layout ctx layout local-date)
+             (update-animation ctx layout local-date)
              ))
 
          (let [year (prefs/pref-get prefs/PREF_YEAR)
