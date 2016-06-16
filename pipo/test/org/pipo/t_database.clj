@@ -169,6 +169,31 @@
                   :lunch pipo/NO_LUNCH
                   :validity pipo/VALID})))))
 
+(deftest get-latest-punch
+  (let [punch1 (t/date-time 2000 1 1 12 00 00)
+        punch2 (t/date-time 2000 1 2 12 00 00)
+        punch3 (t/date-time 2000 1 3 12 00 00)
+        punch4 (t/date-time 2000 1 4 12 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch1)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch3)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch4)
+    (is (= (pipo/get-latest-punch (t/date-time 2000 1 4 11 00 00))
+           {:_id 3
+            :type pipo/IN
+            :method pipo/MANUAL
+            :validity pipo/VALID
+            :time (c/to-long punch3)}))
+
+    (pipo/punch-toggle-validity  3)
+
+    (is (= (pipo/get-latest-punch (t/date-time 2000 1 4 11 00 00))
+           {:_id 2
+            :type pipo/IN
+            :method pipo/MANUAL
+            :validity pipo/VALID
+            :time (c/to-long punch2)}))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))
