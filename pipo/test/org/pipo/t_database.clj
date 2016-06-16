@@ -108,8 +108,8 @@
         punch2 (t/date-time 2000 1 1 13 00 00)
         punch3 (t/date-time 2000 1 1 20 00 00)]
     (pipo/add-punch pipo/IN pipo/MANUAL punch1)
-    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
-    (pipo/add-punch pipo/IN pipo/MANUAL punch3)
+    (pipo/add-punch pipo/OUT pipo/MANUAL punch2)
+    (pipo/add-punch pipo/OUT pipo/MANUAL punch3)
     (is (= (pipo/get-work-duration 1 2)
            (* 1000 60 60)))
     (is (= (pipo/get-work-duration 1 3)
@@ -120,8 +120,8 @@
         punch2 (t/date-time 2000 1 1 15 59 59)
         punch3 (t/date-time 2000 1 1 16 00 00)]
     (pipo/add-punch pipo/IN pipo/MANUAL punch1)
-    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
-    (pipo/add-punch pipo/IN pipo/MANUAL punch3)
+    (pipo/add-punch pipo/OUT pipo/MANUAL punch2)
+    (pipo/add-punch pipo/OUT pipo/MANUAL punch3)
     (is (= (pipo/work-includes-lunch 1 2)
            false))
     (is (= (pipo/work-includes-lunch 1 3)

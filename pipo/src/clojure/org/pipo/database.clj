@@ -123,12 +123,15 @@
       duration)))
 
 ;; does not include lunch break!
-(defn get-work-duration
-  ([start-id stop-id]
-   (- (get-time (get-punch-with-id stop-id))
-      (get-time (get-punch-with-id start-id)))))
+(defn get-work-duration [start-id stop-id]
+  {:pre [(= IN (get-type (get-punch-with-id start-id)))
+         (= OUT (get-type (get-punch-with-id stop-id)))]}
+  (- (get-time (get-punch-with-id stop-id))
+     (get-time (get-punch-with-id start-id))))
 
 (defn work-includes-lunch [start-id stop-id]
+  {:pre [(= IN (get-type (get-punch-with-id start-id)))
+         (= OUT (get-type (get-punch-with-id stop-id)))]}
   (if (>= (get-work-duration start-id stop-id) HOURS_FOR_LUNCH_MILLIS)
     true
     false))
