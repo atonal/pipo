@@ -20,7 +20,7 @@
 (use-fixtures :each db-fixture)
 
 (deftest add-punch
-  (let [punch-time (t/date-time 2000 1 1 1 12 00 00)]
+  (let [punch-time (t/date-time 2000 1 1 12 00 00)]
     (pipo/add-punch pipo/IN pipo/MANUAL punch-time)
     (is (= (db/query-seq (pipo/pipo-db) :punches {:_id 1})
            (list {:_id 1
@@ -30,7 +30,7 @@
                   :time (c/to-long punch-time)})))))
 
 (deftest get-punch-with-id
-  (let [punch-time (t/date-time 2001 1 1 1 12 00 00)]
+  (let [punch-time (t/date-time 2001 1 1 12 00 00)]
     (pipo/add-punch pipo/IN pipo/MANUAL punch-time)
     (is (= (pipo/get-punch-with-id 1)
            {:_id 1
@@ -40,7 +40,7 @@
             :time (c/to-long punch-time)}))))
 
 (deftest punch-in-manual
-  (let [punch-time (t/date-time 2002 1 1 1 12 00 00)]
+  (let [punch-time (t/date-time 2002 1 1 12 00 00)]
     (pipo/punch-in-manual punch-time)
     (is (= (pipo/get-punch-with-id 1)
            {:_id 1
@@ -50,7 +50,7 @@
             :time (c/to-long punch-time)}))))
 
 (deftest punch-in-gps
-  (let [punch-time (t/date-time 2003 1 1 1 12 00 00)]
+  (let [punch-time (t/date-time 2003 1 1 12 00 00)]
     (pipo/punch-in-gps punch-time)
     (is (= (pipo/get-punch-with-id 1)
            {:_id 1
@@ -58,6 +58,28 @@
             :method "gps"
             :validity "valid"
             :time (c/to-long punch-time)}))))
+
+(deftest get-punches-by-date
+  (let [punch1 (t/date-time 2000 1 1 12 00 00)
+        punch2 (t/date-time 2000 1 2 13 00 00)
+        punch3 (t/date-time 2000 1 2 12 00 00)
+        punch4 (t/date-time 2000 1 3 12 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch1)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch3)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch4)
+    (is (= (pipo/get-punches-by-date (t/date-time 2000 1 2))
+           (list
+             {:_id 3
+              :type "in"
+              :method "manual"
+              :validity "valid"
+              :time (c/to-long punch3)}
+             {:_id 2
+              :type "in"
+              :method "manual"
+              :validity "valid"
+              :time (c/to-long punch2)})))))
 
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
