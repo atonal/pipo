@@ -82,7 +82,7 @@
 
 (defn add-current-work [^DateTime date]
   (if (utils/date-equals? (l/local-now) date)
-    (db/get-time-since-latest-punch-in (l/local-now))
+    (db/get-time-since-latest-punch-in-for-date (l/local-now))
     0))
 
 (defn make-dot-drawable [ctx i work-count]
@@ -90,7 +90,7 @@
     (let [plus (res/get-drawable ctx R$drawable/plus)
           circle (res/get-drawable ctx R$drawable/circle)]
       ;; TODO:
-      ; if 0 < (db/get-time-since-latest-punch-in (l/local-now))
+      ; if 0 < (db/get-time-since-latest-punch-in-for-date (l/local-now))
       (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
         plus
         circle))
