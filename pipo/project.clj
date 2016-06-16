@@ -16,7 +16,10 @@
                  [neko/neko "4.0.0-alpha5"]
                  [net.danlew/android.joda "2.9.2" :extension "aar"]
                  [clj-time "0.11.0"]
-                 [org.clojure/java.jdbc "0.4.2"]]
+                 [org.clojure/java.jdbc "0.4.2"]
+                 [org.robolectric/robolectric "3.0"]
+                 [org.clojure-android/droid-test "0.1.1-SNAPSHOT"]
+                 ]
   :profiles {:default [:dev]
 
              :dev
