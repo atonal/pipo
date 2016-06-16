@@ -103,6 +103,18 @@
                                  })
            (- (* 1000 60 60) pipo/LUNCH_BREAK_MILLIS)))))
 
+(deftest get-work-duration
+  (let [punch1 (t/date-time 2000 1 1 12 00 00)
+        punch2 (t/date-time 2000 1 1 13 00 00)
+        punch3 (t/date-time 2000 1 1 20 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch1)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch3)
+    (is (= (pipo/get-work-duration 1 2)
+           (* 1000 60 60)))
+    (is (= (pipo/get-work-duration 1 3)
+           (* 1000 60 60 8)))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))
