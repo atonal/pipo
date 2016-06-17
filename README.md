@@ -2,6 +2,14 @@
 
 Android application to track working hours based on GPS
 
+## Installation
+
+To install the Android SDK, run:
+
+```bash
+./install-android-sdk.sh
+```
+
 ## Building and deploying
 
 Building is done using [Leiningen](http://leiningen.org/).
