@@ -17,6 +17,7 @@ Building is done using [Leiningen](http://leiningen.org/).
 To build and deploy to connected device or emulator, do:
 
 ```bash
+cd pipo
 lein droid doall
 ```
 
@@ -30,5 +31,6 @@ Tests utilize [Robolectric](http://robolectric.org/).
 To run the tests, do:
 
 ```bash
+cd pipo
 lein with-profile local-testing droid local-test
 ```
