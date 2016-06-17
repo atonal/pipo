@@ -20,36 +20,26 @@
                  ]
   :profiles {:default [:dev]
 
+             :repl
+             [{:dependencies [[org.clojure/tools.nrepl "0.2.10"]]}]
+
              :local-testing
-             [
-              {
-               :android {
-                         :aot :all-with-unused
-                         ; :aot-exclude-ns []
-                         }
+             [:repl
+              {:android {:aot :all-with-unused}
                :target-path "target/local-testing"
                :dependencies [[org.robolectric/robolectric "3.0"]
-                              [org.clojure/tools.nrepl "0.2.10"]
-                              [org.clojure-android/droid-test "0.1.1-SNAPSHOT"]]
-               }]
+                              [org.clojure-android/droid-test "0.1.1-SNAPSHOT"]]}]
 
              :dev
-             [
-              :local-testing
-              ; :android-common
-              ; :android-user
-              {
-               :dependencies [[org.clojure/tools.nrepl "0.2.10"]]
-               :target-path "target/debug"
+             [:repl
+              {:target-path "target/debug"
                :android {:aot :all-with-unused
                          :aot-exclude-ns [#"org\.pipo\.t-.+"]
                          :rename-manifest-package "org.pipo.debug"
                          :manifest-options {:app-name "pipo - debug"}}}]
 
              :release
-             [
-              ; :android-common
-              {:target-path "target/release"
+             [{:target-path "target/release"
                :android
                { ;; Specify the path to your private keystore
                 ;; and the the alias of the key you want to
