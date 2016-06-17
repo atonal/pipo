@@ -131,6 +131,7 @@
                    :layout-height [0 :dp]
                    :layout-weight 1
                    :padding [4 :px]
+                   :layout-margin [1 :dp]
                    :on-click (fn [_] (start-day-activity ctx local-date))
                    :background-color (get-day-color local-date)
                    }
