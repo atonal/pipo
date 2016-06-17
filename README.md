@@ -1,4 +1,4 @@
-# Pipo ![Pipo](pipo/res/drawable/pipo_black.png "Pipo")
+# Pipo ![Pipo](pipo/res/drawable/pipo_black.png =60x)
 
 Android application to track working hours based on GPS
 
