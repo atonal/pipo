@@ -10,6 +10,8 @@
     org.robolectric.RuntimeEnvironment
     neko.App))
 
+(set! App/instance RuntimeEnvironment/application)
+
 (defn db-fixture [f]
   (do
     (assert (= () (db/query-seq (pipo/pipo-db) :punches {})))
