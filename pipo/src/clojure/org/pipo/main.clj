@@ -88,38 +88,11 @@
 (defn make-dot-drawable [ctx i work-count]
   (let [plus (res/get-drawable ctx R$drawable/plus)
         circle (res/get-drawable ctx R$drawable/circle)]
-    (cond (<= i work-count)
-          ;; TODO:
-          ; if 0 < (db/get-time-since-latest-punch-in (l/local-now))
-          ; if 0 < (db/get-latest-punch-type == db/IN (l/local-now))
-          (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
-            plus
-            circle)
-          :else
-          (ColorDrawable. Color/TRANSPARENT))))
-
-
-          ; (= i (+ work-count 1))
-          ; (if (= (db/get-latest-punch-type (l/local-now)) db/IN)
-          ;   (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
-          ;     plus
-          ;     circle)
-          ;   (ColorDrawable. Color/TRANSPARENT))
-
-;; blink image-view:
-; (on-ui
-; ; (let [dot-view (.getChildAt (.getChildAt (.getChildAt (find-view (*a) ::inner-week) 0) 1) 0)
-;     animation (AnimationUtils/loadAnimation (*a) R$anim/tween)]
-;     (.startAnimation dot-view animation)
-;   )
-; )
-
-; (on-ui
-; (let [blink-view (find-view (*a) ::inner-week)
-;       animation (AnimationUtils/loadAnimation (*a) R$anim/tween)]
-;   (.startAnimation blink-view animation)
-;   )
-; )
+    (if (<= i work-count)
+      (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
+        plus
+        circle)
+      (ColorDrawable. Color/TRANSPARENT))))
 
 (defn make-dot-id [i]
   (keyword (str "dot-" i)) ;; TODO: with namespace, aka ::dot-1
