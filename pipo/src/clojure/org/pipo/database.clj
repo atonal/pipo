@@ -208,7 +208,7 @@
 (defn get-latest-punch-out []
   (get-latest-punch-with-type OUT))
 
-(defn get-time-since-latest-punch-in-for-date [^org.joda.time.DateTime date]
+(defn get-time-in-for-date [^org.joda.time.DateTime date]
   (let [latest-punch (get-latest-punch-for-date date)]
     (if (= (get-type latest-punch) IN)
       (let [diff (- (c/to-long date)

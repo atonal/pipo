@@ -242,6 +242,27 @@
     (is (= (pipo/get-latest-punch-with-type pipo/IN (t/date-time 2000 1 2 15 00 00))
            nil))))
 
+(deftest get-time-in-for-date
+  (let [punch1 (t/date-time 2000 1 1 12 00 00)
+        punch2 (t/date-time 2000 1 2 12 00 00)
+        punch3 (t/date-time 2000 1 2 13 00 00)]
+    (pipo/add-punch pipo/IN pipo/MANUAL punch1)
+    (pipo/add-punch pipo/IN pipo/MANUAL punch2)
+    (pipo/add-punch pipo/OUT pipo/MANUAL punch3)
+
+    (is (= (pipo/get-time-in-for-date (t/date-time 2000 1 2 18 00 00))
+           0))
+
+    (pipo/punch-toggle-validity 3)
+
+    (is (= (pipo/get-time-in-for-date (t/date-time 2000 1 2 18 00 00))
+           (* 1000 60 60 6)))
+
+    (pipo/punch-toggle-validity 2)
+
+    (is (= (pipo/get-time-in-for-date (t/date-time 2000 1 2 18 00 00))
+           0))))
+
 (deftest get-id
   (is (= (pipo/get-id {:some "fuu" :data "bar" :_id 234 :more 555})
          234))
