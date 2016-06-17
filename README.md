@@ -20,9 +20,12 @@ To build and deploy to connected device or emulator, do:
 lein droid doall
 ```
 
+For more instructions, see lein droid
+[tutorial](https://github.com/clojure-android/lein-droid/wiki/Tutorial).
+
 ## Testing
 
-Tests utilize [Robolectric](http://robolectric.org/)
+Tests utilize [Robolectric](http://robolectric.org/).
 
 To run the tests, do:
 
