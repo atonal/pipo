@@ -168,6 +168,10 @@
 
 (defn update-day-layout [ctx day-view local-date]
   (on-ui
+    (config day-view
+            :on-click (fn [_] (start-day-activity ctx local-date))
+            :background-color (get-day-color local-date)
+            )
     (config (find-view day-view ::date-tv)
             :text (date-text local-date)
             )
