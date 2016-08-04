@@ -640,23 +640,23 @@
   (onStart
     [this]
     (.superOnStart this)
-    (reset! tick-receiver (tick/register-receiver this (make-tick-func this) nil))
     )
   (onResume
     [this]
     (let [service (Intent. this org.pipo.service)]
       (.superOnResume this)
+      (reset! tick-receiver (tick/register-receiver this (make-tick-func this) nil))
       (update-uis this service)
       ))
   (onPause
     [this]
     (.superOnPause this)
+    (tick/unregister-receiver this @tick-receiver)
+    (reset! tick-receiver nil)
     )
   (onStop
     [this]
     (.superOnStop this)
-    (tick/unregister-receiver this @tick-receiver)
-    (reset! tick-receiver nil)
     )
   (onDestroy
     [this]
