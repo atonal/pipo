@@ -155,9 +155,6 @@
         (log/d "location updates started"))
       (log/d "no"))))
 
-(defn -init []
-  [[] (atom {:data "state-data"})])
-
 ;; little functions to safely set the fields.
 (defn- setfield
   [^org.pipo.service this key value]
