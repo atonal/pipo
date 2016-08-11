@@ -644,15 +644,14 @@
       (create-watchers this service)
       (prefs/update-state)
 
-      ; mAdapter = new MyAdapter(getFragmentManager());
-      (let [mAdapter (org.pipo.week_fragment. this (.getFragmentManager (*a)))
-
-            ; mPager = (ViewPager)findViewById(R.id.pager);
+      (let [
             mPager (.getChildAt (find-view (*a) ::swipe) 0)
+            mAdapter (org.pipo.week_fragment. this (.getFragmentManager (*a)) mPager)
                                    ]
 
-        ; mPager.setAdapter(mAdapter);
-        (.setAdapter mPager mAdapter))
+        (.setAdapter mPager mAdapter)
+        (.setOnPageChangeListener mPager mAdapter)
+        )
 
 
       (log/d "main thread id " (Thread/currentThread))
