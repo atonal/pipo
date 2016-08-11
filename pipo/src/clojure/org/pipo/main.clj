@@ -5,6 +5,8 @@
             [neko.find-view :refer [find-view]]
             [neko.ui :refer [config make-ui]]
             [neko.resource :as res]
+            [neko.doc :as docc]
+            [neko.-utils :refer [int-id]]
             [org.pipo.log :as log]
             [neko.notify :refer [toast]]
             [neko.dialog.alert :refer [alert-dialog-builder]]
@@ -16,6 +18,7 @@
             [org.pipo.utils :as utils]
             [org.pipo.broadcastreceiver :as tick]
             [org.pipo.location :as location]
+            ; [org.pipo.week-fragment :as fragment]
             [org.pipo.ui-utils :as ui-utils])
   (:import [android.view ViewGroup Gravity]
            android.graphics.drawable.ColorDrawable
@@ -25,7 +28,10 @@
            android.content.Intent
            android.view.animation.AnimationUtils
            java.lang.Long
-           org.joda.time.DateTime))
+           org.joda.time.DateTime
+           org.pipo.week_fragment
+           ; android.support.v4.app.FragmentManager
+           android.support.v4.view.ViewPager))
 
 (res/import-all)
 
@@ -445,6 +451,19 @@
                     :layout-weight 1}
     (make-week-list ctx)  ;; These get recreated, so no other child views!
     ]
+   [:linear-layout {:id ::swipe
+                    :id-holder true
+                    :orientation :horizontal
+                    :layout-width :match-parent
+                    :layout-height [0 :dp]
+                    :layout-weight 1}
+    (let [pager (ViewPager. ctx)]
+      (.setId pager (int-id ::pager))
+      ; android:layout_width="match_parent"
+      ; android:layout_height="match_parent"
+      pager
+      )
+    ]
    [:linear-layout {:id ::location-layout
                     :layout-width :wrap
                     :layout-height :wrap
@@ -624,6 +643,18 @@
           (week-layout this service)))
       (create-watchers this service)
       (prefs/update-state)
+
+      ; mAdapter = new MyAdapter(getFragmentManager());
+      (let [mAdapter (org.pipo.week_fragment. this (.getFragmentManager (*a)))
+
+            ; mPager = (ViewPager)findViewById(R.id.pager);
+            mPager (.getChildAt (find-view (*a) ::swipe) 0)
+                                   ]
+
+        ; mPager.setAdapter(mAdapter);
+        (.setAdapter mPager mAdapter))
+
+
       (log/d "main thread id " (Thread/currentThread))
       ))
   (onPrepareDialog
