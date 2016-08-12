@@ -39,23 +39,23 @@
   [[fm] (atom {:middle (/ Integer/MAX_VALUE 2)
                :ctx ctx
                :vp view-pager
-               :focused-page 1
+               :focused-page 0
                :global-pos 1
                })])
 
-    ; public DemoCollectionPagerAdapter(FragmentManager fm) {
-    ;     super(fm);
-    ; }
-
-    ; @Override
-    ; public Fragment getItem(int i) {
 (defn fragment-getItem [this i]
-    ;     Fragment fragment = new DemoObjectFragment();
-    ;     Bundle args = new Bundle();
-    ;     // Our object is just an integer :-P
-    ;     args.putInt(DemoObjectFragment.ARG_OBJECT, i + 1);
-    ;     fragment.setArguments(args);
-    ;     return fragment;
+    (let
+      [yw (cond (= i 0) (utils/get-previous-week
+                          (prefs/pref-get prefs/PREF_WEEK)
+                          (prefs/pref-get prefs/PREF_YEAR))
+                (= i 1) {:week (prefs/pref-get prefs/PREF_WEEK)
+                         :year (prefs/pref-get prefs/PREF_YEAR)}
+                (= i 2) (utils/get-next-week
+                          (prefs/pref-get prefs/PREF_WEEK)
+                          (prefs/pref-get prefs/PREF_YEAR)))
+       week (:week yw)
+       year (:year yw)
+       ]
 
     (log/d "getItem called")
     (simple-fragment
@@ -65,8 +65,9 @@
                        :id i}
        [:text-view {:id ::fragment-text
                     :text (str "fragment " i ", global: " (getfield this :global-pos))}]
-       (weekview/make-week-list (getfield this :ctx))  ;; These get recreated, so no other child views!
+       (weekview/make-week-list (getfield this :ctx) year week)  ;; These get recreated, so no other child views!
        ])
+    )
     )
     ; }
 

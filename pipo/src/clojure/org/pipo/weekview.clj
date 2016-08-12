@@ -129,7 +129,7 @@
    ]
   )
 
-(defn make-week-list [^android.content.Context ctx]
+(defn make-week-list [^android.content.Context ctx year week]
   `[:linear-layout {:id ::inner-week
                     :orientation :vertical
                     :layout-width :match-parent
@@ -139,9 +139,11 @@
              (let [local-date (utils/to-local-time-zone date)]
                (make-day-layout ctx local-date)
                ))
-           (let [year (prefs/pref-get prefs/PREF_YEAR)
-                 week (prefs/pref-get prefs/PREF_WEEK)]
-             (utils/week-from-week-number week year)))
+           ; (let [year (prefs/pref-get prefs/PREF_YEAR)
+           ;       week (prefs/pref-get prefs/PREF_WEEK)]
+             (utils/week-from-week-number week year)
+             ; )
+    )
     ]
   )
 
