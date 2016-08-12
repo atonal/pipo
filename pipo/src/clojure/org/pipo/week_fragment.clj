@@ -4,6 +4,9 @@
             [neko.ui :refer [config]]
             [neko.find-view :refer [find-view]]
             [org.pipo.log :as log]
+            [org.pipo.weekview :as weekview]
+            [org.pipo.prefs :as prefs]
+            [org.pipo.utils :as utils]
             )
   (:import android.support.v4.view.ViewPager)
   (:gen-class
@@ -61,7 +64,9 @@
                        :id-holder true
                        :id i}
        [:text-view {:id ::fragment-text
-                    :text (str "fragment " i ", global: " (getfield this :global-pos))}]])
+                    :text (str "fragment " i ", global: " (getfield this :global-pos))}]
+       (weekview/make-week-list (getfield this :ctx))  ;; These get recreated, so no other child views!
+       ])
     )
     ; }
 
@@ -81,13 +86,14 @@
 ; (defn fragment-instantiateItem [this container position]
 
 
-(defn- set-page-content [view global-pos]
+(defn- set-page-content [ctx view global-pos year week]
   (if (nil? view)
     (log/d "set-page-content view == nil")
     (do
       (log/d  "set-page-content view: " view)
       (config (find-view view ::fragment-text)
               :text (str "fragment " (.getId view) ", global: " global-pos))
+      (weekview/update-week-list ctx view year week)
     ;     TextView tv = (TextView) viewLayout.findViewById(R.id.calendar_text);
     ;     tv.setText(String.format("Text Text Text global %d", globalPosition));
     )
@@ -97,16 +103,32 @@
 
 (defn fragment-onPageScrollStateChanged [this state]
   (log/d "fragment-onPageScrollStateChanged")
+  (let [ctx (getfield this :ctx)
+         year (prefs/pref-get prefs/PREF_YEAR)
+         week (prefs/pref-get prefs/PREF_WEEK)
+         prev-year (:year (utils/get-previous-week week year))
+         prev-week (:week (utils/get-previous-week week year))
+         next-year (:year (utils/get-next-week week year))
+         next-week (:week (utils/get-next-week week year))
+        ]
   (if (= state ViewPager/SCROLL_STATE_IDLE)
     (do
 
       (let [global-pos (getfield this :global-pos)
             focused-page (getfield this :focused-page)]
         (log/d "focused: " focused-page ", global: " global-pos)
-        (if (= focused-page 0)
+        (if (= focused-page 0) ;; Moved to previous week
+          (do
+          (prefs/pref-set prefs/PREF_YEAR prev-year)
+          (prefs/pref-set prefs/PREF_WEEK prev-week)
           (setfield this :global-pos (dec global-pos)))
-        (if (= focused-page 2)
+          )
+        (if (= focused-page 2) ;; Moved to next week
+          (do
+          (prefs/pref-set prefs/PREF_YEAR next-year)
+          (prefs/pref-set prefs/PREF_WEEK next-week)
           (setfield this :global-pos (inc global-pos)))
+          )
         (log/d "new global: " (getfield this :global-pos))
 
 
@@ -120,40 +142,49 @@
       ; for (int i = 0; i < viewPager.getChildCount(); i++)
       (doseq [i (range (.getChildCount (getfield this :vp)))]
             (let [view (.getChildAt (getfield this :vp) i)
-                  id (.getId view)]
+                  id (.getId view)
+                  cur-year (prefs/pref-get prefs/PREF_YEAR)
+                  cur-week (prefs/pref-get prefs/PREF_WEEK)
+                  ]
 
               (if (nil? view) (log/d "view is nil"))
               (if (nil? id) (log/d "id is nil"))
 
-                        ; final View v = viewPager.getChildAt(i);
-                        ; if (v == null)
-                        ;     continue;
+              ; final View v = viewPager.getChildAt(i);
+              ; if (v == null)
+              ;     continue;
 
-                        ; // reveal correct child position
-                        ; Integer tag = (Integer)v.getTag();
-                        ; if (tag == null)
-                        ;     continue;
+              ; // reveal correct child position
+              ; Integer tag = (Integer)v.getTag();
+              ; if (tag == null)
+              ;     continue;
 
-                      (cond
-                        (= id 0) (set-page-content view (dec (getfield this :global-pos)))
-                        (= id 1) (set-page-content view (getfield this :global-pos))
-                        (= id 2) (set-page-content view (inc (getfield this :global-pos)))
-                        ; switch (tag.intValue())
-                        ; {
-                        ;     case 0:
-                        ;         setPageContent(v, globalPosition - 1);
-                        ;         break;
-                        ;     case 1:
-                        ;         setPageContent(v, globalPosition);
-                        ;         break;
-                        ;     case 2:
-                        ;         setPageContent(v, globalPosition + 1);
-                        ;         break;
-                        ; }
-                        )
-                        )
-                      )
-      
+              (cond
+                (= id 0) (set-page-content
+                           ctx
+                           view
+                           (dec (getfield this :global-pos))
+                           (:year (utils/get-previous-week cur-week cur-year))
+                           (:week (utils/get-previous-week cur-week cur-year))
+                           )
+                (= id 1) (set-page-content
+                           ctx
+                           view
+                           (getfield this :global-pos)
+                           cur-year
+                           cur-week
+                           )
+                (= id 2) (set-page-content
+                           ctx
+                           view
+                           (inc (getfield this :global-pos))
+                           (:year (utils/get-next-week cur-week cur-year))
+                           (:week (utils/get-next-week cur-week cur-year))
+                           )
+                )
+              )
+            )
+
 
 
         );let
@@ -161,6 +192,7 @@
     ;TODO shuffle the views
     (.setCurrentItem (getfield this :vp) 1 false))
     )
+  )
   )
 
 (defn fragment-onPageScrolled [this position positionOffset positionOffsetPixels]

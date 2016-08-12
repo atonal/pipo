@@ -190,20 +190,21 @@
               (.clearAnimation dot-view)
               )))))))
 
-(defn update-week-list [ctx]
+(defn update-week-list [ctx viewcontainer year week]
   (dorun
     (map (fn [^DateTime date]
            (let [local-date (utils/to-local-time-zone date)
                  date-index (- (t/day-of-week date) 1)
-                 layout (.getChildAt (find-view ctx ::inner-week) date-index)
+                 layout (.getChildAt (find-view viewcontainer ::inner-week) date-index)
                  ]
              (update-day-layout ctx layout local-date)
              (update-animation ctx layout local-date)
              ))
 
-         (let [year (prefs/pref-get prefs/PREF_YEAR)
-               week (prefs/pref-get prefs/PREF_WEEK)]
-           (utils/week-from-week-number week year)))
+         ; (let [year (prefs/pref-get prefs/PREF_YEAR)
+               ; week (prefs/pref-get prefs/PREF_WEEK)]
+           (utils/week-from-week-number week year))
+         ; )
     )
 
   )
