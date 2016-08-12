@@ -651,6 +651,7 @@
 
         (.setAdapter mPager mAdapter)
         (.setOnPageChangeListener mPager mAdapter)
+        (.setCurrentItem mPager 1 false)
         )
 
 
