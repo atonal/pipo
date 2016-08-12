@@ -4,7 +4,6 @@
             [neko.threading :refer [on-ui]]
             [neko.find-view :refer [find-view]]
             [neko.ui :refer [config make-ui]]
-            [neko.resource :as res]
             [neko.doc :as docc]
             [neko.-utils :refer [int-id]]
             [org.pipo.log :as log]
@@ -18,22 +17,18 @@
             [org.pipo.utils :as utils]
             [org.pipo.broadcastreceiver :as tick]
             [org.pipo.location :as location]
-            ; [org.pipo.week-fragment :as fragment]
+            [org.pipo.weekview :as weekview]
             [org.pipo.ui-utils :as ui-utils])
   (:import [android.view ViewGroup Gravity]
-           android.graphics.drawable.ColorDrawable
            android.graphics.Color
            android.text.InputType
            android.app.Activity
            android.content.Intent
-           android.view.animation.AnimationUtils
            java.lang.Long
            org.joda.time.DateTime
            org.pipo.week_fragment
            ; android.support.v4.app.FragmentManager
            android.support.v4.view.ViewPager))
-
-(res/import-all)
 
 (def ^:const TEXT_PUNCH_IN "punch in")
 (def ^:const TEXT_PUNCH_OUT "punch out")
@@ -43,213 +38,13 @@
 (def ^:const TEXT_SET_GPS "GPS")
 (def ^:const WEEK_DIALOG_ID 0)
 (def ^:const GPS_DIALOG_ID 1)
-(def ^:const EXTRA_DATE "org.pipo.EXTRA_DATE")
-(def ^:const HOUR_FORMATTERS {:dec utils/long-to-decimal :hm utils/long-to-hm})
-(def ^:const MAX_DOTS 3)
 (def tick-receiver (atom nil))
-
-(defn get-hour-formatter-kw []
-  (keyword (prefs/pref-get prefs/PREF_HOUR_FORMATTER)))
-
-(defn get-hour-formatter []
-  ((get-hour-formatter-kw) HOUR_FORMATTERS))
-
-(defn set-hour-formatter [fmt]
-  ;; pre is-string?
-  (if (not (nil? ((keyword fmt) HOUR_FORMATTERS)))
-    (prefs/pref-set prefs/PREF_HOUR_FORMATTER fmt)))
-
-; TODO: more generic toggle function, if more that two formatters
-(defn toggle-hour-formatter []
-  (if (= :dec (get-hour-formatter-kw))
-    (set-hour-formatter "hm")
-    (set-hour-formatter "dec")))
-
-(defn get-day-color [date]
-  (if (utils/date-equals? (l/local-now) date)
-    Color/GRAY
-    Color/DKGRAY))
 
 (defn get-week-color [year week]
   (let [current (utils/get-current-week)]
     (if (and (= (:year current) year) (= (:week current) week))
       Color/GRAY
       Color/DKGRAY)))
-
-(defn start-day-activity [^Activity ctx ^DateTime date]
-  (let [^Intent intent (Intent. ctx org.pipo.DayActivity)]
-    (.putExtra intent EXTRA_DATE ^Long (c/to-long date))
-    (.startActivity ctx intent)))
-
-(defn get-work-hours-for-date [^DateTime date]
-  (reduce
-    + (map db/get-work-hours
-           (db/get-work-by-date date))))
-
-(defn add-current-work [^DateTime date]
-  (if (utils/date-equals? (l/local-now) date)
-    (db/get-time-in-for-date (l/local-now))
-    0))
-
-(defn make-dot-drawable [ctx i work-count]
-  (let [plus (res/get-drawable ctx R$drawable/plus)
-        circle (res/get-drawable ctx R$drawable/circle)]
-    (if (<= i work-count)
-      (if (and (= i MAX_DOTS) (> work-count MAX_DOTS))
-        plus
-        circle)
-      (ColorDrawable. Color/TRANSPARENT))))
-
-(defn make-dot-id [i]
-  (keyword (str "dot-" i)) ;; TODO: with namespace, aka ::dot-1
-  ; (keyword (str *ns*) (str "dot-" 1))
-  )
-
-(defn make-dot [ctx local-date i work-count]
-  [:image-view (merge
-                 {
-                  :id (make-dot-id i)
-                  :padding-left [3 :dp]
-                  :padding-right [3 :dp]
-                  :layout-width [15 :dp] ;; 3dp + 9dp + 3dp
-                  :layout-height :fill
-                  :scale-type :center
-                  }
-                 {:image-drawable (make-dot-drawable ctx i work-count)})
-   ])
-
-(defn date-text [local-date]
-  (utils/date-to-str-day local-date)
-  )
-
-(defn time-text [local-date]
-  ((get-hour-formatter)
-   (+ (get-work-hours-for-date local-date)
-      (add-current-work local-date)))
-  )
-
-(defn make-day-layout [ctx local-date]
-  [:linear-layout {
-                   :id ::linear1
-                   :id-holder true
-                   :orientation :horizontal
-                   :layout-width :fill
-                   :layout-height [0 :dp]
-                   :layout-weight 1
-                   :padding [4 :px]
-                   :layout-margin [1 :dp]
-                   :on-click (fn [_] (start-day-activity ctx local-date))
-                   :background-color (get-day-color local-date)
-                   }
-   [:text-view {:text (date-text local-date)
-                :id ::date-tv
-                :gravity :center_vertical
-                :layout-width [0 :dp]
-                :layout-height :fill
-                :layout-weight 1
-                :padding-left [20 :px]
-                }]
-   [:linear-layout {
-                    :id ::linear2
-                    :orientation :horizontal
-                    :layout-width :wrap
-                    :layout-height :fill
-                    }
-    ;; TODO: can this be macroed?
-    (make-dot ctx local-date 1 (count (db/get-work-by-date local-date)))
-    (make-dot ctx local-date 2 (count (db/get-work-by-date local-date)))
-    (make-dot ctx local-date 3 (count (db/get-work-by-date local-date)))
-    ]
-   [:text-view {:id ::time-tv
-                :text (time-text local-date)
-                :padding-right [20 :px]
-                :padding-left [20 :px]
-                :gravity (bit-or Gravity/RIGHT Gravity/CENTER_VERTICAL)
-                :layout-width [0 :dp]
-                :layout-height :fill
-                :layout-weight 2
-                }]
-   ]
-  )
-
-(defn update-day-layout [ctx day-view local-date]
-  (on-ui
-    (config day-view
-            :on-click (fn [_] (start-day-activity ctx local-date))
-            :background-color (get-day-color local-date)
-            )
-    (config (find-view day-view ::date-tv)
-            :text (date-text local-date)
-            )
-    (config (find-view day-view ::time-tv)
-            :text (time-text local-date)
-            )
-    (doseq [i (range 1 (+ MAX_DOTS 1))]
-      (config (find-view day-view (make-dot-id i))
-              :image-drawable (make-dot-drawable ctx i (count (db/get-work-by-date local-date)))
-              )
-      )
-    )
-  )
-
-(defn update-animation [ctx day-view local-date]
-  (let [end-of-day (utils/day-end local-date)
-        work-count (count (db/get-work-by-date local-date))
-        current-time-in (db/get-time-in-for-date end-of-day)]
-    (log/d "update-animation, time since punch:" current-time-in)
-    (on-ui
-      (doseq [i (range 1 (+ MAX_DOTS 1))]
-        (log/d "update "(make-dot-id i))
-        (let [dot-view (find-view day-view (make-dot-id i))]
-          (if (> current-time-in 0) ;; Work ongoing
-            (do
-              (config dot-view :image-drawable (make-dot-drawable ctx i (+ work-count 1)))
-              (log/d "i: " i ", work-count: " work-count)
-              (if (or (= i (+ work-count 1)) (= i MAX_DOTS))
-                (let [animation (AnimationUtils/loadAnimation ctx R$anim/tween)]
-                  (log/d "start animation")
-                  (.startAnimation dot-view animation)
-                  )
-                )
-              )
-            (do
-              (log/d "stop animation")
-              (.clearAnimation dot-view)
-              )))))))
-
-(defn make-week-list [^android.content.Context ctx]
-  `[:linear-layout {:id ::inner-week
-                    :orientation :vertical
-                    :layout-width :match-parent
-                    :layout-height :match-parent
-                    }
-    ~@(map (fn [^DateTime date]
-             (let [local-date (utils/to-local-time-zone date)]
-               (make-day-layout ctx local-date)
-               ))
-           (let [year (prefs/pref-get prefs/PREF_YEAR)
-                 week (prefs/pref-get prefs/PREF_WEEK)]
-             (utils/week-from-week-number week year)))
-    ]
-  )
-
-(defn update-week-list [ctx]
-  (dorun
-    (map (fn [^DateTime date]
-           (let [local-date (utils/to-local-time-zone date)
-                 date-index (- (t/day-of-week date) 1)
-                 layout (.getChildAt (find-view ctx ::inner-week) date-index)
-                 ]
-             (update-day-layout ctx layout local-date)
-             (update-animation ctx layout local-date)
-             ))
-
-         (let [year (prefs/pref-get prefs/PREF_YEAR)
-               week (prefs/pref-get prefs/PREF_WEEK)]
-           (utils/week-from-week-number week year)))
-    )
-
-  )
 
 (defn update-week-nr-view [ctx new-state]
   (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
@@ -354,7 +149,7 @@
     (update-week-nr-view ctx state)
     (update-state-ui ctx state)
     (update-service-ui ctx state service)
-    (update-week-list ctx)))
+    (weekview/update-week-list ctx)))
 
 (defn create-watchers [ctx service]
   (add-watch (prefs/get-prefs) :year-week-watcher
@@ -442,14 +237,14 @@
               :layout-width :wrap
               :layout-height :wrap
               :text "fmt"
-              :on-click (fn [_] (toggle-hour-formatter))}]
+              :on-click (fn [_] (prefs/toggle-hour-formatter))}]
     ]
    [:linear-layout {:id ::week-layout
                     :orientation :vertical
                     :layout-width :match-parent
                     :layout-height [0 :dp]
                     :layout-weight 1}
-    (make-week-list ctx)  ;; These get recreated, so no other child views!
+    (weekview/make-week-list ctx)  ;; These get recreated, so no other child views!
     ]
    [:linear-layout {:id ::swipe
                     :id-holder true
@@ -627,7 +422,7 @@
 
 (defn make-tick-func [ctx]
   (fn []
-    (update-week-list ctx)
+    (weekview/update-week-list ctx)
     (log/d "main tick thread id " (Thread/currentThread))))
 
 (defactivity org.pipo.MyActivity

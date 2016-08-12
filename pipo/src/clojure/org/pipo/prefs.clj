@@ -1,12 +1,15 @@
 (ns org.pipo.prefs
   (:require [neko.data.shared-prefs :refer [defpreferences put]]
             [org.pipo.database :as db]
+            [org.pipo.utils :as utils]
             [org.pipo.log :as log]))
 
 (def ^:const STATE_IN "IN")
 (def ^:const STATE_OUT "OUT")
 (def ^:const SERVICE_RUNNING "RUNNING")
 (def ^:const SERVICE_STOPPED "STOPPED")
+(def ^:const HOUR_FORMATTERS {:dec utils/long-to-decimal :hm utils/long-to-hm})
+
 
 (defpreferences pipo-prefs "pipo_sp")
 
@@ -44,3 +47,20 @@
     (if (= type-latest db/IN)
       (pref-set PREF_STATE STATE_IN)
       (pref-set PREF_STATE STATE_OUT))))
+
+(defn get-hour-formatter-kw []
+  (keyword (pref-get PREF_HOUR_FORMATTER)))
+
+(defn get-hour-formatter []
+  ((get-hour-formatter-kw) HOUR_FORMATTERS))
+
+(defn set-hour-formatter [fmt]
+  ;; pre is-string?
+  (if (not (nil? ((keyword fmt) HOUR_FORMATTERS)))
+    (pref-set PREF_HOUR_FORMATTER fmt)))
+
+; TODO: more generic toggle function, if more that two formatters
+(defn toggle-hour-formatter []
+  (if (= :dec (get-hour-formatter-kw))
+    (set-hour-formatter "hm")
+    (set-hour-formatter "dec")))
