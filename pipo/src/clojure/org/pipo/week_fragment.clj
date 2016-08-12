@@ -102,42 +102,18 @@
 
 
 (defn fragment-onPageScrollStateChanged [this state]
-  (log/d "fragment-onPageScrollStateChanged")
   (let [ctx (getfield this :ctx)
-         year (prefs/pref-get prefs/PREF_YEAR)
-         week (prefs/pref-get prefs/PREF_WEEK)
-         prev-year (:year (utils/get-previous-week week year))
-         prev-week (:week (utils/get-previous-week week year))
-         next-year (:year (utils/get-next-week week year))
-         next-week (:week (utils/get-next-week week year))
         ]
   (if (= state ViewPager/SCROLL_STATE_IDLE)
     (do
+      (log/i "fragment-onPageScrollStateChanged IDLE")
 
       (let [global-pos (getfield this :global-pos)
             focused-page (getfield this :focused-page)]
-        (log/d "focused: " focused-page ", global: " global-pos)
-        (if (= focused-page 0) ;; Moved to previous week
-          (do
-          (prefs/pref-set prefs/PREF_YEAR prev-year)
-          (prefs/pref-set prefs/PREF_WEEK prev-week)
-          (setfield this :global-pos (dec global-pos)))
-          )
-        (if (= focused-page 2) ;; Moved to next week
-          (do
-          (prefs/pref-set prefs/PREF_YEAR next-year)
-          (prefs/pref-set prefs/PREF_WEEK next-week)
-          (setfield this :global-pos (inc global-pos)))
-          )
-        (log/d "new global: " (getfield this :global-pos))
-
-
 
       ; (log/d "viewPager child cound: " (.getChildCount (getfield this :vp)))
       ; (log/d "viewPager child: " (.getChildAt (getfield this :vp) focused-page))
       ; (log/d "viewPager child id: " (.getId (.getChildAt (getfield this :vp) focused-page)))
-
-
 
       ; for (int i = 0; i < viewPager.getChildCount(); i++)
       (doseq [i (range (.getChildCount (getfield this :vp)))]
@@ -190,7 +166,10 @@
         );let
 
     ;TODO shuffle the views
+    (log/i "setCurrentItem")
     (.setCurrentItem (getfield this :vp) 1 false))
+
+  (log/i "fragment-onPageScrollStateChanged __")
     )
   )
   )
@@ -200,7 +179,30 @@
   )
 
 (defn fragment-onPageSelected [this position]
-  (let [old (getfield this :focused-page)]
+  (let [focused-page (getfield this :focused-page)
+        global-pos (getfield this :global-pos)
+        year (prefs/pref-get prefs/PREF_YEAR)
+        week (prefs/pref-get prefs/PREF_WEEK)
+        prev-yw (utils/get-previous-week week year)
+        next-yw (utils/get-next-week week year)
+        ]
+
+    (log/d "focused: " focused-page ", global: " global-pos)
+    (if (= position 0) ;; Moved to previous week
+      (do
+        (prefs/pref-set prefs/PREF_YEAR (:year prev-yw))
+        (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
+        (setfield this :global-pos (dec global-pos)))
+      )
+    (if (= position 2) ;; Moved to next week
+      (do
+        (prefs/pref-set prefs/PREF_YEAR (:year next-yw))
+        (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
+        (setfield this :global-pos (inc global-pos)))
+      )
+    (log/d "new global: " (getfield this :global-pos))
+
+
     (setfield this :focused-page position)
-  (log/d "fragment-onPageSelected, " old " -> " position)
+  (log/i "fragment-onPageSelected, " focused-page " -> " position)
   ))
