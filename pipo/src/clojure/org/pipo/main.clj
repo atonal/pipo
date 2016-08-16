@@ -15,6 +15,7 @@
             [org.pipo.prefs :as prefs]
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
+            [org.pipo.week-fragment :as week-fragment]
             [org.pipo.broadcastreceiver :as tick]
             [org.pipo.location :as location]
             [org.pipo.weekview :as weekview]
@@ -26,7 +27,7 @@
            android.content.Intent
            java.lang.Long
            org.joda.time.DateTime
-           org.pipo.week_fragment
+           ; org.pipo.week_fragment
            ; android.support.v4.app.FragmentManager
            android.support.v4.view.ViewPager))
 
@@ -144,6 +145,14 @@
             :on-click
             (fn [_] (service-start ctx service))))))))
 
+(defn get-view-pager [ctx]
+  (.getChildAt (find-view ctx ::swipe) 0) ;; TODO: any way to replace getChildAt with find-view?
+  )
+
+(defn get-pager-adapter [ctx view-pager]
+  (org.pipo.week_fragment. ctx (.getFragmentManager ctx) view-pager)
+  )
+
 (defn update-uis [ctx service & pref-state]
   (let [state (or (first pref-state) @(prefs/get-prefs))]
     (update-week-nr-view ctx state)
@@ -168,10 +177,12 @@
   (prefs/update-state))
 
 
-(defn change-to-current-week []
+(defn change-to-current-week [ctx]
   (let [current (utils/get-current-week)]
     (prefs/pref-set prefs/PREF_YEAR (:year current))
-    (prefs/pref-set prefs/PREF_WEEK (:week current))))
+    (prefs/pref-set prefs/PREF_WEEK (:week current))
+    (week-fragment/update-state ctx (get-view-pager ctx))
+    ))
 
 (defn week-layout [^Activity ctx service]
   [:linear-layout {:orientation :vertical
@@ -215,7 +226,7 @@
                    :background-color (get-week-color
                                        (prefs/pref-get prefs/PREF_YEAR)
                                        (prefs/pref-get prefs/PREF_WEEK))
-                   :on-click (fn [_] (change-to-current-week))
+                   :on-click (fn [_] (change-to-current-week ctx))
                    :on-long-click (fn [_] (do
                                             (on-ui
                                               (.showDialog ctx WEEK_DIALOG_ID))
@@ -390,14 +401,16 @@
       false)
     :else true))
 
-(defn make-week-dialog-callback [dialog-layout]
+(defn make-week-dialog-callback [ctx dialog-layout]
   (fn [dialog res]
     (let [year (read-string (ui-utils/get-text dialog-layout ::year-et))
           week (read-string (ui-utils/get-text dialog-layout ::week-et))]
       (if (week-input-valid? year week)
         (do
           (prefs/pref-set prefs/PREF_YEAR year)
-          (prefs/pref-set prefs/PREF_WEEK week))))))
+          (prefs/pref-set prefs/PREF_WEEK week)
+          (week-fragment/update-state ctx (get-view-pager ctx))
+          )))))
 
 (defn create-week-dialog [ctx]
   (let [^android.view.ViewGroup dialog-layout (make-week-dialog-layout ctx)]
@@ -406,7 +419,7 @@
           {:message "Week to display"
            :cancelable true
            :positive-text "Display"
-           :positive-callback (make-week-dialog-callback dialog-layout)
+           :positive-callback (make-week-dialog-callback ctx dialog-layout)
            :negative-text "Cancel"
            :negative-callback (fn [_ _] ())})
         (.setView dialog-layout)
@@ -435,6 +448,7 @@
 (defn make-tick-func [ctx]
   (fn []
     ; (weekview/update-week-list ctx)
+    (week-fragment/update-state ctx (get-view-pager ctx))
     (log/d "main tick thread id " (Thread/currentThread))))
 
 (defactivity org.pipo.MyActivity
@@ -452,13 +466,13 @@
       (prefs/update-state)
 
       (let [
-            mPager (.getChildAt (find-view (*a) ::swipe) 0)
-            mAdapter (org.pipo.week_fragment. this (.getFragmentManager (*a)) mPager)
-                                   ]
+            view-pager (get-view-pager this)
+            pager-adapter (get-pager-adapter this view-pager)
+            ]
 
-        (.setAdapter mPager mAdapter)
-        (.setOnPageChangeListener mPager mAdapter)
-        (.setCurrentItem mPager 1 false)
+        (.setAdapter view-pager pager-adapter)
+        (.setOnPageChangeListener view-pager pager-adapter)
+        (.setCurrentItem view-pager 1 false)
         )
 
 
