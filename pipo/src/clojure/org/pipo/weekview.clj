@@ -8,6 +8,7 @@
     [org.pipo.prefs :as prefs]
     [org.pipo.database :as db]
     [org.pipo.log :as log]
+    [org.pipo.day :as day]
     [clj-time.local :as l]
     [clj-time.core :as t]
     [clj-time.coerce :as c]
