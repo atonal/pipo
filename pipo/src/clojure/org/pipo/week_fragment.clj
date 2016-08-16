@@ -2,13 +2,18 @@
   (:require [neko.activity :refer [simple-fragment]]
             [neko.debug :refer [*a]]
             [neko.ui :refer [config]]
+            [neko.notify :refer [toast]]
+            [neko.threading :refer [on-ui]]
             [neko.find-view :refer [find-view]]
             [org.pipo.log :as log]
             [org.pipo.weekview :as weekview]
             [org.pipo.prefs :as prefs]
             [org.pipo.utils :as utils]
+            [org.pipo.ui-utils :as ui-utils]
             )
-  (:import android.support.v4.view.ViewPager)
+  (:import android.support.v4.view.ViewPager
+           android.graphics.Color
+           )
   (:gen-class
     :prefix "fragment-"
     :extends android.support.v13.app.FragmentStatePagerAdapter
@@ -158,10 +163,35 @@
   (let [ctx (getfield this :ctx)
         view-pager (getfield this :vp)
         ]
-  (if (= state ViewPager/SCROLL_STATE_IDLE)
-    (update-state ctx view-pager)
+    (if (= state ViewPager/SCROLL_STATE_IDLE)
+      (let [focused-page (getfield this :focused-page)
+            year (prefs/pref-get prefs/PREF_YEAR)
+            week (prefs/pref-get prefs/PREF_WEEK)
+            prev-yw (utils/get-previous-week week year)
+            next-yw (utils/get-next-week week year)
+            ]
 
-  (log/i "fragment-onPageScrollStateChanged __")
+        (log/d "focused: " focused-page)
+        (if (= focused-page 0) ;; Moved to previous week
+          (do
+            (log/i "state changed, week " week " -> " (:week prev-yw))
+            (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
+            (prefs/pref-set prefs/PREF_YEAR (:year prev-yw))
+            )
+          )
+        (if (= focused-page 2) ;; Moved to next week
+          (do
+            (log/i "state changed, week " week " -> " (:week next-yw))
+            (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
+            (prefs/pref-set prefs/PREF_YEAR (:year next-yw))
+            )
+          )
+        )
+
+
+      ; (update-state ctx view-pager)
+
+    (log/i "fragment-onPageScrollStateChanged __")
     )
   )
   )
@@ -170,25 +200,37 @@
   ; (log/d "fragment-onPageScrolled")
   )
 
+(defn get-week-color [year week]
+  (let [current (utils/get-current-week)]
+    (if (and (= (:year current) year) (= (:week current) week))
+      Color/GRAY
+      Color/DKGRAY)))
+
+(defn update-week-nr-view [ctx year week]
+  (log/i "update-week-nr-view" year " " week)
+    (ui-utils/set-text ctx :org.pipo.main/year-tv (str year " / " week))
+    (on-ui
+      (config (find-view ctx :org.pipo.main/year-tv)
+              :background-color
+              (get-week-color year week))))
+
 (defn fragment-onPageSelected [this position]
   (let [focused-page (getfield this :focused-page)
         year (prefs/pref-get prefs/PREF_YEAR)
         week (prefs/pref-get prefs/PREF_WEEK)
         prev-yw (utils/get-previous-week week year)
         next-yw (utils/get-next-week week year)
+        ctx (getfield this :ctx)
         ]
 
-    (log/d "focused: " focused-page)
     (if (= position 0) ;; Moved to previous week
       (do
-        (prefs/pref-set prefs/PREF_YEAR (:year prev-yw))
-        (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
+        (update-week-nr-view ctx (:year prev-yw) (:week prev-yw))
         )
       )
     (if (= position 2) ;; Moved to next week
       (do
-        (prefs/pref-set prefs/PREF_YEAR (:year next-yw))
-        (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
+        (update-week-nr-view ctx (:year next-yw) (:week next-yw))
         )
       )
 

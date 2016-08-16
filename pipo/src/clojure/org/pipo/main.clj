@@ -48,6 +48,7 @@
       Color/DKGRAY)))
 
 (defn update-week-nr-view [ctx new-state]
+  (log/i "original update-week-nr-view")
   (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
         new-week (prefs/pref-get prefs/PREF_WEEK new-state)]
     (ui-utils/set-text ctx ::year-tv (str new-year " / " new-week))
@@ -55,6 +56,21 @@
       (config (find-view ctx ::year-tv)
               :background-color
               (get-week-color new-year new-week)))))
+
+(defn get-week-color2 [year week]
+  (let [current (utils/get-current-week)]
+    (if (and (= (:year current) year) (= (:week current) week))
+      Color/GRAY
+      Color/DKGRAY)))
+
+(defn update-week-nr-view2 [ctx year week]
+  (log/i "update-week-nr-view2" year " " week)
+    (ui-utils/set-text ctx ::year-tv (str year " / " week))
+    (on-ui
+      (config (find-view ctx ::year-tv)
+              :background-color
+              (get-week-color year week))))
+
 
 (defn punch-in []
   (if (db/punch-in-manual (l/local-now))
@@ -155,16 +171,18 @@
 
 (defn update-uis [ctx service & pref-state]
   (let [state (or (first pref-state) @(prefs/get-prefs))]
+    (log/i "update-uis")
     (update-week-nr-view ctx state)
     (update-state-ui ctx state)
     (update-service-ui ctx state service)
     ; (weekview/update-week-list ctx)
+    (week-fragment/update-state ctx (get-view-pager ctx))
     ))
 
 (defn create-watchers [ctx service]
   (add-watch (prefs/get-prefs) :year-week-watcher
              (fn [key atom old-state new-state]
-               (log/d "pref updated:" new-state)
+               (log/i "pref updated:" new-state)
                (update-uis ctx service new-state)))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
@@ -179,9 +197,11 @@
 
 (defn change-to-current-week [ctx]
   (let [current (utils/get-current-week)]
+    ; (week-fragment/update-week-nr-view ctx (:year current) (:week current))
+    (update-week-nr-view2 ctx (:year current) (:week current))
+      ; (on-ui (toast (str "update week to" (:week current)) :short))
     (prefs/pref-set prefs/PREF_YEAR (:year current))
     (prefs/pref-set prefs/PREF_WEEK (:week current))
-    (week-fragment/update-state ctx (get-view-pager ctx))
     ))
 
 (defn week-layout [^Activity ctx service]
@@ -409,7 +429,7 @@
         (do
           (prefs/pref-set prefs/PREF_YEAR year)
           (prefs/pref-set prefs/PREF_WEEK week)
-          (week-fragment/update-state ctx (get-view-pager ctx))
+          ; (week-fragment/update-state ctx (get-view-pager ctx))
           )))))
 
 (defn create-week-dialog [ctx]

@@ -33,6 +33,7 @@
   (swap! pref-atom assoc (:key pref-name) new-val))
 
 (defn pref-set [pref-name new-val]
+  (log/i "set pref to: " new-val)
   (pref-set-named pipo-prefs pref-name new-val))
 
 (defn pref-get [pref-name & pref-state]
