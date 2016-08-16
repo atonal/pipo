@@ -93,14 +93,10 @@
 
 (defn- set-page-content [ctx view year week]
   (if (nil? view)
-    (log/d "set-page-content view == nil")
     (do
-      (log/d  "set-page-content view: " view)
       (config (find-view view ::fragment-text)
               :text (str "fragment " (.getId view)))
       (weekview/update-week-list ctx view year week)
-    ;     TextView tv = (TextView) viewLayout.findViewById(R.id.calendar_text);
-    ;     tv.setText(String.format("Text Text Text global %d", globalPosition));
     )
     )
   )
