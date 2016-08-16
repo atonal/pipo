@@ -49,7 +49,25 @@
 
                 :ignore-log-priority [:debug :verbose]
                 :aot :all
-                :build-type :release}}]}
+                :build-type :release}}]
+
+             :lean
+             [:release
+              {:dependencies ^:replace [[org.skummet/clojure "1.7.0-r2"]
+                                        [neko/neko "4.0.0-alpha5"]
+                                        [net.danlew/android.joda "2.9.2" :extension "aar"]
+                                        [clj-time "0.11.0"]
+                                        [org.clojure/java.jdbc "0.4.2"]
+                                        ]
+               :exclusions [[org.clojure/clojure]
+                            [org.clojure-android/clojure]]
+               :jvm-opts ["-Dclojure.compile.ignore-lean-classes=true"]
+               :global-vars ^:replace {clojure.core/*warn-on-reflection* true}
+               :android {:lean-compile true
+                         ; :proguard-execute true
+                         ; :proguard-conf-path "build/proguard-minify.cfg"
+                         }}]
+             }
 
   :android {;; Specify the path to the Android SDK directory.
             ;; :sdk-path "/home/user/path/to/android-sdk/"
