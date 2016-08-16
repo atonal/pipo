@@ -25,22 +25,23 @@
 (defpref PREF_DEST_LONG :long 0)
 (defpref PREF_HOUR_FORMATTER :fmt "hm")
 
-(defn get-prefs []
-  (log/d "get-prefs" pipo-prefs)
-  pipo-prefs)
-
-(defn pref-set-named [pref-atom pref-name new-val]
-  (swap! pref-atom assoc (:key pref-name) new-val))
-
-(defn pref-set [pref-name new-val]
-  (log/i "set pref to: " new-val)
-  (pref-set-named pipo-prefs pref-name new-val))
-
 (defn pref-get [pref-name & pref-state]
   (let [pref (or (first pref-state) @pipo-prefs)]
     (or
       ((:key pref-name) pref)
       (:default pref-name))))
+
+(defn get-prefs []
+  (log/d "get-prefs" pipo-prefs)
+  pipo-prefs)
+
+(defn pref-set-named [pref-atom pref-name new-val]
+  (if (not (= new-val (pref-get pref-name)))
+    (swap! pref-atom assoc (:key pref-name) new-val)))
+
+(defn pref-set [pref-name new-val]
+  (log/i "set pref to: " new-val)
+  (pref-set-named pipo-prefs pref-name new-val))
 
 (defn update-state []
   (let [type-latest (db/get-type (db/get-latest-punch))]
