@@ -60,6 +60,8 @@
                                         [net.danlew/android.joda "2.9.2" :extension "aar"]
                                         [clj-time "0.11.0"]
                                         [org.clojure/java.jdbc "0.4.2"]
+                                        [com.android.support/support-v4 "23.1.1" :extension "aar"]
+                                        [com.android.support/support-v13 "23.1.1" :extension "aar"]
                                         ]
                :exclusions [[org.clojure/clojure]
                             [org.clojure-android/clojure]]
