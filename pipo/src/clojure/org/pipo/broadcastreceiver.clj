@@ -14,12 +14,12 @@
 (defn register-receiver [^android.content.Context ctx func handler]
   (let [intent-filter (android.content.IntentFilter.)
         receiver (org.pipo.broadcastreceiver. func)]
-    (-> intent-filter (.addAction android.content.Intent/ACTION_TIME_TICK))
-    (-> ctx (.registerReceiver receiver intent-filter nil handler))
+    (.addAction intent-filter android.content.Intent/ACTION_TIME_TICK)
+    (.registerReceiver ctx receiver intent-filter nil handler)
     receiver))
 
 (defn unregister-receiver [^android.content.Context ctx receiver]
-  (-> ctx (.unregisterReceiver receiver)))
+  (.unregisterReceiver ctx receiver))
 
 (defn- setfield
   [^org.pipo.broadcastreceiver this key value]
@@ -34,6 +34,6 @@
 
 (defn tick-onReceive [this ctx intent]
   (let [func (getfield this :func-to-run)]
-    (if (not (nil? func))
+    (if-not (nil? func)
       (func)
       (on-ui (toast "func was nil" :short)))))
