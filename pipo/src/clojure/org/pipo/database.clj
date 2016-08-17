@@ -88,7 +88,7 @@
 
 (defn- punch-in [date-time method]
   (let [id (add-punch IN method date-time)]
-    (if (< id 0)
+    (if (neg? id)
       (log/e "punch-in failed"))
     (>= id 0)))
 
@@ -213,7 +213,7 @@
     (if (= (get-type latest-punch) IN)
       (let [diff (- (c/to-long date)
                     (get-time latest-punch))]
-        (if (< diff 0)
+        (if (neg? diff)
           0
           diff
           ))
@@ -277,7 +277,7 @@
 
 (defn punch-out [date-time method]
   (let [out-id (add-punch OUT method date-time)]
-    (if (< out-id 0)
+    (if (neg? out-id)
       (log/e "punch-out failed")
       (update-days-work date-time))
     (>= out-id 0)))
