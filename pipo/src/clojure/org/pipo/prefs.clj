@@ -36,7 +36,7 @@
   pipo-prefs)
 
 (defn pref-set-named [pref-atom pref-name new-val]
-  (if (not (= new-val (pref-get pref-name)))
+  (if (not= new-val (pref-get pref-name))
     (swap! pref-atom assoc (:key pref-name) new-val)))
 
 (defn pref-set [pref-name new-val]
