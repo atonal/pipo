@@ -47,30 +47,17 @@
       Color/GRAY
       Color/DKGRAY)))
 
-(defn update-week-nr-view [ctx new-state]
-  (log/i "original update-week-nr-view")
-  (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
-        new-week (prefs/pref-get prefs/PREF_WEEK new-state)]
-    (ui-utils/set-text ctx ::year-tv (str new-year " / " new-week))
-    (on-ui
-      (config (find-view ctx ::year-tv)
-              :background-color
-              (get-week-color new-year new-week)))))
-
-(defn get-week-color2 [year week]
-  (let [current (utils/get-current-week)]
-    (if (and (= (:year current) year) (= (:week current) week))
-      Color/GRAY
-      Color/DKGRAY)))
-
-(defn update-week-nr-view2 [ctx year week]
-  (log/i "update-week-nr-view2" year " " week)
-    (ui-utils/set-text ctx ::year-tv (str year " / " week))
-    (on-ui
-      (config (find-view ctx ::year-tv)
-              :background-color
-              (get-week-color year week))))
-
+(defn update-week-nr-view
+  ([ctx year week]
+   (ui-utils/set-text ctx ::year-tv (str year " / " week))
+   (on-ui
+     (config (find-view ctx ::year-tv)
+             :background-color
+             (get-week-color year week))))
+  ([ctx new-state]
+   (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
+         new-week (prefs/pref-get prefs/PREF_WEEK new-state)]
+     (update-week-nr-view ctx new-year new-week))))
 
 (defn punch-in []
   (if (db/punch-in-manual (l/local-now))
@@ -198,7 +185,7 @@
 (defn change-to-current-week [ctx]
   (let [current (utils/get-current-week)]
     ; (week-fragment/update-week-nr-view ctx (:year current) (:week current))
-    (update-week-nr-view2 ctx (:year current) (:week current))
+    (update-week-nr-view ctx (:year current) (:week current))
       ; (on-ui (toast (str "update week to" (:week current)) :short))
     (prefs/pref-set prefs/PREF_YEAR (:year current))
     (prefs/pref-set prefs/PREF_WEEK (:week current))
