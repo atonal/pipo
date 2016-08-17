@@ -37,20 +37,20 @@
   true)
 
 (defn every-five-minutes? [^org.joda.time.LocalTime local-time]
-  (= 0 (mod (t/minute local-time) 5)))
+  (zero? (mod (t/minute local-time) 5)))
 
 (defn every-fifteen-minutes? [^org.joda.time.LocalTime local-time]
-  (= 0 (mod (t/minute local-time) 15)))
+  (zero? (mod (t/minute local-time) 15)))
 
 (defn every-half-hour? [^org.joda.time.LocalTime local-time]
-  (= 0 (mod (t/minute local-time) 30)))
+  (zero? (mod (t/minute local-time) 30)))
 
 (defn every-hour? [^org.joda.time.LocalTime local-time]
-  (= 0 (t/minute local-time)))
+  (zero? (t/minute local-time)))
 
 (defn every-second-hour? [^org.joda.time.LocalTime local-time]
-  (and (= 0 (mod (t/hour local-time) 2))
-       (= 0 (t/minute local-time))))
+  (and (zero? (mod (t/hour local-time) 2))
+       (zero? (t/minute local-time))))
 
 (def intervals
   ;; TODO: Define in "HH:mm" format?
@@ -103,17 +103,17 @@
     (cond (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_OUT)
                (< distance RADIUS_M)
                (history-threshold? @history))
-          (if (db/punch-in-gps (l/local-now))
-            (do
-              (on-ui (toast "GPS punch in" :short))
-              (prefs/update-state)))
+          (when (db/punch-in-gps (l/local-now))
+            (on-ui (toast "GPS punch in" :short))
+            (prefs/update-state))
+
           (and (= (prefs/pref-get prefs/PREF_STATE) prefs/STATE_IN)
                (> distance (+ RADIUS_M THRESHOLD_M))
                (history-threshold? @history))
-          (if (db/punch-out-gps (l/local-now))
-            (do
-              (on-ui (toast "GPS punch out" :short))
-              (prefs/update-state)))
+          (when (db/punch-out-gps (l/local-now))
+            (on-ui (toast "GPS punch out" :short))
+            (prefs/update-state))
+
           :else
           (log/w
             (str "no GPS punch, state: "
@@ -172,7 +172,7 @@
                                      :content-text "Location service running"
                                      :action [:activity "org.pipo.MAIN"]})]
     ; Set the notification persistent
-    (set! (. mynotification flags) android.app.Notification/FLAG_ONGOING_EVENT)
+    (set! (.flags mynotification) android.app.Notification/FLAG_ONGOING_EVENT)
     (fire :notification-key mynotification)))
 
 (defn service-init []
