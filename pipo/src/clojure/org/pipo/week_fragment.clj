@@ -62,17 +62,18 @@
        ]
 
     (log/d "getItem called")
-    (simple-fragment
-      (getfield this :ctx)
-      [:linear-layout {:orientation :vertical
-                       :id-holder true
-                       :id i}
-       [:text-view {:id ::fragment-text
-                    :text (str "fragment " i)}]
-       (weekview/make-week-list (getfield this :ctx) year week)  ;; These get recreated, so no other child views!
-       ])
-    )
-    )
+    (let [fragment
+          (simple-fragment
+            (getfield this :ctx)
+            [:linear-layout {:orientation :vertical
+                             :id-holder true
+                             :id i}
+             [:text-view {:id ::fragment-text
+                          :text (str "fragment " i)}]
+             (weekview/make-week-list (getfield this :ctx) year week)  ;; These get recreated, so no other child views!
+             ])]
+      (.setRetainInstance fragment true)
+      fragment)))
     ; }
 
     ; @Override
