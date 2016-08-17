@@ -51,7 +51,8 @@
         year-week (case i
                     0 (utils/get-previous-week current-week current-year)
                     1 {:week current-week :year current-year}
-                    2 (utils/get-next-week current-week current-year))
+                    2 (utils/get-next-week current-week current-year)
+                    nil)
         week (:week year-week)
         year (:year year-week)]
 
@@ -113,7 +114,7 @@
                 view
                 (:year (utils/get-next-week cur-week cur-year))
                 (:week (utils/get-next-week cur-week cur-year)))
-            )
+            nil)
           )
         )
 
@@ -144,7 +145,9 @@
               ;; Moved to next week
               (log/i "state changed, week " week " -> " (:week next-yw))
               (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
-              (prefs/pref-set prefs/PREF_YEAR (:year next-yw)))))
+              (prefs/pref-set prefs/PREF_YEAR (:year next-yw)))
+          nil)
+        )
 
       ; (update-state ctx view-pager)
 
@@ -177,7 +180,8 @@
           ctx
           :org.pipo.main/year-tv
           (:year next-yw)
-          (:week next-yw)))
+          (:week next-yw))
+      nil)
 
     (setfield this :focused-page position)
   (log/i "fragment-onPageSelected, " focused-page " -> " position)
