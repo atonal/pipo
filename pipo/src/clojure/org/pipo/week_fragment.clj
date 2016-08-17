@@ -26,9 +26,6 @@
                    [android.app.FragmentManager]}
     ))
 
-(defn- int-to-year-week [i]
-  )
-
 ;; little functions to safely set the fields.
 (defn- setfield
   [^org.pipo.week_fragment this key value]
