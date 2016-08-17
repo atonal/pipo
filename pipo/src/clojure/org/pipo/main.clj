@@ -214,17 +214,11 @@
                     :orientation :horizontal
                     :layout-width :match-parent
                     :layout-height :wrap}
-    [:button {:id ::prev-bt
+    [:button {:id ::gps-bt
               :layout-width :wrap
               :layout-height :wrap
-              :text "prev"
-              :on-click (fn [_] (let [year (prefs/pref-get prefs/PREF_YEAR)
-                                      week (prefs/pref-get prefs/PREF_WEEK)
-                                      previous-week (utils/get-previous-week
-                                                      week
-                                                      year)]
-                                  (prefs/pref-set prefs/PREF_YEAR (:year previous-week))
-                                  (prefs/pref-set prefs/PREF_WEEK (:week previous-week))))}]
+              :text TEXT_SET_GPS
+              :on-click (fn [_] (on-ui (.showDialog ctx GPS_DIALOG_ID)))}]
     [:linear-layout {:id ::middle-layout
                      :orientation :horizontal
                      :layout-width [0 :dp]
@@ -254,17 +248,6 @@
                    :text (str (prefs/pref-get prefs/PREF_YEAR) " / " (prefs/pref-get prefs/PREF_WEEK))}]
       ]
      ]
-    [:button {:id ::next-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text "next"
-              :on-click (fn [_] (let [year (prefs/pref-get prefs/PREF_YEAR)
-                                      week (prefs/pref-get prefs/PREF_WEEK)
-                                      next-week (utils/get-next-week
-                                                  week
-                                                  year)]
-                                  (prefs/pref-set prefs/PREF_YEAR (:year next-week))
-                                  (prefs/pref-set prefs/PREF_WEEK (:week next-week))))}]
     [:button {:id ::toggle-fmt-bt
               :layout-width :wrap
               :layout-height :wrap
@@ -318,17 +301,20 @@
                     :layout-width :match-parent
                     :layout-height :wrap}
     [:button {:id ::punch-in-bt
-              :layout-width :wrap
+              :layout-width [0 :dp]
+              :layout-weight 1
               :layout-height :wrap
               :text TEXT_PUNCH_IN
               :on-click (fn [_] (punch-in))}]
     [:button {:id ::punch-out-bt
-              :layout-width :wrap
+              :layout-width [0 :dp]
+              :layout-weight 1
               :layout-height :wrap
               :text TEXT_PUNCH_OUT
               :on-click (fn [_] (punch-out))}]
     [:button {:id ::service-bt
-              :layout-width :wrap
+              :layout-width [0 :dp]
+              :layout-weight 1
               :layout-height :wrap
               :text TEXT_SERVICE_START
               :on-click (fn [_] (service-start ctx service))}]
@@ -337,11 +323,6 @@
     ;           :layout-height :wrap
     ;           :text TEXT_WIPE
     ;           :on-click (fn [_] (wipe-db))}]
-    [:button {:id ::wipe-bt
-              :layout-width :wrap
-              :layout-height :wrap
-              :text TEXT_SET_GPS
-              :on-click (fn [_] (on-ui (.showDialog ctx GPS_DIALOG_ID)))}]
     ]
 ]
 )
