@@ -76,9 +76,8 @@
       looper-thread)))
 
 (defn stop-location-updates []
-  (if (location-updates-running)
-    (do
-      (.removeUpdates
-        ^android.location.LocationManager (get-location-state :manager)
-        ^android.location.LocationListener (get-location-state :listener))
-      (reset-location-listener))))
+  (when (location-updates-running)
+    (.removeUpdates
+      ^android.location.LocationManager (get-location-state :manager)
+      ^android.location.LocationListener (get-location-state :listener))
+    (reset-location-listener)))
