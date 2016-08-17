@@ -355,12 +355,11 @@
   (fn [dialog res]
     (let [year (read-string (ui-utils/get-text dialog-layout ::year-et))
           week (read-string (ui-utils/get-text dialog-layout ::week-et))]
-      (if (week-input-valid? year week)
-        (do
-          (prefs/pref-set prefs/PREF_YEAR year)
-          (prefs/pref-set prefs/PREF_WEEK week)
-          ; (week-fragment/update-state ctx (get-view-pager ctx))
-          )))))
+      (when (week-input-valid? year week)
+        (prefs/pref-set prefs/PREF_YEAR year)
+        (prefs/pref-set prefs/PREF_WEEK week)
+        ; (week-fragment/update-state ctx (get-view-pager ctx))
+        ))))
 
 (defn create-week-dialog [ctx]
   (let [^android.view.ViewGroup dialog-layout (make-week-dialog-layout ctx)]
