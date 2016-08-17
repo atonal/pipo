@@ -254,37 +254,17 @@
               :text "fmt"
               :on-click (fn [_] (prefs/toggle-hour-formatter))}]
     ]
-   ; [:linear-layout {:id ::week-layout
-   ;                  :orientation :vertical
-   ;                  :layout-width :match-parent
-   ;                  :layout-height [0 :dp]
-   ;                  :layout-weight 1}
-   ;  (weekview/make-week-list ctx)  ;; These get recreated, so no other child views!
-   ;  ]
    [:linear-layout {:id ::swipe
                     :id-holder true
                     :orientation :horizontal
                     :layout-width :match-parent
                     :layout-height [0 :dp]
                     :layout-weight 1}
-    (let [pager (ViewPager. ctx)]
-      (.setId pager (int-id ::pager))
-      ; (.setId pager 666)
-      ; android:layout_width="match_parent"
-      ; android:layout_height="match_parent"
-      pager
+    (let [view-pager (ViewPager. ctx)]
+      (.setId view-pager (int-id ::pager))
+      view-pager
       )
     ]
-
-   ; (.put (.getTag (find-view (*a) ::swipe))
-   ;       ::pager
-   ;       (.getChildAt (find-view (*a) ::swipe) 0))
-
-; (.getTag (find-view (*a) ::swipe))
-; (.getId (.getChildAt (find-view (*a) ::swipe) 0))
-; (find-view (*a) ::pager)
-; (find-view (find-view (*a) ::swipe) ::pager)
-
    [:linear-layout {:id ::location-layout
                     :layout-width :wrap
                     :layout-height :wrap
