@@ -48,16 +48,16 @@
       Color/DKGRAY)))
 
 (defn update-week-nr-view
-  ([ctx year week]
-   (ui-utils/set-text ctx ::year-tv (str year " / " week))
+  ([ctx view-id year week]
+   (ui-utils/set-text ctx view-id (str year " / " week))
    (on-ui
-     (config (find-view ctx ::year-tv)
+     (config (find-view ctx view-id)
              :background-color
              (get-week-color year week))))
-  ([ctx new-state]
+  ([ctx view-id new-state]
    (let [new-year (prefs/pref-get prefs/PREF_YEAR new-state)
          new-week (prefs/pref-get prefs/PREF_WEEK new-state)]
-     (update-week-nr-view ctx new-year new-week))))
+     (update-week-nr-view ctx view-id new-year new-week))))
 
 (defn punch-in []
   (if (db/punch-in-manual (l/local-now))
@@ -159,7 +159,7 @@
 (defn update-uis [ctx service & pref-state]
   (let [state (or (first pref-state) @(prefs/get-prefs))]
     (log/i "update-uis")
-    (update-week-nr-view ctx state)
+    (update-week-nr-view ctx ::year-tv state)
     (update-state-ui ctx state)
     (update-service-ui ctx state service)
     ; (weekview/update-week-list ctx)
@@ -185,7 +185,7 @@
 (defn change-to-current-week [ctx]
   (let [current (utils/get-current-week)]
     ; (week-fragment/update-week-nr-view ctx (:year current) (:week current))
-    (update-week-nr-view ctx (:year current) (:week current))
+    (update-week-nr-view ctx ::year-tv (:year current) (:week current))
       ; (on-ui (toast (str "update week to" (:week current)) :short))
     (prefs/pref-set prefs/PREF_YEAR (:year current))
     (prefs/pref-set prefs/PREF_WEEK (:week current))
