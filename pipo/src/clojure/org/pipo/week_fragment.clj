@@ -46,18 +46,14 @@
                })])
 
 (defn fragment-getItem [this i]
-    (let
-      [yw (cond (= i 0) (utils/get-previous-week
-                          (prefs/pref-get prefs/PREF_WEEK)
-                          (prefs/pref-get prefs/PREF_YEAR))
-                (= i 1) {:week (prefs/pref-get prefs/PREF_WEEK)
-                         :year (prefs/pref-get prefs/PREF_YEAR)}
-                (= i 2) (utils/get-next-week
-                          (prefs/pref-get prefs/PREF_WEEK)
-                          (prefs/pref-get prefs/PREF_YEAR)))
-       week (:week yw)
-       year (:year yw)
-       ]
+  (let [current-year (prefs/pref-get prefs/PREF_YEAR)
+        current-week (prefs/pref-get prefs/PREF_WEEK)
+        year-week (case i
+                    0 (utils/get-previous-week current-week current-year)
+                    1 {:week current-week :year current-year}
+                    2 (utils/get-next-week current-week current-year))
+        week (:week year-week)
+        year (:year year-week)]
 
     (log/d "getItem called")
     (let [fragment
@@ -101,25 +97,22 @@
           (if (nil? view) (log/d "view is nil")) ;; TODO: if nil, skip rest
           (if (nil? id) (log/d "id is nil")) ;; TODO: if nil, skip rest
 
-          (cond
-            (= id 0) (set-page-content
-                       ctx
-                       view
-                       (:year (utils/get-previous-week cur-week cur-year))
-                       (:week (utils/get-previous-week cur-week cur-year))
-                       )
-            (= id 1) (set-page-content
-                       ctx
-                       view
-                       cur-year
-                       cur-week
-                       )
-            (= id 2) (set-page-content
-                       ctx
-                       view
-                       (:year (utils/get-next-week cur-week cur-year))
-                       (:week (utils/get-next-week cur-week cur-year))
-                       )
+          (case id
+            0 (set-page-content
+                ctx
+                view
+                (:year (utils/get-previous-week cur-week cur-year))
+                (:week (utils/get-previous-week cur-week cur-year)))
+            1 (set-page-content
+                ctx
+                view
+                cur-year
+                cur-week)
+            2 (set-page-content
+                ctx
+                view
+                (:year (utils/get-next-week cur-week cur-year))
+                (:week (utils/get-next-week cur-week cur-year)))
             )
           )
         )
@@ -141,21 +134,17 @@
             ]
 
         (log/d "focused: " focused-page)
-        (if (= focused-page 0) ;; Moved to previous week
-          (do
-            (log/i "state changed, week " week " -> " (:week prev-yw))
-            (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
-            (prefs/pref-set prefs/PREF_YEAR (:year prev-yw))
-            )
-          )
-        (if (= focused-page 2) ;; Moved to next week
-          (do
-            (log/i "state changed, week " week " -> " (:week next-yw))
-            (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
-            (prefs/pref-set prefs/PREF_YEAR (:year next-yw))
-            )
-          )
-        )
+        (case focused-page
+          ;; Moved to previous week
+          0 (do
+              (log/i "state changed, week " week " -> " (:week prev-yw))
+              (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
+              (prefs/pref-set prefs/PREF_YEAR (:year prev-yw)))
+          2 (do
+              ;; Moved to next week
+              (log/i "state changed, week " week " -> " (:week next-yw))
+              (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
+              (prefs/pref-set prefs/PREF_YEAR (:year next-yw)))))
 
       ; (update-state ctx view-pager)
 
@@ -176,25 +165,19 @@
         ctx (getfield this :ctx)
         ]
 
-    (if (= position 0) ;; Moved to previous week
-      (do
-        (ui-utils/update-week-nr-view
+    (case position
+      ;; Moved to previous week
+      0 (ui-utils/update-week-nr-view
           ctx
           :org.pipo.main/year-tv
           (:year prev-yw)
           (:week prev-yw))
-        )
-      )
-    (if (= position 2) ;; Moved to next week
-      (do
-        (ui-utils/update-week-nr-view
+      ;; Moved to next week
+      2 (ui-utils/update-week-nr-view
           ctx
           :org.pipo.main/year-tv
           (:year next-yw)
-          (:week next-yw))
-        )
-      )
-
+          (:week next-yw)))
 
     (setfield this :focused-page position)
   (log/i "fragment-onPageSelected, " focused-page " -> " position)
