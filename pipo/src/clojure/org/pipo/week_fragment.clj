@@ -167,20 +167,6 @@
 (defn fragment-onPageScrolled [this position positionOffset positionOffsetPixels]
   )
 
-(defn get-week-color [year week]
-  (let [current (utils/get-current-week)]
-    (if (and (= (:year current) year) (= (:week current) week))
-      Color/GRAY
-      Color/DKGRAY)))
-
-(defn update-week-nr-view [ctx year week]
-  (log/i "update-week-nr-view" year " " week)
-    (ui-utils/set-text ctx :org.pipo.main/year-tv (str year " / " week))
-    (on-ui
-      (config (find-view ctx :org.pipo.main/year-tv)
-              :background-color
-              (get-week-color year week))))
-
 (defn fragment-onPageSelected [this position]
   (let [focused-page (getfield this :focused-page)
         year (prefs/pref-get prefs/PREF_YEAR)
@@ -192,12 +178,20 @@
 
     (if (= position 0) ;; Moved to previous week
       (do
-        (update-week-nr-view ctx (:year prev-yw) (:week prev-yw))
+        (ui-utils/update-week-nr-view
+          ctx
+          :org.pipo.main/year-tv
+          (:year prev-yw)
+          (:week prev-yw))
         )
       )
     (if (= position 2) ;; Moved to next week
       (do
-        (update-week-nr-view ctx (:year next-yw) (:week next-yw))
+        (ui-utils/update-week-nr-view
+          ctx
+          :org.pipo.main/year-tv
+          (:year next-yw)
+          (:week next-yw))
         )
       )
 
