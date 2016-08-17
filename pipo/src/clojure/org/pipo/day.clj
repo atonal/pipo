@@ -34,10 +34,9 @@
 
 (defn close-cursor [cursor-kw]
   (let [^TaggedCursor cursor (cursor-kw @cursors)]
-    (if (not (nil? cursor))
-      (do
-        (.close cursor)
-        (swap! cursors assoc cursor-kw nil)))))
+    (when-not (nil? cursor))
+      (.close cursor)
+      (swap! cursors assoc cursor-kw nil)))
 
 (defn update-punch-list [ctx date]
   (let [^android.widget.ListView lv (find-view ctx ::punch-list)
@@ -145,9 +144,9 @@
         (config method-tv :text (str (db/get-punch-method data)))
         (config validity-tv :text (str (db/get-validity data))
                 :on-click (fn [_] (toggle-validity-and-update ctx (db/get-id data) date)))
-        (config lunch-tv :text (if (not (nil? work-start))
+        (config lunch-tv :text (if-not (nil? work-start)
                                  (str (db/get-lunch work-start)) "")
-                :on-click (if (not (nil? work-start))
+                :on-click (if-not (nil? work-start)
                             (fn [_] (toggle-lunch-and-update ctx work-start date))
                             (fn [_] ())))
         (config time-tv :text (str (utils/date-to-str
@@ -214,10 +213,9 @@
 
 (defn make-punch-bt-callback [ctx date dialog-id]
   (fn [_] (let [date-bundle (Bundle.)]
-            (do
-              (.putString date-bundle DATE_TAG (utils/date-to-str-date date))
-              (on-ui (.showDialog ctx dialog-id date-bundle))
-              true))))
+            (.putString date-bundle DATE_TAG (utils/date-to-str-date date))
+            (on-ui (.showDialog ctx dialog-id date-bundle))
+            true)))
 
 (defn main-layout [ctx date cursors]
   (let [punch-cursor (:punch cursors)]
