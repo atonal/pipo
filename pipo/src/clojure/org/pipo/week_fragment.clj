@@ -39,8 +39,6 @@
   (@(.state this) key))
 
 (defn fragment-init [ctx fm view-pager]
-  ; mViewPager.setOnPageChangeListener(this);
-
   [[fm] (atom {:middle (/ Integer/MAX_VALUE 2)
                :ctx ctx
                :vp view-pager
@@ -74,23 +72,8 @@
              ])]
       (.setRetainInstance fragment true)
       fragment)))
-    ; }
 
-    ; @Override
-    ; public int getCount() {
-(defn fragment-getCount [this]
-  ; java.lang.Integer
-  ; Integer/MAX_VALUE
-  3
-    )
-
-    ; @Override
-    ; public CharSequence getPageTitle(int position) {
-    ;     return "OBJECT " + (position + 1);
-    ; }
-
-; (defn fragment-instantiateItem [this container position]
-
+(defn fragment-getCount [this] 3)
 
 (defn- set-page-content [ctx view year week]
   (if (nil? view)
@@ -100,8 +83,6 @@
       (config (find-view view ::fragment-text)
               :text (str "fragment " (.getId view)))
       (weekview/update-week-list ctx view year week)
-    ;     TextView tv = (TextView) viewLayout.findViewById(R.id.calendar_text);
-    ;     tv.setText(String.format("Text Text Text global %d", globalPosition));
     )
     )
   )
@@ -117,17 +98,8 @@
               cur-week (prefs/pref-get prefs/PREF_WEEK)
               ]
 
-          (if (nil? view) (log/d "view is nil"))
-          (if (nil? id) (log/d "id is nil"))
-
-          ; final View v = viewPager.getChildAt(i);
-          ; if (v == null)
-          ;     continue;
-
-          ; // reveal correct child position
-          ; Integer tag = (Integer)v.getTag();
-          ; if (tag == null)
-          ;     continue;
+          (if (nil? view) (log/d "view is nil")) ;; TODO: if nil, skip rest
+          (if (nil? id) (log/d "id is nil")) ;; TODO: if nil, skip rest
 
           (cond
             (= id 0) (set-page-content
@@ -152,10 +124,6 @@
           )
         )
 
-
-
-
-    ;TODO shuffle the views
     (log/i "setCurrentItem")
     (.setCurrentItem view-pager 1 false))
   )
@@ -189,7 +157,6 @@
           )
         )
 
-
       ; (update-state ctx view-pager)
 
     (log/i "fragment-onPageScrollStateChanged __")
@@ -198,7 +165,6 @@
   )
 
 (defn fragment-onPageScrolled [this position positionOffset positionOffsetPixels]
-  ; (log/d "fragment-onPageScrolled")
   )
 
 (defn get-week-color [year week]
