@@ -53,7 +53,7 @@
         week (:week year-week)
         year (:year year-week)]
 
-    (log/d "getItem called")
+    (log/i "getItem called")
     (let [fragment
           (simple-fragment
             (getfield this :ctx)
@@ -62,6 +62,7 @@
                              :id i}
              [:text-view {:id ::fragment-text
                           :text (str "fragment " i)}]
+             ;; [::inner-week]
              (weekview/make-week-list (getfield this :ctx) year week)  ;; These get recreated, so no other child views!
              ])]
       (.setRetainInstance fragment true)
@@ -81,42 +82,90 @@
     )
   )
 
-(defn update-state [ctx view-pager]
+(defn update-state [ctx view-pager focused-page]
   (do
-    (log/i "fragment-onPageScrollStateChanged IDLE")
+    (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
 
-      (doseq [i (range (.getChildCount view-pager))]
-        (let [view (.getChildAt view-pager i)
-              id (.getId view)
+
+    (if (= 3 (.getChildCount view-pager))
+(let [
               cur-year (prefs/pref-get prefs/PREF_YEAR)
-              cur-week (prefs/pref-get prefs/PREF_WEEK)
-              ]
-
-          (if (nil? view) (log/d "view is nil")) ;; TODO: if nil, skip rest
-          (if (nil? id) (log/d "id is nil")) ;; TODO: if nil, skip rest
-
-          (case id
-            0 (set-page-content
+              cur-week (prefs/pref-get prefs/PREF_WEEK)]
+      (case focused-page
+        ;; move to previous
+        0 (do
+      (log/i "move last to first")
+            ; remove last
+            (let [view-to-move (.getChildAt view-pager 2)]
+              (.removeViewAt view-pager 2)
+              ; put it in front
+              (.addView view-pager view-to-move 0)
+              ; update it
+              (set-page-content
                 ctx
-                view
+                view-to-move
                 (:year (utils/get-previous-week cur-week cur-year))
                 (:week (utils/get-previous-week cur-week cur-year)))
-            1 (set-page-content
+              )
+            )
+        ;; move to next
+        2 (do
+      (log/i "move first to last")
+            ; remove first
+            (let [view-to-move (.getChildAt view-pager 0)]
+              (.removeViewAt view-pager 0)
+              ; put it in last
+              (.addView view-pager view-to-move 2)
+              ; update it
+              ;; TODO
+              (set-page-content
                 ctx
-                view
-                cur-year
-                cur-week)
-            2 (set-page-content
-                ctx
-                view
+                view-to-move
                 (:year (utils/get-next-week cur-week cur-year))
                 (:week (utils/get-next-week cur-week cur-year)))
-            nil)
-          )
-        )
+              )
+            )
+        nil)
+      )
+(log/i "childCount != 3")
+)
 
-    (log/i "setCurrentItem")
-    (.setCurrentItem view-pager 1 false))
+
+      ; (doseq [i (range (.getChildCount view-pager))]
+      ;   (let [view (.getChildAt view-pager i)
+      ;         id (.getId view)
+      ;         cur-year (prefs/pref-get prefs/PREF_YEAR)
+      ;         cur-week (prefs/pref-get prefs/PREF_WEEK)
+      ;         ]
+
+      ;     (if (nil? view) (log/d "view is nil")) ;; TODO: if nil, skip rest
+      ;     (if (nil? id) (log/d "id is nil")) ;; TODO: if nil, skip rest
+
+      ;     (case id
+      ;       0 (set-page-content
+      ;           ctx
+      ;           view
+      ;           (:year (utils/get-previous-week cur-week cur-year))
+      ;           (:week (utils/get-previous-week cur-week cur-year)))
+      ;       1 (set-page-content
+      ;           ctx
+      ;           view
+      ;           cur-year
+      ;           cur-week)
+      ;       2 (set-page-content
+      ;           ctx
+      ;           view
+      ;           (:year (utils/get-next-week cur-week cur-year))
+      ;           (:week (utils/get-next-week cur-week cur-year)))
+      ;       nil)
+      ;     )
+      ;   )
+
+    ; (log/i "setCurrentItem")
+    ; (log/i "child count:" (.getChildCount view-pager))
+    ; (.setCurrentItem view-pager 1 false)
+    (log/i "new child count:" (.getChildCount view-pager))
+)
   )
 
 (defn fragment-onPageScrollStateChanged [this state]
@@ -146,10 +195,11 @@
           nil)
         )
 
-      ; (update-state ctx view-pager)
-
-    (log/i "fragment-onPageScrollStateChanged __")
-    )
+      (do
+        (update-state ctx view-pager (getfield this :focused-page))
+        (log/i "fragment-onPageScrollStateChanged __")
+        )
+      )
   )
   )
 
@@ -167,17 +217,21 @@
 
     (case position
       ;; Moved to previous week
-      0 (ui-utils/update-week-nr-view
-          ctx
-          :org.pipo.main/year-tv
-          (:year prev-yw)
-          (:week prev-yw))
+      0 (do
+          ; (setfield this :direction :previous)
+          (ui-utils/update-week-nr-view
+            ctx
+            :org.pipo.main/year-tv
+            (:year prev-yw)
+            (:week prev-yw)))
       ;; Moved to next week
-      2 (ui-utils/update-week-nr-view
-          ctx
-          :org.pipo.main/year-tv
-          (:year next-yw)
-          (:week next-yw))
+      2 (do
+          ; (setfield this :direction :next)
+          (ui-utils/update-week-nr-view
+            ctx
+            :org.pipo.main/year-tv
+            (:year next-yw)
+            (:week next-yw)))
       nil)
 
     (setfield this :focused-page position)

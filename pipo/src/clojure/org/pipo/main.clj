@@ -145,7 +145,8 @@
     (update-state-ui ctx state)
     (update-service-ui ctx state service)
     ; (weekview/update-week-list ctx)
-    (week-fragment/update-state ctx (get-view-pager ctx))
+
+    ; (week-fragment/update-state ctx (get-view-pager ctx))
     ))
 
 (defn create-watchers [ctx service]
@@ -397,7 +398,7 @@
 (defn make-tick-func [ctx]
   (fn []
     ; (weekview/update-week-list ctx)
-    (week-fragment/update-state ctx (get-view-pager ctx))
+    (week-fragment/update-state ctx (get-view-pager ctx) 1)
     (log/d "main tick thread id " (Thread/currentThread))))
 
 (defactivity org.pipo.MyActivity
