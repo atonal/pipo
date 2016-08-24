@@ -85,6 +85,7 @@
 (defn update-state [ctx view-pager focused-page]
   (do
     (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
+      (log/i "focused-page:" focused-page)
 
 
     (if (= 3 (.getChildCount view-pager))
@@ -97,9 +98,45 @@
       (log/i "move last to first")
             ; remove last
             (let [view-to-move (.getChildAt view-pager 2)]
+
+
+      (let [
+            view0 (.getChildAt view-pager 0)
+            view1 (.getChildAt view-pager 1)
+            view2 (.getChildAt view-pager 2)
+            ]
+        (log/i "view0: (" (.getId view0)") " view0)
+        (log/i "view1: (" (.getId view1)") " view1)
+        (log/i "view2: (" (.getId view2)") " view2)
+        )
+
+
               (.removeViewAt view-pager 2)
               ; put it in front
               (.addView view-pager view-to-move 0)
+
+
+      (let [
+            view0 (.getChildAt view-pager 0)
+            view1 (.getChildAt view-pager 1)
+            view2 (.getChildAt view-pager 2)
+            ]
+        (log/i "view0: (" (.getId view0)") " view0)
+        (log/i "view1: (" (.getId view1)") " view1)
+        (log/i "view2: (" (.getId view2)") " view2)
+        )
+
+
+; 08-24 22:04:17.636 14250 14250 I pipo    : move last to first
+; 08-24 22:04:17.737 14250 14250 I pipo    : view0: ( 1 )  #object[android.widget.LinearLayout 0x34a84d5 android.widget.LinearLayout{34a84d5 V.E...... ........ 0,0-700,784 #1}]
+; 08-24 22:04:17.753 14250 14250 I pipo    : view1: ( 0 )  #object[android.widget.LinearLayout 0xcf1a4ea android.widget.LinearLayout{cf1a4ea V.E...... ........ -700,0-0,784 #0}]
+; 08-24 22:04:17.770 14250 14250 I pipo    : view2: ( 2 )  #object[android.widget.LinearLayout 0xa1eb3db android.widget.LinearLayout{a1eb3db V.E...... ......ID 700,0-1400,784 #2}]
+; 08-24 22:04:17.807 16010 16024 E linker  : "/system/bin/app_process32": ignoring 2-entry DT_PREINIT_ARRAY in shared library!
+; 08-24 22:04:17.856 14250 14250 I pipo    : view0: ( 2 )  #object[android.widget.LinearLayout 0xa1eb3db android.widget.LinearLayout{a1eb3db V.E...... ......ID 700,0-1400,784 #2}]
+; 08-24 22:04:17.871 14250 14250 I pipo    : view1: ( 1 )  #object[android.widget.LinearLayout 0x34a84d5 android.widget.LinearLayout{34a84d5 V.E...... ........ 0,0-700,784 #1}]
+; 08-24 22:04:17.887 14250 14250 I pipo    : view2: ( 0 )  #object[android.widget.LinearLayout 0xcf1a4ea android.widget.LinearLayout{cf1a4ea V.E...... ........ -700,0-0,784 #0}]
+
+
               ; update it
               (set-page-content
                 ctx
@@ -186,17 +223,20 @@
           0 (do
               (log/i "state changed, week " week " -> " (:week prev-yw))
               (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
-              (prefs/pref-set prefs/PREF_YEAR (:year prev-yw)))
+              (prefs/pref-set prefs/PREF_YEAR (:year prev-yw))
+        (update-state ctx view-pager (getfield this :focused-page))
+              )
           2 (do
               ;; Moved to next week
               (log/i "state changed, week " week " -> " (:week next-yw))
               (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
-              (prefs/pref-set prefs/PREF_YEAR (:year next-yw)))
+              (prefs/pref-set prefs/PREF_YEAR (:year next-yw))
+        (update-state ctx view-pager (getfield this :focused-page))
+              )
           nil)
         )
 
       (do
-        (update-state ctx view-pager (getfield this :focused-page))
         (log/i "fragment-onPageScrollStateChanged __")
         )
       )
