@@ -59,7 +59,8 @@
             (getfield this :ctx)
             [:linear-layout {:orientation :vertical
                              :id-holder true
-                             :id i}
+                             :id i
+                             }
              [:text-view {:id ::fragment-text
                           :text (str "fragment " i)}]
              ;; [::inner-week]
@@ -82,6 +83,12 @@
     )
   )
 
+(defn find-child-with-id [id view]
+  (filter
+    #(= id (.getId %))
+    (for [i (range (.getChildCount view))]
+      (.getChildAt view i))))
+
 (defn update-state [ctx view-pager focused-page]
   (do
     (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
@@ -92,6 +99,27 @@
 (let [
               cur-year (prefs/pref-get prefs/PREF_YEAR)
               cur-week (prefs/pref-get prefs/PREF_WEEK)]
+
+
+  (let [view0 (find-child-with-id 0 view-pager)
+        view1 (find-child-with-id 1 view-pager)
+        view2 (find-child-with-id 2 view-pager)]
+    (log/i "VIEW 2: " view2))
+
+  (let [fuu (for [i (range (.getChildCount view-pager))]
+              (.getChildAt view-pager i))]
+      (log/i "fuu:" fuu)
+      (let [bar (sort-by #(.getId %) fuu)]
+      (log/i "sorted fuu:" bar)
+      (log/i "interleaved: " (vec (interleave ['view0 'view1 'view2] bar)))
+
+      ; (let (vec (interleave ['view0 'view1 'view2] bar))
+      ;   (log/i "VIEW0: " view0))
+)
+      )
+
+
+
       (case focused-page
         ;; move to previous
         0 (do
