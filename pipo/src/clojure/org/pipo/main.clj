@@ -167,11 +167,10 @@
 
 (defn change-to-current-week [ctx]
   (let [current (utils/get-current-week)]
-    ; (week-fragment/update-week-nr-view ctx (:year current) (:week current))
     (ui-utils/update-week-nr-view ctx ::year-tv (:year current) (:week current))
-      ; (on-ui (toast (str "update week to" (:week current)) :short))
     (prefs/pref-set prefs/PREF_YEAR (:year current))
     (prefs/pref-set prefs/PREF_WEEK (:week current))
+    (week-fragment/update-state ctx (get-view-pager ctx))
     ))
 
 (defn week-layout [^Activity ctx service]
