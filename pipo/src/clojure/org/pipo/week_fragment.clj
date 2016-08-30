@@ -96,118 +96,56 @@
       (.getChildAt view i)))))
 
 (defn update-state [ctx view-pager focused-page]
-  (do
-    (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
-      (log/i "focused-page:" focused-page)
+  (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
+  (log/i "focused-page:" focused-page)
 
 
-    (if (= 3 (.getChildCount view-pager))
-(let [
-              cur-year (prefs/pref-get prefs/PREF_YEAR)
-              cur-week (prefs/pref-get prefs/PREF_WEEK)]
-
-
-  (let [view0 (find-child-with-id 0 view-pager)
-        view1 (find-child-with-id 1 view-pager)
-        view2 (find-child-with-id 2 view-pager)]
-    (log/i "VIEW 2: " view2)
-
-  (let [fuu (for [i (range (.getChildCount view-pager))]
-              (.getChildAt view-pager i))]
-      (log/i "fuu:" fuu)
-      (let [bar (sort-by #(.getId %) fuu)]
-      (log/i "sorted fuu:" bar)
-      (log/i "interleaved: " (vec (interleave ['view0 'view1 'view2] bar)))
-
-      ; (let (vec (interleave ['view0 'view1 'view2] bar))
-      ;   (log/i "VIEW0: " view0))
-)
-      )
+  (if (= 3 (.getChildCount view-pager))
+    (let [cur-year (prefs/pref-get prefs/PREF_YEAR)
+          cur-week (prefs/pref-get prefs/PREF_WEEK)
+          view0 (find-child-with-id 0 view-pager)
+          view1 (find-child-with-id 1 view-pager)
+          view2 (find-child-with-id 2 view-pager)]
 
       (case focused-page
         ;; move to previous
         0 (do
-      (log/i "move last to first")
-            ; remove last
-            ; (let [view-to-move (.getChildAt view-pager 2)]
-
+            ; move last to first
             (.setId view0 1)
             (.setId view1 2)
             (.setId view2 0)
-              ; put it in front
 
-
-              ; update it
-              (set-page-content
-                ctx
-                view2
-                (:year (utils/get-previous-week cur-week cur-year))
-                (:week (utils/get-previous-week cur-week cur-year)))
-              ; )
+            ; update first
+            (set-page-content
+              ctx
+              view2
+              (:year (utils/get-previous-week cur-week cur-year))
+              (:week (utils/get-previous-week cur-week cur-year)))
+            ; )
             )
         ;; move to next
         2 (do
-      (log/i "move first to last")
-            ; remove first
-              ; (.removeViewAt view-pager 0)
+            ; move first to last
             (.setId view0 2)
             (.setId view1 0)
             (.setId view2 1)
 
-              ; put it in last
-              ; update it
-              ;; TODO
-              (set-page-content
-                ctx
-                view0
-                (:year (utils/get-next-week cur-week cur-year))
-                (:week (utils/get-next-week cur-week cur-year)))
+            ; update last
+            (set-page-content
+              ctx
+              view0
+              (:year (utils/get-next-week cur-week cur-year))
+              (:week (utils/get-next-week cur-week cur-year)))
             )
         nil)
-)
       )
-(log/i "childCount != 3")
-)
+    (log/i "childCount != 3")
+    )
 
+  ;; this forces the adapter to rearrange the pages, by getItemPosition
+  (.notifyDataSetChanged (.getAdapter view-pager))
 
-      ; (doseq [i (range (.getChildCount view-pager))]
-      ;   (let [view (.getChildAt view-pager i)
-      ;         id (.getId view)
-      ;         cur-year (prefs/pref-get prefs/PREF_YEAR)
-      ;         cur-week (prefs/pref-get prefs/PREF_WEEK)
-      ;         ]
-
-      ;     (if (nil? view) (log/d "view is nil")) ;; TODO: if nil, skip rest
-      ;     (if (nil? id) (log/d "id is nil")) ;; TODO: if nil, skip rest
-
-      ;     (case id
-      ;       0 (set-page-content
-      ;           ctx
-      ;           view
-      ;           (:year (utils/get-previous-week cur-week cur-year))
-      ;           (:week (utils/get-previous-week cur-week cur-year)))
-      ;       1 (set-page-content
-      ;           ctx
-      ;           view
-      ;           cur-year
-      ;           cur-week)
-      ;       2 (set-page-content
-      ;           ctx
-      ;           view
-      ;           (:year (utils/get-next-week cur-week cur-year))
-      ;           (:week (utils/get-next-week cur-week cur-year)))
-      ;       nil)
-      ;     )
-      ;   )
-
-    ; (log/i "setCurrentItem")
-    ; (log/i "child count:" (.getChildCount view-pager))
-
-(.notifyDataSetChanged (.getAdapter view-pager))
-
-    ; (.setCurrentItem view-pager 1 false)
-    (log/i "new child count:" (.getChildCount view-pager))
-)
+  ; (.setCurrentItem view-pager 1 false)
   )
 
 (defn fragment-onPageScrollStateChanged [this state]
@@ -282,14 +220,3 @@
     (setfield this :focused-page position)
   (log/i "fragment-onPageSelected, " focused-page " -> " position)
   ))
-
-; 08-24 22:04:17.636 14250 14250 I pipo    : move last to first
-; 08-24 22:04:17.737 14250 14250 I pipo    : view0: ( 1 )  #object[android.widget.LinearLayout 0x34a84d5 android.widget.LinearLayout{34a84d5 V.E...... ........ 0,0-700,784 #1}]
-; 08-24 22:04:17.753 14250 14250 I pipo    : view1: ( 0 )  #object[android.widget.LinearLayout 0xcf1a4ea android.widget.LinearLayout{cf1a4ea V.E...... ........ -700,0-0,784 #0}]
-; 08-24 22:04:17.770 14250 14250 I pipo    : view2: ( 2 )  #object[android.widget.LinearLayout 0xa1eb3db android.widget.LinearLayout{a1eb3db V.E...... ......ID 700,0-1400,784 #2}]
-; 08-24 22:04:17.807 16010 16024 E linker  : "/system/bin/app_process32": ignoring 2-entry DT_PREINIT_ARRAY in shared library!
-; 08-24 22:04:17.856 14250 14250 I pipo    : view0: ( 2 )  #object[android.widget.LinearLayout 0xa1eb3db android.widget.LinearLayout{a1eb3db V.E...... ......ID 700,0-1400,784 #2}]
-; 08-24 22:04:17.871 14250 14250 I pipo    : view1: ( 1 )  #object[android.widget.LinearLayout 0x34a84d5 android.widget.LinearLayout{34a84d5 V.E...... ........ 0,0-700,784 #1}]
-; 08-24 22:04:17.887 14250 14250 I pipo    : view2: ( 0 )  #object[android.widget.LinearLayout 0xcf1a4ea android.widget.LinearLayout{cf1a4ea V.E...... ........ -700,0-0,784 #0}]
-
-
