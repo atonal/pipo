@@ -95,58 +95,108 @@
     (for [i (range (.getChildCount view))]
       (.getChildAt view i)))))
 
-(defn update-state [ctx view-pager focused-page]
-  (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
-  (log/i "focused-page:" focused-page)
+;; shift-right
+(defn move-to-previous [ctx view-pager]
+  {:pre [(= 3 (.getChildCount view-pager))]}
+  (let [cur-year (prefs/pref-get prefs/PREF_YEAR)
+        cur-week (prefs/pref-get prefs/PREF_WEEK)
+        view0 (find-child-with-id 0 view-pager)
+        view1 (find-child-with-id 1 view-pager)
+        view2 (find-child-with-id 2 view-pager)]
 
+    ; move last to first
+    (.setId view0 1)
+    (.setId view1 2)
+    (.setId view2 0)
 
-  (if (= 3 (.getChildCount view-pager))
-    (let [cur-year (prefs/pref-get prefs/PREF_YEAR)
-          cur-week (prefs/pref-get prefs/PREF_WEEK)
-          view0 (find-child-with-id 0 view-pager)
-          view1 (find-child-with-id 1 view-pager)
-          view2 (find-child-with-id 2 view-pager)]
-
-      (case focused-page
-        ;; move to previous
-        0 (do
-            ; move last to first
-            (.setId view0 1)
-            (.setId view1 2)
-            (.setId view2 0)
-
-            ; update first
-            (set-page-content
-              ctx
-              view2
-              (:year (utils/get-previous-week cur-week cur-year))
-              (:week (utils/get-previous-week cur-week cur-year)))
-            ; )
-            )
-        ;; move to next
-        2 (do
-            ; move first to last
-            (.setId view0 2)
-            (.setId view1 0)
-            (.setId view2 1)
-
-            ; update last
-            (set-page-content
-              ctx
-              view0
-              (:year (utils/get-next-week cur-week cur-year))
-              (:week (utils/get-next-week cur-week cur-year)))
-            )
-        nil)
-      )
-    (log/i "childCount != 3")
+    ; update first
+    (set-page-content
+      ctx
+      view2
+      (:year (utils/get-previous-week cur-week cur-year))
+      (:week (utils/get-previous-week cur-week cur-year)))
+    ; )
     )
-
-  ;; this forces the adapter to rearrange the pages, by getItemPosition
   (.notifyDataSetChanged (.getAdapter view-pager))
-
-  ; (.setCurrentItem view-pager 1 false)
   )
+
+;; shift-left
+(defn move-to-next [ctx view-pager]
+  {:pre [(= 3 (.getChildCount view-pager))]}
+  (let [cur-year (prefs/pref-get prefs/PREF_YEAR)
+        cur-week (prefs/pref-get prefs/PREF_WEEK)
+        view0 (find-child-with-id 0 view-pager)
+        view1 (find-child-with-id 1 view-pager)
+        view2 (find-child-with-id 2 view-pager)]
+
+    ; move first to last
+    (.setId view0 2)
+    (.setId view1 0)
+    (.setId view2 1)
+
+    ; update last
+    (set-page-content
+      ctx
+      view0
+      (:year (utils/get-next-week cur-week cur-year))
+      (:week (utils/get-next-week cur-week cur-year)))
+    )
+  (.notifyDataSetChanged (.getAdapter view-pager))
+  )
+
+;; TODO: separate fn for recreating and updating (current) day(s)
+(defn update-state
+  ([ctx view-pager]
+   (update-state ctx view-pager 1))
+  ([ctx view-pager focused-page]
+   (log/i "fragment-onPageScrollStateChanged IDLE, child count:" (.getChildCount view-pager))
+   (log/i "focused-page:" focused-page)
+
+
+   (if (= 3 (.getChildCount view-pager))
+     (let [cur-year (prefs/pref-get prefs/PREF_YEAR)
+           cur-week (prefs/pref-get prefs/PREF_WEEK)
+           view0 (find-child-with-id 0 view-pager)
+           view1 (find-child-with-id 1 view-pager)
+           view2 (find-child-with-id 2 view-pager)]
+
+       (case focused-page
+         ;; move to previous
+         0 (do
+             ; move last to first
+             (.setId view0 1)
+             (.setId view1 2)
+             (.setId view2 0)
+
+             ; update first
+             (set-page-content
+               ctx
+               view2
+               (:year (utils/get-previous-week cur-week cur-year))
+               (:week (utils/get-previous-week cur-week cur-year)))
+             ; )
+             )
+         ;; move to next
+         2 (do
+             ; move first to last
+             (.setId view0 2)
+             (.setId view1 0)
+             (.setId view2 1)
+
+             ; update last
+             (set-page-content
+               ctx
+               view0
+               (:year (utils/get-next-week cur-week cur-year))
+               (:week (utils/get-next-week cur-week cur-year)))
+             )
+         nil)
+       )
+     (log/i "childCount != 3")
+     )
+
+   ;; this forces the adapter to rearrange the pages, by getItemPosition
+   (.notifyDataSetChanged (.getAdapter view-pager))))
 
 (defn fragment-onPageScrollStateChanged [this state]
   (let [ctx (getfield this :ctx)
@@ -167,14 +217,16 @@
               (log/i "state changed, week " week " -> " (:week prev-yw))
               (prefs/pref-set prefs/PREF_WEEK (:week prev-yw))
               (prefs/pref-set prefs/PREF_YEAR (:year prev-yw))
-        (update-state ctx view-pager (getfield this :focused-page))
+              ; (update-state ctx view-pager focused-page)
+              (move-to-previous ctx view-pager)
               )
           2 (do
               ;; Moved to next week
               (log/i "state changed, week " week " -> " (:week next-yw))
               (prefs/pref-set prefs/PREF_WEEK (:week next-yw))
               (prefs/pref-set prefs/PREF_YEAR (:year next-yw))
-        (update-state ctx view-pager (getfield this :focused-page))
+              ; (update-state ctx view-pager focused-page)
+              (move-to-next ctx view-pager)
               )
           nil)
         )

@@ -359,7 +359,7 @@
       (when (week-input-valid? year week)
         (prefs/pref-set prefs/PREF_YEAR year)
         (prefs/pref-set prefs/PREF_WEEK week)
-        ; (week-fragment/update-state ctx (get-view-pager ctx))
+        (week-fragment/update-state ctx (get-view-pager ctx))
         ))))
 
 (defn create-week-dialog [ctx]
@@ -398,7 +398,7 @@
 (defn make-tick-func [ctx]
   (fn []
     ; (weekview/update-week-list ctx)
-    (week-fragment/update-state ctx (get-view-pager ctx) 1)
+    (week-fragment/update-state ctx (get-view-pager ctx))
     (log/d "main tick thread id " (Thread/currentThread))))
 
 (defactivity org.pipo.MyActivity
