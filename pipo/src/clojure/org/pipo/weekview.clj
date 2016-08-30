@@ -201,7 +201,8 @@
                  layout (.getChildAt (find-view viewcontainer ::inner-week) date-index)
                  ]
              (update-day-layout ctx layout local-date)
-             (update-animation ctx layout local-date)
+             (if (utils/date-equals? local-date (l/local-now))
+               (update-animation ctx layout local-date))
              ))
 
          ; (let [year (prefs/pref-get prefs/PREF_YEAR)
