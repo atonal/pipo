@@ -76,24 +76,13 @@
 
 (defn fragment-getCount [this] 3)
 
-(defn- set-page-content [ctx view year week]
-  (if (nil? view)
-    (log/d "set-page-content view == nil")
-    (do
-      (log/d  "set-page-content view: " view)
-      (config (find-view view ::fragment-text)
-              :text (str "fragment " (.getId view)))
-      (weekview/update-week-list ctx view year week)
-    )
-    )
-  )
-
 (defn find-child-with-id [id view]
+  {:post [(not (nil? %))]}
   (first
-  (filter
-    #(= id (.getId %))
-    (for [i (range (.getChildCount view))]
-      (.getChildAt view i)))))
+    (filter
+      #(= id (.getId %))
+      (for [i (range (.getChildCount view))]
+        (.getChildAt view i)))))
 
 ;; shift-right
 (defn move-to-previous [ctx view-pager]
@@ -110,7 +99,7 @@
     (.setId view2 0)
 
     ; update first
-    (set-page-content
+    (weekview/update-week-list
       ctx
       view2
       (:year (utils/get-previous-week cur-week cur-year))
@@ -136,7 +125,7 @@
     (.setId view2 1)
 
     ; update last
-    (set-page-content
+    (weekview/update-week-list
       ctx
       view0
       (:year (utils/get-next-week cur-week cur-year))
@@ -156,17 +145,17 @@
         view2 (find-child-with-id 2 view-pager)]
 
     ; update first
-    (set-page-content
+    (weekview/update-week-list
       ctx
       view0
       (:year (utils/get-previous-week cur-week cur-year))
       (:week (utils/get-previous-week cur-week cur-year)))
 
     ; update current
-    (set-page-content ctx view1 cur-year cur-week)
+    (weekview/update-week-list ctx view1 cur-year cur-week)
 
     ; update last
-    (set-page-content
+    (weekview/update-week-list
       ctx
       view2
       (:year (utils/get-next-week cur-week cur-year))

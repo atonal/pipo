@@ -19,7 +19,6 @@
             [org.pipo.week-fragment :as week-fragment]
             [org.pipo.broadcastreceiver :as tick]
             [org.pipo.location :as location]
-            [org.pipo.weekview :as weekview]
             [org.pipo.ui-utils :as ui-utils])
   (:import [android.view ViewGroup Gravity]
            android.graphics.Color
@@ -144,8 +143,6 @@
     (ui-utils/update-week-nr-view ctx ::year-tv prefs/pipo-yearweek)
     (update-state-ui ctx prefs/pipo-state)
     (update-service-ui ctx prefs/pipo-service service)
-    ; (weekview/update-week-list ctx)
-
     ; (week-fragment/update-state ctx (get-view-pager ctx))
     )
 
@@ -413,7 +410,7 @@
 
 (defn make-tick-func [ctx]
   (fn []
-    ; (weekview/update-week-list ctx)
+    ;TODO lighted update
     (week-fragment/update-state ctx (get-view-pager ctx))
     (log/d "main tick thread id " (Thread/currentThread))))
 
