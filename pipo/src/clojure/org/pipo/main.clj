@@ -152,16 +152,13 @@
 (defn create-watchers [ctx service]
   (add-watch prefs/pipo-state :state-watcher
              (fn [key atom old-state new-state]
-               (update-state-ui ctx new-state)
-               ))
+               (update-state-ui ctx new-state)))
   (add-watch prefs/pipo-service :service-watcher
              (fn [key atom old-state new-state]
-               (update-service-ui ctx new-state service)
-               ))
+               (update-service-ui ctx new-state service)))
   (add-watch prefs/pipo-yearweek :yearweek-watcher
              (fn [key atom old-state new-state]
-               (ui-utils/update-week-nr-view ctx ::year-tv new-state)
-               ))
+               (ui-utils/update-week-nr-view ctx ::year-tv new-state)))
   (add-watch prefs/pipo-latlong :latlong-watcher
              (fn [key atom old-state new-state]
                ;; TODO: nothing to do?
