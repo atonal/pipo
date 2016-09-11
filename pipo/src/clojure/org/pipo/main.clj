@@ -12,6 +12,7 @@
             [clj-time.local :as l]
             [clj-time.coerce :as c]
             [clj-time.core :as t]
+            [clojure.data :as data]
             [org.pipo.prefs :as prefs]
             [org.pipo.database :as db]
             [org.pipo.utils :as utils]
@@ -139,21 +140,36 @@
   )
 
 (defn update-uis [ctx service & pref-state]
-  (let [state (or (first pref-state) @(prefs/get-prefs))]
     (log/i "update-uis")
-    (ui-utils/update-week-nr-view ctx ::year-tv state)
-    (update-state-ui ctx state)
-    (update-service-ui ctx state service)
+    (ui-utils/update-week-nr-view ctx ::year-tv prefs/pipo-yearweek)
+    (update-state-ui ctx prefs/pipo-state)
+    (update-service-ui ctx prefs/pipo-service service)
     ; (weekview/update-week-list ctx)
 
     ; (week-fragment/update-state ctx (get-view-pager ctx))
-    ))
+    )
 
 (defn create-watchers [ctx service]
-  (add-watch (prefs/get-prefs) :year-week-watcher
+  (add-watch prefs/pipo-state :state-watcher
              (fn [key atom old-state new-state]
-               (log/i "pref updated:" new-state)
-               (update-uis ctx service new-state)))
+               (update-state-ui ctx new-state)
+               ))
+  (add-watch prefs/pipo-service :service-watcher
+             (fn [key atom old-state new-state]
+               (update-service-ui ctx new-state service)
+               ))
+  (add-watch prefs/pipo-yearweek :yearweek-watcher
+             (fn [key atom old-state new-state]
+               (ui-utils/update-week-nr-view ctx ::year-tv new-state)
+               ))
+  (add-watch prefs/pipo-latlong :latlong-watcher
+             (fn [key atom old-state new-state]
+               ;; TODO: nothing to do?
+               ))
+  (add-watch prefs/pipo-fmt :fmt-watcher
+             (fn [key atom old-state new-state]
+               ;; TODO
+               ))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
                (ui-utils/set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
@@ -224,6 +240,7 @@
               :on-click (fn [_]
                           (prefs/toggle-hour-formatter)
                           ;; TODO: tihs is now a bit heavy, make ligther update fns
+                          ;; TODO: through fmt-watcher
                           (week-fragment/update-state ctx (get-view-pager ctx)))}]
     ]
    [:linear-layout {:id ::swipe

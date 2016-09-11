@@ -10,30 +10,30 @@
 (def ^:const SERVICE_STOPPED "STOPPED")
 (def ^:const HOUR_FORMATTERS {:dec utils/long-to-decimal :hm utils/long-to-hm})
 
-
-(defpreferences pipo-prefs "pipo_sp")
+(defpreferences pipo-state "pipo_sp_state")
+(defpreferences pipo-service "pipo_sp_service")
+(defpreferences pipo-yearweek "pipo_sp_yearweek")
+(defpreferences pipo-latlong "pipo_sp_latlong")
+(defpreferences pipo-fmt "pipo_sp_fmt")
 
 ; TODO: get the key from the pref-name
-(defmacro defpref [pref-name pref-key default]
-  `(def ~(vary-meta pref-name assoc :tag `:const) {:key ~pref-key :default ~default}))
+(defmacro defpref [pref-name pref-key default pref]
+  `(def ~(vary-meta pref-name assoc :tag `:const)
+     {:key ~pref-key :default ~default :pref ~pref}))
 
-(defpref PREF_STATE :state STATE_OUT)
-(defpref PREF_STATE_SERVICE :state-service SERVICE_STOPPED)
-(defpref PREF_YEAR :year 2015)
-(defpref PREF_WEEK :week 51)
-(defpref PREF_DEST_LAT :lat 0)
-(defpref PREF_DEST_LONG :long 0)
-(defpref PREF_HOUR_FORMATTER :fmt "hm")
+(defpref PREF_STATE :state STATE_OUT pipo-state)
+(defpref PREF_STATE_SERVICE :state-service SERVICE_STOPPED pipo-service)
+(defpref PREF_YEAR :year 2015 pipo-yearweek)
+(defpref PREF_WEEK :week 51 pipo-yearweek)
+(defpref PREF_DEST_LAT :lat 0 pipo-latlong)
+(defpref PREF_DEST_LONG :long 0 pipo-latlong)
+(defpref PREF_HOUR_FORMATTER :fmt "hm" pipo-fmt)
 
 (defn pref-get [pref-name & pref-state]
-  (let [pref (or (first pref-state) @pipo-prefs)]
+  (let [pref (or (first pref-state) @(:pref pref-name))]
     (or
       ((:key pref-name) pref)
       (:default pref-name))))
-
-(defn get-prefs []
-  (log/d "get-prefs" pipo-prefs)
-  pipo-prefs)
 
 (defn pref-set-named [pref-atom pref-name new-val]
   (if (not= new-val (pref-get pref-name))
@@ -41,7 +41,7 @@
 
 (defn pref-set [pref-name new-val]
   (log/i "set pref to: " new-val)
-  (pref-set-named pipo-prefs pref-name new-val))
+  (pref-set-named (:pref pref-name) pref-name new-val))
 
 (defn update-state []
   (let [type-latest (db/get-type (db/get-latest-punch))]
