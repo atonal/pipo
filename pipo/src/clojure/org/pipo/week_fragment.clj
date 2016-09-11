@@ -99,7 +99,7 @@
     (.setId view2 0)
 
     ; update first
-    (weekview/update-week-list
+    (weekview/update-week-all
       ctx
       view2
       (:year (utils/get-previous-week cur-week cur-year))
@@ -125,7 +125,7 @@
     (.setId view2 1)
 
     ; update last
-    (weekview/update-week-list
+    (weekview/update-week-all
       ctx
       view0
       (:year (utils/get-next-week cur-week cur-year))
@@ -136,7 +136,7 @@
   )
 
 ;; TODO: separate fn for recreating and updating (current) day(s)
-(defn- update-state-specific [ctx view-pager fun]
+(defn- update-all-pages [ctx view-pager update-fun]
   {:pre [(= 3 (.getChildCount view-pager))]}
   (let [cur-year (prefs/pref-get prefs/PREF_YEAR)
         cur-week (prefs/pref-get prefs/PREF_WEEK)
@@ -145,30 +145,30 @@
         view2 (find-child-with-id 2 view-pager)]
 
     ; update first
-    (fun
+    (update-fun
       ctx
       view0
       (:year (utils/get-previous-week cur-week cur-year))
       (:week (utils/get-previous-week cur-week cur-year)))
 
     ; update current
-    (fun ctx view1 cur-year cur-week)
+    (update-fun ctx view1 cur-year cur-week)
 
     ; update last
-    (fun
+    (update-fun
       ctx
       view2
       (:year (utils/get-next-week cur-week cur-year))
       (:week (utils/get-next-week cur-week cur-year)))))
 
 (defn update-state [ctx view-pager]
-  (update-state-specific ctx view-pager weekview/update-week-list))
+  (update-all-pages ctx view-pager weekview/update-week-all))
 
 (defn update-animation [ctx view-pager]
-  (update-state-specific ctx view-pager weekview/update-week-animation))
+  (update-all-pages ctx view-pager weekview/update-week-animation))
 
 (defn update-time-tv [ctx view-pager]
-  (update-state-specific ctx view-pager weekview/update-week-time-tv))
+  (update-all-pages ctx view-pager weekview/update-week-time-tv))
 
 (defn fragment-onPageScrollStateChanged [this state]
   (let [ctx (getfield this :ctx)

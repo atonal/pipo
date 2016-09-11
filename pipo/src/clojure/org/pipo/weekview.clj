@@ -198,7 +198,7 @@
               (.clearAnimation dot-view)
               )))))))
 
-(defn update-week-list [ctx viewcontainer year week]
+(defn update-week-all [ctx viewcontainer year week]
   (dorun
     (map (fn [^DateTime date]
            (let [local-date (utils/to-local-time-zone date)
