@@ -168,11 +168,16 @@
     )
   )
 
-(defn update-animation [ctx day-view local-date]
+(defn update-day-time-tv [ctx day-view local-date]
+  (on-ui
+    (config (find-view day-view ::time-tv)
+            :text (time-text local-date))))
+
+(defn update-day-animation [ctx day-view local-date]
   (let [end-of-day (utils/day-end local-date)
         work-count (count (db/get-work-by-date local-date))
         current-time-in (db/get-time-in-for-date end-of-day)]
-    (log/d "update-animation, time since punch:" current-time-in)
+    (log/d "update-day-animation, time since punch:" current-time-in)
     (on-ui
       (doseq [i (range 1 (inc MAX_DOTS))]
         (log/d "update "(make-dot-id i))
@@ -202,13 +207,28 @@
                  ]
              (update-day-layout ctx layout local-date)
              (if (utils/date-equals? local-date (l/local-now))
-               (update-animation ctx layout local-date))
+               (update-day-animation ctx layout local-date))
              ))
+         (utils/week-from-week-number week year))))
 
-         ; (let [year (prefs/pref-get prefs/PREF_YEAR)
-               ; week (prefs/pref-get prefs/PREF_WEEK)]
-           (utils/week-from-week-number week year))
-         ; )
-    )
+(defn update-week-animation [ctx viewcontainer year week]
+  (dorun
+    (map (fn [^DateTime date]
+           (let [local-date (utils/to-local-time-zone date)
+                 date-index (dec (t/day-of-week date) )
+                 layout (.getChildAt (find-view viewcontainer ::inner-week) date-index)
+                 ]
+             (update-day-animation ctx layout local-date))
+           ))
+    (utils/week-from-week-number week year)))
 
-  )
+(defn update-week-time-tv [ctx viewcontainer year week]
+  (dorun
+    (map (fn [^DateTime date]
+           (let [local-date (utils/to-local-time-zone date)
+                 date-index (dec (t/day-of-week date) )
+                 layout (.getChildAt (find-view viewcontainer ::inner-week) date-index)
+                 ]
+             (update-day-time-tv ctx layout local-date)
+           ))
+    (utils/week-from-week-number week year))))

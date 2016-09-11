@@ -233,9 +233,8 @@
               :text "fmt"
               :on-click (fn [_]
                           (prefs/toggle-hour-formatter)
-                          ;; TODO: tihs is now a bit heavy, make ligther update fns
-                          ;; TODO: through fmt-watcher
-                          (week-fragment/update-state ctx (get-view-pager ctx)))}]
+                          ;; TODO: through fmt-watcher?
+                          (week-fragment/update-time-tv ctx (get-view-pager ctx)))}]
     ]
    [:linear-layout {:id ::swipe
                     :id-holder true
