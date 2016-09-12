@@ -162,8 +162,7 @@
                ))
   (add-watch prefs/pipo-fmt :fmt-watcher
              (fn [key atom old-state new-state]
-               ;; TODO
-               ))
+               (week-fragment/update-time-tv ctx (get-view-pager ctx))))
   (add-watch (location/get-location-data) :location-watcher
              (fn [key atom old-state new-state]
                (ui-utils/set-text ctx ::location-lat-tv (str "lat: " (:lat new-state)))
@@ -231,10 +230,7 @@
               :layout-width :wrap
               :layout-height :wrap
               :text "fmt"
-              :on-click (fn [_]
-                          (prefs/toggle-hour-formatter)
-                          ;; TODO: through fmt-watcher?
-                          (week-fragment/update-time-tv ctx (get-view-pager ctx)))}]
+              :on-click (fn [_] (prefs/toggle-hour-formatter))}]
     ]
    [:linear-layout {:id ::swipe
                     :id-holder true
